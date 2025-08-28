@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { getSupabase } from '@/lib/services/organizations'
+import DocumentUploader from '@/components/documents/DocumentUploader'
+import { OrganizationRole } from '@/lib/types/eacertificate'
+import ExternalIdField from '@/components/external-id/ExternalIdField'
 
 export default function EditOrganizationPage() {
   const params = useParams()
@@ -21,6 +24,8 @@ export default function EditOrganizationPage() {
     description: '',
     contact: '',
     location: { country: '', state: '', city: '', postalCode: '', address: '' } as any,
+    documents: [] as any[],
+    externalIDs: [] as any[],
   })
 
   const set = (k: string, v: any) => setForm(prev => ({ ...prev, [k]: v }))
@@ -31,7 +36,7 @@ export default function EditOrganizationPage() {
         const supabase = getSupabase()
         const { data, error } = await supabase
           .from('organizations')
-          .select('id, name, url, description, contact, location')
+          .select('id, name, url, description, contact, location, external_ids')
           .eq('id', orgId)
           .single()
         if (error) throw error
@@ -48,6 +53,8 @@ export default function EditOrganizationPage() {
             postalCode: loc?.postalCode ?? '',
             address: loc?.address ?? '',
           },
+          documents: [],
+          externalIDs: Array.isArray(data.external_ids) ? data.external_ids : [],
         })
       } catch (e: any) {
         toast.error(e.message ?? 'Failed to load organization')
@@ -83,6 +90,7 @@ export default function EditOrganizationPage() {
                   description: form.description || null,
                   contact: form.contact || null,
                   location: [form.location],
+                  external_ids: Array.isArray(form.externalIDs) ? form.externalIDs : null,
                 }
                 const { error } = await supabase
                   .from('organizations')
@@ -117,6 +125,14 @@ export default function EditOrganizationPage() {
               <Textarea value={form.description} onChange={e => set('description', e.target.value)} placeholder="Brief overview of the organization" rows={4} />
             </div>
             <div>
+              <ExternalIdField
+                value={form.externalIDs}
+                onChange={(v) => set('externalIDs', v)}
+                label="External identifiers"
+                description="Link this organization to external systems. Only ID is required."
+              />
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700">Location</label>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mt-1">
                 <Input placeholder="Country *" value={form.location.country} onChange={e => set('location', { ...form.location, country: e.target.value })} required />
@@ -124,6 +140,15 @@ export default function EditOrganizationPage() {
                 <Input placeholder="City" value={form.location.city} onChange={e => set('location', { ...form.location, city: e.target.value })} />
                 <Input placeholder="Postal Code" value={form.location.postalCode} onChange={e => set('location', { ...form.location, postalCode: e.target.value })} />
                 <Input placeholder="Address" value={form.location.address} onChange={e => set('location', { ...form.location, address: e.target.value })} />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Documents</label>
+              <div className="mt-2">
+                <DocumentUploader
+                  defaultOrganizations={[] as OrganizationRole[]}
+                  onChange={(items) => set('documents', items)}
+                />
               </div>
             </div>
             <div className="flex justify-end gap-2">

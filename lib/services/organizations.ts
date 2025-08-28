@@ -55,6 +55,7 @@ export async function createOrganizationFull(body: any) {
     description: body.description || null,
     contact: body.contact ?? body.contact ?? null,
     location: body.location ? [body.location] : null,
+    external_ids: Array.isArray(body.externalIDs) ? body.externalIDs : null,
     owner_id: user.id,
   }
   const { error } = await supabase

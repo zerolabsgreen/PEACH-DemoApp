@@ -10,7 +10,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
-import { useMemo, useState as useReactState } from 'react'
+import DocumentUploader from '@/components/documents/DocumentUploader'
+import ExternalIdField from '@/components/external-id/ExternalIdField'
+import { OrganizationRole } from '@/lib/types/eacertificate'
 let countryNames: string[] = []
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -28,6 +30,8 @@ export default function NewOrganizationPage() {
     description: '',
     contact: '',
     location: { country: '', city: '', state: '', address: '', postalCode: '' } as any,
+    documents: [] as any[],
+    externalIDs: [] as any[],
   })
   const [saving, setSaving] = useState(false)
 
@@ -80,6 +84,15 @@ export default function NewOrganizationPage() {
           </div>
 
           <div>
+            <ExternalIdField
+              value={form.externalIDs}
+              onChange={(v) => set('externalIDs', v)}
+              label="External identifiers"
+              description="Link this organization to external systems. Only ID is required."
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700">Location</label>
             <div className="grid grid-cols-12 gap-4 mt-2">
               <div className="col-span-12 md:col-span-6">
@@ -129,6 +142,16 @@ export default function NewOrganizationPage() {
                 <label className="block text-xs text-gray-500 mb-1">Address</label>
                 <Input placeholder="Address" value={form.location.address} onChange={e => set('location', { ...form.location, address: e.target.value })} />
               </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Documents</label>
+            <div className="mt-2">
+              <DocumentUploader
+                defaultOrganizations={[] as OrganizationRole[]}
+                onChange={(items) => set('documents', items)}
+              />
             </div>
           </div>
 

@@ -18,7 +18,8 @@ export enum FileType {
   AUDIT = "Audit",
   LABTEST = "Lab Test",
   CONSIGNMENT = "Consignment receipt",
-  IMAGE = "Image"
+  IMAGE = "Image",
+  ORGANIZATION_DOCUMENT = "Organization Document"
 }
 
 // EventTarget enum (matches database enum)
@@ -487,7 +488,8 @@ export const FILE_TYPE_NAMES: Record<FileType, string> = {
   [FileType.AUDIT]: 'Audit',
   [FileType.LABTEST]: 'Lab Test',
   [FileType.CONSIGNMENT]: 'Consignment receipt',
-  [FileType.IMAGE]: 'Image'
+  [FileType.IMAGE]: 'Image',
+  [FileType.ORGANIZATION_DOCUMENT]: 'Organization Document'
 };
 
 export const EVENT_TARGET_NAMES: Record<EventTarget, string> = {
