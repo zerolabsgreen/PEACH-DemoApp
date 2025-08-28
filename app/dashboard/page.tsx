@@ -3,6 +3,8 @@
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import Link from 'next/link'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function DashboardPage() {
   const { user, loading, signOut } = useAuth()
@@ -13,6 +15,7 @@ export default function DashboardPage() {
       router.push('/auth/login')
     }
   }, [user, loading, router])
+
 
   const handleSignOut = async () => {
     await signOut()
@@ -74,12 +77,24 @@ export default function DashboardPage() {
               </dl>
             </div>
 
-            <div className="mt-8 p-4 bg-indigo-50 rounded-md">
-              <h3 className="text-lg font-medium text-indigo-900 mb-2">Welcome to your dashboard!</h3>
-              <p className="text-indigo-700">
-                This is a protected page that only authenticated users can access. 
-                You can now build your application features here.
-              </p>
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Link href="/organizations">
+                <Card className="hover:bg-gray-50 transition-colors">
+                  <CardHeader>
+                    <CardTitle>Organizations</CardTitle>
+                    <CardDescription>Create and manage your organizations</CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
+
+              <Link href="/invitations">
+                <Card className="hover:bg-gray-50 transition-colors">
+                  <CardHeader>
+                    <CardTitle>Invitations</CardTitle>
+                    <CardDescription>View and respond to invitations</CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
             </div>
           </div>
         </div>
