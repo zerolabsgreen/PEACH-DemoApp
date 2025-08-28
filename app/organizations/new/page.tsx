@@ -5,6 +5,20 @@ import { useRouter } from 'next/navigation'
 import { createOrganizationFull } from '@/lib/services/organizations'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { useMemo, useState as useReactState } from 'react'
+let countryNames: string[] = []
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { countries } = require('countries-list') as any
+  countryNames = Object.values(countries).map((c: any) => c.name).sort()
+} catch (_) {
+  countryNames = []
+}
 
 export default function NewOrganizationPage() {
   const router = useRouter()
@@ -12,10 +26,8 @@ export default function NewOrganizationPage() {
     name: '',
     url: '',
     description: '',
-    contacts: '',
-    external_ids: [] as { system: string; id: string }[],
-    location: { country: '', city: '', address: '' } as any,
-    documents: [] as any[],
+    contact: '',
+    location: { country: '', city: '', state: '', address: '', postalCode: '' } as any,
   })
   const [saving, setSaving] = useState(false)
 
@@ -25,8 +37,10 @@ export default function NewOrganizationPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-semibold">Create Organization</h1>
-          <Button variant="outline" onClick={() => router.back()}>Back</Button>
+          <div className="flex items-center gap-2">
+            <BackButton />
+            <h1 className="text-2xl font-semibold">Create Organization</h1>
+          </div>
         </div>
         <form
           className="space-y-6 bg-white border rounded p-6"
@@ -45,49 +59,76 @@ export default function NewOrganizationPage() {
           }}
         >
           <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
-            <input value={form.name} onChange={e => set('name', e.target.value)} className="mt-1 w-full border rounded px-3 py-2" required />
+            <label className="block text-sm font-medium text-gray-700">Name<span className="text-red-600"> *</span></label>
+            <Input value={form.name} onChange={e => set('name', e.target.value)} placeholder="Acme Corp" required />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Website URL</label>
-              <input value={form.url} onChange={e => set('url', e.target.value)} className="mt-1 w-full border rounded px-3 py-2" />
+              <Input value={form.url} onChange={e => set('url', e.target.value)} placeholder="https://example.com" type="url" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Contacts</label>
-              <input value={form.contacts} onChange={e => set('contacts', e.target.value)} className="mt-1 w-full border rounded px-3 py-2" />
+              <label className="block text-sm font-medium text-gray-700">Contact</label>
+              <Input value={form.contact} onChange={e => set('contact', e.target.value)} placeholder="contact@example.com, +1 555 555 5555" />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Description</label>
-            <textarea value={form.description} onChange={e => set('description', e.target.value)} className="mt-1 w-full border rounded px-3 py-2" rows={4} />
+            <Textarea value={form.description} onChange={e => set('description', e.target.value)} placeholder="Brief overview of the organization" rows={4} />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Location</label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-1">
-              <input placeholder="Country" value={form.location.country} onChange={e => set('location', { ...form.location, country: e.target.value })} className="border rounded px-3 py-2" />
-              <input placeholder="City" value={form.location.city} onChange={e => set('location', { ...form.location, city: e.target.value })} className="border rounded px-3 py-2" />
-              <input placeholder="Address" value={form.location.address} onChange={e => set('location', { ...form.location, address: e.target.value })} className="border rounded px-3 py-2" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">External IDs</label>
-            <div className="space-y-2 mt-1">
-              {form.external_ids.map((x, i) => (
-                <div key={i} className="grid grid-cols-2 gap-2">
-                  <input placeholder="System" value={x.system} onChange={e => {
-                    const a = [...form.external_ids]; a[i] = { ...a[i], system: e.target.value }; set('external_ids', a)
-                  }} className="border rounded px-3 py-2" />
-                  <input placeholder="ID" value={x.id} onChange={e => {
-                    const a = [...form.external_ids]; a[i] = { ...a[i], id: e.target.value }; set('external_ids', a)
-                  }} className="border rounded px-3 py-2" />
-                </div>
-              ))}
-              <button type="button" onClick={() => set('external_ids', [...form.external_ids, { system: '', id: '' }])} className="text-sm px-3 py-1 bg-gray-200 rounded">Add External ID</button>
+            <div className="grid grid-cols-12 gap-4 mt-2">
+              <div className="col-span-12 md:col-span-6">
+                <label className="block text-xs text-gray-500 mb-1">Country<span className="text-red-600"> *</span></label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      {form.location.country || 'Select a country'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 w-[--radix-popover-trigger-width]">
+                    <Command>
+                      <CommandInput placeholder="Search country..." />
+                      <CommandList>
+                        <CommandEmpty>No country found.</CommandEmpty>
+                        <CommandGroup>
+                          {countryNames.map((name) => (
+                            <CommandItem
+                              key={name}
+                              value={name}
+                              onSelect={() => set('location', { ...form.location, country: name })}
+                            >
+                              {name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <input className="sr-only" tabIndex={-1} value={form.location.country} onChange={() => {}}
+                  required aria-hidden="true" />
+              </div>
+              <div className="col-span-12 md:col-span-6">
+                <label className="block text-xs text-gray-500 mb-1">State/Region</label>
+                <Input placeholder="State/Region" value={form.location.state} onChange={e => set('location', { ...form.location, state: e.target.value })} />
+              </div>
+              <div className="col-span-12 md:col-span-4">
+                <label className="block text-xs text-gray-500 mb-1">City</label>
+                <Input placeholder="City" value={form.location.city} onChange={e => set('location', { ...form.location, city: e.target.value })} />
+              </div>
+              <div className="col-span-12 md:col-span-4">
+                <label className="block text-xs text-gray-500 mb-1">Postal Code</label>
+                <Input placeholder="Postal Code" value={form.location.postalCode} onChange={e => set('location', { ...form.location, postalCode: e.target.value })} />
+              </div>
+              <div className="col-span-12 md:col-span-4">
+                <label className="block text-xs text-gray-500 mb-1">Address</label>
+                <Input placeholder="Address" value={form.location.address} onChange={e => set('location', { ...form.location, address: e.target.value })} />
+              </div>
             </div>
           </div>
 

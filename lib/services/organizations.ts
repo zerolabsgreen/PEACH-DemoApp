@@ -3,7 +3,6 @@ import { createClientComponentClient } from '@/lib/supabase'
 export type Organization = {
   id: string
   name: string
-  owner_id: string
   created_at: string
 }
 
@@ -36,13 +35,11 @@ export async function createOrganization(name: string) {
     error: userError,
   } = await supabase.auth.getUser()
   if (userError || !user) throw userError ?? new Error('No user')
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('organizations')
     .insert({ name, owner_id: user.id })
-    .select('*')
-    .single()
   if (error) throw error
-  return data as Organization
+  return { id: '', name, owner_id: user.id, created_at: new Date().toISOString() } as any
 }
 
 export async function createOrganizationFull(body: any) {
@@ -56,19 +53,15 @@ export async function createOrganizationFull(body: any) {
     name: body.name,
     url: body.url || null,
     description: body.description || null,
-    contacts: body.contacts || null,
-    external_ids: body.external_ids?.length ? body.external_ids : null,
-    location: body.location || null,
-    documents: body.documents?.length ? body.documents : null,
+    contact: body.contact ?? body.contact ?? null,
+    location: body.location ? [body.location] : null,
     owner_id: user.id,
   }
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('organizations')
     .insert(payload)
-    .select('*')
-    .single()
   if (error) throw error
-  return data as Organization
+  return { id: '', name: payload.name, owner_id: user.id, created_at: new Date().toISOString() } as any
 }
 
 export async function listMyOrganizations() {
@@ -83,46 +76,26 @@ export async function listMyOrganizations() {
 export async function listOrganizationsWithRole() {
   const supabase = getSupabase()
   const { data, error } = await supabase
-    .from('organization_members')
-    .select('role, organizations:org_id(id, name, owner_id, created_at)')
+    .from('organizations')
+    .select('id, name, created_at')
   if (error) throw error
-  return (data ?? []).map((row: any) => ({
-    role: row.role as 'admin' | 'member',
-    organizations: row.organizations as Organization,
-  })) as { role: 'admin' | 'member'; organizations: Organization }[]
+  return (data ?? []).map((row: any) => ({ organizations: row })) as any
 }
 
 export async function inviteToOrganization(orgId: string, email: string) {
-  const supabase = getSupabase()
-  const { data, error } = await supabase
-    .from('organization_invitations')
-    .insert({ org_id: orgId, email })
-    .select('*')
-    .single()
-  if (error) throw error
-  return data as OrganizationInvitation
+  throw new Error('Invitations feature is disabled')
 }
 
 export async function listMyInvitations() {
-  const supabase = getSupabase()
-  const { data, error } = await supabase
-    .from('organization_invitations')
-    .select('*, organizations:org_id(id, name)')
-    .eq('status', 'pending')
-  if (error) throw error
-  return data as any
+  return []
 }
 
 export async function acceptInvitation(token: string) {
-  const supabase = getSupabase()
-  const { error } = await supabase.rpc('accept_invitation', { p_token: token })
-  if (error) throw error
+  throw new Error('Invitations feature is disabled')
 }
 
 export async function rejectInvitation(token: string) {
-  const supabase = getSupabase()
-  const { error } = await supabase.rpc('reject_invitation', { p_token: token })
-  if (error) throw error
+  throw new Error('Invitations feature is disabled')
 }
 
 

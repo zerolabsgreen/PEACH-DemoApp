@@ -114,7 +114,7 @@ export interface Organization {
   externalIDs?: ExternalID[];
   url?: string;
   description?: string;
-  contacts?: string;
+  contact?: string;
   location?: Location[];
   documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
 }
@@ -171,7 +171,7 @@ export interface OrganizationDB {
   external_ids: ExternalID[] | null;
   url: string | null;
   description: string | null;
-  contacts: string | null;
+  contact: string | null;
   location: Location[] | null;
   documents: string[] | null; // Array of document UUIDs
   created_at: string;
@@ -310,7 +310,7 @@ export interface CreateOrganizationData {
   externalIDs?: ExternalID[];
   url?: string;
   description?: string;
-  contacts?: string;
+  contact?: string;
   location?: Location[];
 }
 
@@ -319,7 +319,7 @@ export interface UpdateOrganizationData {
   externalIDs?: ExternalID[];
   url?: string;
   description?: string;
-  contacts?: string;
+  contact?: string;
   location?: Location[];
 }
 

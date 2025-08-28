@@ -86,15 +86,6 @@ export default function DashboardPage() {
                   </CardHeader>
                 </Card>
               </Link>
-
-              <Link href="/invitations">
-                <Card className="hover:bg-gray-50 transition-colors">
-                  <CardHeader>
-                    <CardTitle>Invitations</CardTitle>
-                    <CardDescription>View and respond to invitations</CardDescription>
-                  </CardHeader>
-                </Card>
-              </Link>
             </div>
           </div>
         </div>
