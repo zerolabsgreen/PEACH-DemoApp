@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -32,37 +32,25 @@ export default function DocumentUploader(props: DocumentUploaderProps) {
   const [uploading, setUploading] = useState(false)
 
   const addItem = () => {
-    setItems(prev => {
-      const next = [
-        ...prev,
-        {
-          localId: crypto.randomUUID(),
-          fileType: FileType.ORGANIZATION_DOCUMENT,
-          title: '',
-          description: '',
-          metadata: [],
-          organizations: props.defaultOrganizations,
-        },
-      ]
-      props.onChange?.(next)
-      return next
-    })
+    setItems(prev => [
+      ...prev,
+      {
+        localId: crypto.randomUUID(),
+        fileType: FileType.ORGANIZATION_DOCUMENT,
+        title: '',
+        description: '',
+        metadata: [],
+        organizations: props.defaultOrganizations,
+      },
+    ])
   }
 
   const removeItem = (localId: string) => {
-    setItems(prev => {
-      const next = prev.filter(i => i.localId !== localId)
-      props.onChange?.(next)
-      return next
-    })
+    setItems(prev => prev.filter(i => i.localId !== localId))
   }
 
   const updateItem = (localId: string, patch: Partial<DocumentFormItem>) => {
-    setItems(prev => {
-      const next = prev.map(i => (i.localId === localId ? { ...i, ...patch } : i))
-      props.onChange?.(next)
-      return next
-    })
+    setItems(prev => prev.map(i => (i.localId === localId ? { ...i, ...patch } : i)))
   }
 
   const uploadAll = async () => {
@@ -86,11 +74,14 @@ export default function DocumentUploader(props: DocumentUploaderProps) {
         }
       }
       setItems(updated)
-      props.onChange?.(updated)
     } finally {
       setUploading(false)
     }
   }
+
+  useEffect(() => {
+    props.onChange?.(items)
+  }, [items])
 
   return (
     <div className="space-y-3">
@@ -98,9 +89,6 @@ export default function DocumentUploader(props: DocumentUploaderProps) {
         <div className="font-medium">Documents</div>
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={addItem}>Add document</Button>
-          <Button type="button" onClick={uploadAll} disabled={uploading || items.length === 0}>
-            {uploading ? 'Uploading…' : 'Upload all'}
-          </Button>
         </div>
       </div>
       {items.length === 0 ? (
@@ -152,9 +140,7 @@ export default function DocumentUploader(props: DocumentUploaderProps) {
                   <Button type="button" variant="outline" onClick={() => updateItem(item.localId, { metadata: [...(item.metadata ?? []), { key: '', label: '', value: '' }] })}>Add metadata</Button>
                 </div>
               </div>
-              {item.url ? (
-                <div className="text-xs text-green-700">Uploaded: {item.url}</div>
-              ) : null}
+              {/* Success messaging is handled globally via toasts in the parent flow */}
             </div>
           ))}
         </div>

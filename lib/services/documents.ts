@@ -1,6 +1,37 @@
 import { createClientComponentClient } from '@/lib/supabase'
 import { FileType, MetadataItem, OrganizationRole } from '@/lib/types/eacertificate'
 
+function sanitizeFileName(originalName: string): string {
+  const parts = originalName.split('.')
+  const ext = parts.length > 1 ? parts.pop() as string : ''
+  const base = parts.join('.')
+  // Allow only ASCII letters, numbers, dot, hyphen, underscore. Replace others with '-'
+  const safeBase = base
+    .normalize('NFKD')
+    .replace(/[^A-Za-z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^[-.]+|[-.]+$/g, '')
+    .slice(0, 200) || 'file'
+  const safeExt = ext
+    .normalize('NFKD')
+    .replace(/[^A-Za-z0-9]+/g, '')
+    .slice(0, 16)
+  return safeExt ? `${safeBase}.${safeExt}` : safeBase
+}
+
+function formatErrorMessage(err: unknown): string {
+  if (!err) return 'Unknown error'
+  // Supabase errors often have message or error.message
+  const anyErr = err as any
+  const message = anyErr?.message || anyErr?.error?.message || anyErr?.error_description
+  if (typeof message === 'string' && message.trim().length > 0) return message
+  try {
+    return JSON.stringify(anyErr)
+  } catch (_) {
+    return String(anyErr)
+  }
+}
+
 export interface UpsertDocumentInput {
   file: File
   fileName?: string
@@ -14,7 +45,6 @@ export interface UpsertDocumentInput {
 
 export interface DocumentRecord {
   id: string
-  doc_id: string
   url: string
   file_type: FileType
   title: string | null
@@ -32,35 +62,43 @@ export interface DocumentRecord {
 export async function uploadAndCreateDocument(input: UpsertDocumentInput): Promise<DocumentRecord> {
   const supabase = createClientComponentClient()
   const bucket = 'documents'
-  const fileExt = input.file.name.split('.').pop() || 'bin'
-  const name = input.fileName || input.file.name
+  const name = sanitizeFileName(input.fileName || input.file.name)
   const docId = crypto.randomUUID()
   const path = `${docId}/${name}`
 
   // Ensure bucket exists is out-of-band; assume it exists here.
-  const { error: uploadError } = await supabase.storage.from(bucket).upload(path, input.file, {
-    upsert: false,
-  })
-  if (uploadError) throw uploadError
-
-  const { data: publicUrl } = supabase.storage.from(bucket).getPublicUrl(path)
-
-  const { data, error } = await supabase
-    .from('documents')
-    .insert({
-      doc_id: docId,
-      url: publicUrl.publicUrl,
-      file_type: input.fileType ?? FileType.ORGANIZATION_DOCUMENT,
-      title: input.title ?? null,
-      description: input.description ?? null,
-      metadata: input.metadata ?? null,
-      organizations: input.organizations ?? null,
+  try {
+    const { error: uploadError } = await supabase.storage.from(bucket).upload(path, input.file, {
+      upsert: false,
     })
-    .select('*')
-    .single()
+    if (uploadError) throw uploadError
 
-  if (error) throw error
-  return data as DocumentRecord
+    const { data: publicUrl } = supabase.storage.from(bucket).getPublicUrl(path)
+
+    const { data, error } = await supabase
+      .from('documents')
+      .insert({
+        url: publicUrl.publicUrl,
+        file_type: input.fileType ?? FileType.ORGANIZATION_DOCUMENT,
+        title: input.title ?? null,
+        description: input.description ?? null,
+        metadata: input.metadata ?? null,
+        organizations: input.organizations ?? null,
+      })
+      .select('*')
+      .single()
+
+    if (error) throw error
+    return data as DocumentRecord
+  } catch (e) {
+    // Best-effort cleanup if DB insert failed after upload
+    try {
+      await supabase.storage.from(bucket).remove([path])
+    } catch (_) {
+      // ignore cleanup failures
+    }
+    throw new Error(formatErrorMessage(e))
+  }
 }
 
 export async function deleteDocument(rowId: string): Promise<void> {

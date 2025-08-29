@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createOrganizationFull } from '@/lib/services/organizations'
+import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
@@ -52,7 +53,24 @@ export default function NewOrganizationPage() {
             e.preventDefault()
             setSaving(true)
             try {
-              await createOrganizationFull(form)
+              const org = await createOrganizationFull(form)
+              const docs = Array.isArray(form.documents) ? form.documents : []
+              if (docs.length > 0) {
+                await Promise.all(
+                  docs.map(async (item: any) => {
+                    if (!item?.file) return
+                    await uploadAndCreateDocument({
+                      file: item.file,
+                      fileName: item.file.name,
+                      fileType: item.fileType,
+                      title: item.title,
+                      description: item.description,
+                      metadata: item.metadata,
+                      organizations: [{ orgId: org.id, role: 'owner', orgName: org.name }],
+                    })
+                  })
+                )
+              }
               toast.success('Organization created')
               router.push('/organizations')
             } catch (e: any) {
@@ -81,15 +99,6 @@ export default function NewOrganizationPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700">Description</label>
             <Textarea value={form.description} onChange={e => set('description', e.target.value)} placeholder="Brief overview of the organization" rows={4} />
-          </div>
-
-          <div>
-            <ExternalIdField
-              value={form.externalIDs}
-              onChange={(v) => set('externalIDs', v)}
-              label="External identifiers"
-              description="Link this organization to external systems. Only ID is required."
-            />
           </div>
 
           <div>
@@ -143,6 +152,15 @@ export default function NewOrganizationPage() {
                 <Input placeholder="Address" value={form.location.address} onChange={e => set('location', { ...form.location, address: e.target.value })} />
               </div>
             </div>
+          </div>
+
+          <div>
+            <ExternalIdField
+              value={form.externalIDs}
+              onChange={(v) => set('externalIDs', v)}
+              label="External identifiers"
+              description="Link this organization to external systems. Only ID is required."
+            />
           </div>
 
           <div>

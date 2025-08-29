@@ -11,6 +11,7 @@ import { getSupabase } from '@/lib/services/organizations'
 import DocumentUploader from '@/components/documents/DocumentUploader'
 import { OrganizationRole } from '@/lib/types/eacertificate'
 import ExternalIdField from '@/components/external-id/ExternalIdField'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function EditOrganizationPage() {
   const params = useParams()
@@ -75,7 +76,22 @@ export default function EditOrganizationPage() {
           </div>
         </div>
         {loading ? (
-          <div className="text-gray-600">Loading...</div>
+          <div className="bg-white border rounded p-6 space-y-6">
+            <Skeleton className="h-6 w-56" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Skeleton className="h-10" />
+              <Skeleton className="h-10" />
+            </div>
+            <Skeleton className="h-28" />
+            <Skeleton className="h-6 w-56" />
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <Skeleton className="h-10" />
+              <Skeleton className="h-10" />
+              <Skeleton className="h-10" />
+              <Skeleton className="h-10" />
+              <Skeleton className="h-10" />
+            </div>
+          </div>
         ) : (
           <form
             className="space-y-6 bg-white border rounded p-6"

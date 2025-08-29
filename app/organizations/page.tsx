@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
 import { useEffect, useState } from 'react'
 import { listOrganizationsWithRole } from '@/lib/services/organizations'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function OrganizationsIndexPage() {
   const [orgs, setOrgs] = useState<{ organizations: { id: string; name: string } }[]>([])
@@ -36,7 +37,14 @@ export default function OrganizationsIndexPage() {
           </div>
         </div>
         {loading ? (
-          <div className="text-gray-600">Loading...</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white border rounded p-5">
+              <Skeleton className="h-6 w-48" />
+            </div>
+            <div className="bg-white border rounded p-5 hidden md:block">
+              <Skeleton className="h-6 w-48" />
+            </div>
+          </div>
         ) : orgs.length === 0 ? (
           <div className="bg-white border rounded p-6 text-gray-600">No organizations yet.</div>
         ) : (

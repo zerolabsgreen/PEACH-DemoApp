@@ -28,20 +28,6 @@ export function getSupabase() {
   return createClientComponentClient()
 }
 
-export async function createOrganization(name: string) {
-  const supabase = getSupabase()
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-  if (userError || !user) throw userError ?? new Error('No user')
-  const { error } = await supabase
-    .from('organizations')
-    .insert({ name, owner_id: user.id })
-  if (error) throw error
-  return { id: '', name, owner_id: user.id, created_at: new Date().toISOString() } as any
-}
-
 export async function createOrganizationFull(body: any) {
   const supabase = getSupabase()
   const {
@@ -56,13 +42,14 @@ export async function createOrganizationFull(body: any) {
     contact: body.contact ?? body.contact ?? null,
     location: body.location ? [body.location] : null,
     external_ids: Array.isArray(body.externalIDs) ? body.externalIDs : null,
-    owner_id: user.id,
   }
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('organizations')
     .insert(payload)
+    .select('id, name, created_at')
+    .single()
   if (error) throw error
-  return { id: '', name: payload.name, owner_id: user.id, created_at: new Date().toISOString() } as any
+  return data as any
 }
 
 export async function listMyOrganizations() {
