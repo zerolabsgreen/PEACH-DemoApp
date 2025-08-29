@@ -129,6 +129,7 @@ export interface EACertificate {
   emissions?: EmissionsData[];
   links?: string[];
   documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
+  productionSourceId?: string;
 }
 
 // Main Event interface (exact match to your requirements)
@@ -187,8 +188,14 @@ export interface EACertificateDB {
   emissions: EmissionsData[] | null;
   links: string[] | null;
   documents: string[] | null; // Array of document UUIDs
+  production_source_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// Interface for certificate with populated documents (for display)
+export interface EACertificateWithDocuments extends Omit<EACertificateDB, 'documents'> {
+  documents: Document[] | null; // Populated document objects instead of UUIDs
 }
 
 export interface EventDB {
@@ -235,6 +242,7 @@ export interface CreateEACertificateData {
   emissions?: EmissionsData[];
   links?: string[];
   documents?: Document[];
+  productionSourceId?: string;
 }
 
 export interface CreateEventData {
@@ -274,6 +282,7 @@ export interface UpdateEACertificateData {
   emissions?: EmissionsData[];
   links?: string[];
   documents?: Document[];
+  productionSourceId?: string;
 }
 
 export interface UpdateEventData {

@@ -89,7 +89,7 @@ export default function DashboardPage() {
               </dl>
             </div>
 
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
               <Link href="/organizations">
                 <Card className="hover:bg-gray-50 transition-colors">
                   <CardHeader>
@@ -103,6 +103,14 @@ export default function DashboardPage() {
                   <CardHeader>
                     <CardTitle>Production Sources</CardTitle>
                     <CardDescription>Create and manage your production sources</CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
+              <Link href="/eacertificates">
+                <Card className="hover:bg-gray-50 transition-colors">
+                  <CardHeader>
+                    <CardTitle>EA Certificates</CardTitle>
+                    <CardDescription>Create and manage your environmental certificates</CardDescription>
                   </CardHeader>
                 </Card>
               </Link>

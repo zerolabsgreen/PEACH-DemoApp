@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { ReactNode } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import type { ExternalID } from '@/lib/types/eacertificate'
@@ -8,7 +8,7 @@ import type { ExternalID } from '@/lib/types/eacertificate'
 export interface ExternalIdFieldProps {
   value: ExternalID[]
   onChange: (value: ExternalID[]) => void
-  label?: string
+  label?: ReactNode
   description?: string
   disabled?: boolean
   requiredId?: boolean
