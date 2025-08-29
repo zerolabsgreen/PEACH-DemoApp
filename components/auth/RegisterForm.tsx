@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClientComponentClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export default function RegisterForm() {
   const [email, setEmail] = useState('')
@@ -10,7 +11,6 @@ export default function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const supabase = createClientComponentClient()
   const router = useRouter()
 
@@ -18,7 +18,6 @@ export default function RegisterForm() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    setMessage(null)
 
     if (password !== confirmPassword) {
       setError('Passwords do not match')
@@ -44,7 +43,10 @@ export default function RegisterForm() {
       if (error) {
         setError(error.message)
       } else {
-        setMessage('Registration successful! Please check your email to confirm your account.')
+        toast.success('Registration successful! Please check your email to confirm.', {
+          duration: 5000,
+        })
+        router.push(`/auth/login?email=${encodeURIComponent(email)}`)
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -107,11 +109,6 @@ export default function RegisterForm() {
           </div>
         )}
 
-        {message && (
-          <div className="text-green-600 text-sm bg-green-50 p-3 rounded-md">
-            {message}
-          </div>
-        )}
 
         <button
           type="submit"

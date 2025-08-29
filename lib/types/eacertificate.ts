@@ -18,7 +18,8 @@ export enum FileType {
   AUDIT = "Audit",
   LABTEST = "Lab Test",
   CONSIGNMENT = "Consignment receipt",
-  IMAGE = "Image"
+  IMAGE = "Image",
+  ORGANIZATION_DOCUMENT = "Organization Document"
 }
 
 // EventTarget enum (matches database enum)
@@ -114,7 +115,7 @@ export interface Organization {
   externalIDs?: ExternalID[];
   url?: string;
   description?: string;
-  contacts?: string;
+  contact?: string;
   location?: Location[];
   documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
 }
@@ -128,6 +129,9 @@ export interface EACertificate {
   emissions?: EmissionsData[];
   links?: string[];
   documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
+  productionSourceId?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Main Event interface (exact match to your requirements)
@@ -171,7 +175,7 @@ export interface OrganizationDB {
   external_ids: ExternalID[] | null;
   url: string | null;
   description: string | null;
-  contacts: string | null;
+  contact: string | null;
   location: Location[] | null;
   documents: string[] | null; // Array of document UUIDs
   created_at: string;
@@ -186,8 +190,14 @@ export interface EACertificateDB {
   emissions: EmissionsData[] | null;
   links: string[] | null;
   documents: string[] | null; // Array of document UUIDs
+  production_source_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// Interface for certificate with populated documents (for display)
+export interface EACertificateWithDocuments extends Omit<EACertificateDB, 'documents'> {
+  documents: Document[] | null; // Populated document objects instead of UUIDs
 }
 
 export interface EventDB {
@@ -212,7 +222,7 @@ export interface EventDB {
 export interface ProductionSourceDB {
   id: string;
   external_ids: ExternalID[] | null;
-  related_production_sources_ids: string[] | null;
+  related_production_sources: string[] | null;
   name: string | null;
   description: string | null;
   location: Location;
@@ -234,6 +244,7 @@ export interface CreateEACertificateData {
   emissions?: EmissionsData[];
   links?: string[];
   documents?: Document[];
+  productionSourceId?: string;
 }
 
 export interface CreateEventData {
@@ -273,6 +284,7 @@ export interface UpdateEACertificateData {
   emissions?: EmissionsData[];
   links?: string[];
   documents?: Document[];
+  productionSourceId?: string;
 }
 
 export interface UpdateEventData {
@@ -310,7 +322,7 @@ export interface CreateOrganizationData {
   externalIDs?: ExternalID[];
   url?: string;
   description?: string;
-  contacts?: string;
+  contact?: string;
   location?: Location[];
 }
 
@@ -319,7 +331,7 @@ export interface UpdateOrganizationData {
   externalIDs?: ExternalID[];
   url?: string;
   description?: string;
-  contacts?: string;
+  contact?: string;
   location?: Location[];
 }
 
@@ -487,7 +499,8 @@ export const FILE_TYPE_NAMES: Record<FileType, string> = {
   [FileType.AUDIT]: 'Audit',
   [FileType.LABTEST]: 'Lab Test',
   [FileType.CONSIGNMENT]: 'Consignment receipt',
-  [FileType.IMAGE]: 'Image'
+  [FileType.IMAGE]: 'Image',
+  [FileType.ORGANIZATION_DOCUMENT]: 'Organization Document'
 };
 
 export const EVENT_TARGET_NAMES: Record<EventTarget, string> = {
