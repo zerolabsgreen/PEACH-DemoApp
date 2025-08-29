@@ -71,7 +71,7 @@ export default function EditOrganizationPage() {
       <div className="max-w-3xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <BackButton />
+            <BackButton href={`/organizations/${orgId}`} />
             <h1 className="text-2xl font-semibold">Edit Organization</h1>
           </div>
         </div>

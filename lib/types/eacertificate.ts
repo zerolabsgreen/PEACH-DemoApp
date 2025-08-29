@@ -213,7 +213,7 @@ export interface EventDB {
 export interface ProductionSourceDB {
   id: string;
   external_ids: ExternalID[] | null;
-  related_production_sources_ids: string[] | null;
+  related_production_sources: string[] | null;
   name: string | null;
   description: string | null;
   location: Location;

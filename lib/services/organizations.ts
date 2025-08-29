@@ -86,4 +86,21 @@ export async function rejectInvitation(token: string) {
   throw new Error('Invitations feature is disabled')
 }
 
+export async function deleteOrganization(id: string) {
+  const supabase = getSupabase()
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
+  if (userError || !user) throw userError ?? new Error('No user')
+
+  const { error } = await supabase
+    .from('organizations')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
+  return true
+}
+
 

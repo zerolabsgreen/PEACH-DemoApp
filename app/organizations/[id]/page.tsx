@@ -6,10 +6,22 @@ import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { getSupabase } from '@/lib/services/organizations'
+import { getSupabase, deleteOrganization } from '@/lib/services/organizations'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { FILE_TYPE_NAMES, FileType, OrganizationRole } from '@/lib/types/eacertificate'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from 'sonner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import Link from 'next/link'
 
 export default function ViewOrganizationPage() {
@@ -19,29 +31,48 @@ export default function ViewOrganizationPage() {
   const [loading, setLoading] = useState(true)
   const [org, setOrg] = useState<any>(null)
   const [documents, setDocuments] = useState<any[]>([])
+  const [deleting, setDeleting] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   useEffect(() => {
     const load = async () => {
       const supabase = getSupabase()
       const { data, error } = await supabase
         .from('organizations')
-        .select('id, name, url, description, contact, location')
+        .select('id, name, url, description, contact, location, documents')
         .eq('id', orgId)
         .single()
       if (!error) setOrg(data)
 
-      // Load documents and filter by this organization
-      const { data: docs } = await supabase
-        .from('documents')
-        .select('id, url, file_type, title, description, organizations, updated_at, created_at')
-        .order('updated_at', { ascending: false })
-        .limit(200)
-      const filtered = (docs ?? []).filter((d: any) => Array.isArray(d.organizations) && d.organizations.some((o: OrganizationRole) => o.orgId === orgId))
-      setDocuments(filtered)
+      // Load documents using the organization's documents array
+      if (data && data.documents && Array.isArray(data.documents) && data.documents.length > 0) {
+        const { data: docs } = await supabase
+          .from('documents')
+          .select('id, url, file_type, title, description, organizations, updated_at, created_at')
+          .in('id', data.documents)
+          .order('updated_at', { ascending: false })
+        setDocuments(docs || [])
+      } else {
+        setDocuments([])
+      }
       setLoading(false)
     }
     if (orgId) load()
   }, [orgId])
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      await deleteOrganization(orgId)
+      toast.success('Organization deleted')
+      router.push('/organizations')
+    } catch (e: any) {
+      toast.error(e.message ?? 'Failed to delete organization')
+    } finally {
+      setDeleting(false)
+      setShowDeleteDialog(false)
+    }
+  }
 
   const location = Array.isArray(org?.location) && org.location.length ? org.location[0] : {}
 
@@ -50,11 +81,35 @@ export default function ViewOrganizationPage() {
       <div className="max-w-3xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BackButton />
+            <BackButton href="/organizations" />
             <h1 className="text-2xl font-semibold">Organization</h1>
           </div>
           <div className="flex gap-2">
             <Button asChild><Link href={`/organizations/${orgId}/edit`}>Edit</Link></Button>
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="destructive" 
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Organization</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this organization? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} disabled={deleting}>
+                    {deleting ? 'Deleting...' : 'Delete'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
@@ -107,11 +162,36 @@ export default function ViewOrganizationPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700">Location</label>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mt-1">
-                <Input value={location?.country ?? ''} readOnly disabled />
-                <Input value={location?.state ?? ''} readOnly disabled />
-                <Input value={location?.city ?? ''} readOnly disabled />
-                <Input value={location?.postalCode ?? ''} readOnly disabled />
-                <Input value={location?.address ?? ''} readOnly disabled />
+                <Input 
+                  value={location?.country ?? ''} 
+                  placeholder={location?.country ? undefined : "Country"}
+                  readOnly 
+                  disabled 
+                />
+                <Input 
+                  value={location?.state ?? ''} 
+                  placeholder={location?.state ? undefined : "State/Region"}
+                  readOnly 
+                  disabled 
+                />
+                <Input 
+                  value={location?.city ?? ''} 
+                  placeholder={location?.city ? undefined : "City"}
+                  readOnly 
+                  disabled 
+                />
+                <Input 
+                  value={location?.postalCode ?? ''} 
+                  placeholder={location?.postalCode ? undefined : "Postal Code"}
+                  readOnly 
+                  disabled 
+                />
+                <Input 
+                  value={location?.address ?? ''} 
+                  placeholder={location?.address ? undefined : "Address"}
+                  readOnly 
+                  disabled 
+                />
               </div>
             </div>
           </div>

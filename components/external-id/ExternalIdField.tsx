@@ -12,6 +12,7 @@ export interface ExternalIdFieldProps {
   description?: string
   disabled?: boolean
   requiredId?: boolean
+  addButtonText?: string
 }
 
 export default function ExternalIdField({
@@ -21,6 +22,7 @@ export default function ExternalIdField({
   description,
   disabled = false,
   requiredId = true,
+  addButtonText = 'Add external ID',
 }: ExternalIdFieldProps) {
   const items = value ?? []
 
@@ -53,13 +55,13 @@ export default function ExternalIdField({
           {description ? <div className="text-xs text-muted-foreground">{description}</div> : null}
         </div>
         <Button type="button" variant="outline" size="sm" onClick={addItem} disabled={disabled}>
-          Add external ID
+          {addButtonText}
         </Button>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {items.map((item, idx) => (
-          <div key={idx} className="space-y-2 rounded-md border p-3">
+          <div key={idx} className="space-y-3 rounded-md border p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div>
                 <label className="block text-xs text-gray-500 mb-1">

@@ -98,6 +98,14 @@ export default function DashboardPage() {
                   </CardHeader>
                 </Card>
               </Link>
+              <Link href="/production-sources">
+                <Card className="hover:bg-gray-50 transition-colors">
+                  <CardHeader>
+                    <CardTitle>Production Sources</CardTitle>
+                    <CardDescription>Create and manage your production sources</CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
             </div>
           </div>
         </div>

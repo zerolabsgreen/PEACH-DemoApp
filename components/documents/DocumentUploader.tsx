@@ -119,25 +119,75 @@ export default function DocumentUploader(props: DocumentUploaderProps) {
                 <label className="block text-xs text-gray-500 mb-1">Metadata (key/label/value)</label>
                 <div className="space-y-2">
                   {(item.metadata ?? []).map((m, i) => (
-                    <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                      <Input placeholder="key" value={m.key} onChange={e => {
-                        const metadata = [...(item.metadata ?? [])]
-                        metadata[i] = { ...metadata[i], key: e.target.value }
-                        updateItem(item.localId, { metadata })
-                      }} />
-                      <Input placeholder="label" value={m.label} onChange={e => {
-                        const metadata = [...(item.metadata ?? [])]
-                        metadata[i] = { ...metadata[i], label: e.target.value }
-                        updateItem(item.localId, { metadata })
-                      }} />
-                      <Input placeholder="value" value={m.value ?? ''} onChange={e => {
-                        const metadata = [...(item.metadata ?? [])]
-                        metadata[i] = { ...metadata[i], value: e.target.value }
-                        updateItem(item.localId, { metadata })
-                      }} />
+                    <div key={i} className="flex gap-2 items-end">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 flex-1">
+                        <Input placeholder="key" value={m.key} onChange={e => {
+                          const metadata = [...(item.metadata ?? [])]
+                          metadata[i] = { ...metadata[i], key: e.target.value }
+                          updateItem(item.localId, { metadata })
+                        }} />
+                        <Input placeholder="label" value={m.label} onChange={e => {
+                          const metadata = [...(item.metadata ?? [])]
+                          metadata[i] = { ...metadata[i], label: e.target.value }
+                          updateItem(item.localId, { metadata })
+                        }} />
+                        <Input placeholder="value" value={m.value ?? ''} onChange={e => {
+                          const metadata = [...(item.metadata ?? [])]
+                          metadata[i] = { ...metadata[i], value: e.target.value }
+                          updateItem(item.localId, { metadata })
+                        }} />
+                      </div>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          const metadata = [...(item.metadata ?? [])]
+                          metadata.splice(i, 1)
+                          updateItem(item.localId, { metadata })
+                        }}
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                      >
+                        Remove
+                      </Button>
                     </div>
                   ))}
                   <Button type="button" variant="outline" onClick={() => updateItem(item.localId, { metadata: [...(item.metadata ?? []), { key: '', label: '', value: '' }] })}>Add metadata</Button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Organizations</label>
+                <div className="space-y-2">
+                  {(item.organizations ?? []).map((org, i) => (
+                    <div key={i} className="flex gap-2 items-end">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 flex-1">
+                        <Input placeholder="Organization ID" value={org.orgId} onChange={e => {
+                          const organizations = [...(item.organizations ?? [])]
+                          organizations[i] = { ...organizations[i], orgId: e.target.value }
+                          updateItem(item.localId, { organizations })
+                        }} />
+                        <Input placeholder="Role" value={org.role} onChange={e => {
+                          const organizations = [...(item.organizations ?? [])]
+                          organizations[i] = { ...organizations[i], role: e.target.value }
+                          updateItem(item.localId, { organizations })
+                        }} />
+                      </div>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          const organizations = [...(item.organizations ?? [])]
+                          organizations.splice(i, 1)
+                          updateItem(item.localId, { organizations })
+                        }}
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" onClick={() => updateItem(item.localId, { organizations: [...(item.organizations ?? []), { orgId: '', role: '' }] })}>Add organization</Button>
                 </div>
               </div>
               {/* Success messaging is handled globally via toasts in the parent flow */}
