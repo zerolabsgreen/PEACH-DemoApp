@@ -130,6 +130,8 @@ export interface EACertificate {
   links?: string[];
   documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
   productionSourceId?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Main Event interface (exact match to your requirements)

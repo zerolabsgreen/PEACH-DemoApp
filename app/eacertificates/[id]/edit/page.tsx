@@ -1,15 +1,17 @@
 import EACertificateForm from '@/components/eacertificate/EACertificateForm'
 
 interface EditEACertificatePageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export default function EditEACertificatePage({ params }: EditEACertificatePageProps) {
+export default async function EditEACertificatePage({ params }: EditEACertificatePageProps) {
+  const { id } = await params
+  
   return (
     <EACertificateForm 
       mode="edit" 
-      certificateId={params.id}
-      backHref={`/eacertificates/${params.id}`} 
+      certificateId={id}
+      backHref={`/eacertificates/${id}`} 
     />
   )
 }

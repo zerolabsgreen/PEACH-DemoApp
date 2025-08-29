@@ -4,9 +4,9 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
 import { useEffect, useState } from 'react'
-import { listEACertificates, type EACertificate } from '@/lib/services/eacertificates'
+import { listEACertificates } from '@/lib/services/eacertificates'
 import { Skeleton } from '@/components/ui/skeleton'
-import { EAC_TYPE_NAMES } from '@/lib/types/eacertificate'
+import { EAC_TYPE_NAMES, EACertificate } from '@/lib/types/eacertificate'
 
 export default function EACertificatesIndexPage() {
   const [certificates, setCertificates] = useState<EACertificate[]>([])
@@ -15,7 +15,8 @@ export default function EACertificatesIndexPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        setCertificates(await listEACertificates())
+        const certs = await listEACertificates()
+        setCertificates(certs as EACertificate[])
       } finally {
         setLoading(false)
       }
@@ -68,7 +69,7 @@ export default function EACertificatesIndexPage() {
                   <div className="text-lg font-medium">
                     {EAC_TYPE_NAMES[certificate.type]}
                   </div>
-                  <div className="text-xs text-gray-500 bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  <div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                     {certificate.type}
                   </div>
                 </div>
