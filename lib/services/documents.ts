@@ -107,4 +107,15 @@ export async function deleteDocument(rowId: string): Promise<void> {
   if (error) throw error
 }
 
+export async function getDocumentsByIds(ids: string[]) {
+  if (!ids || ids.length === 0) return []
+  const supabase = createClientComponentClient()
+  const { data, error } = await supabase
+    .from('documents')
+    .select('*')
+    .in('id', ids)
+  if (error) throw error
+  return data as DocumentRecord[]
+}
+
 

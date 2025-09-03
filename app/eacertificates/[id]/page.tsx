@@ -11,6 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { use } from 'react'
 import { createClientComponentClient } from '@/lib/supabase'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { listEventsByTarget } from '@/lib/services/events'
+import { EventTarget } from '@/lib/types/eacertificate'
 
 interface EACertificatePageProps {
   params: Promise<{ id: string }>
@@ -23,6 +25,7 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
   const [documents, setDocuments] = useState<any[]>([])
+  const [events, setEvents] = useState<any[]>([])
 
   useEffect(() => {
     const load = async () => {
@@ -115,6 +118,14 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
           console.log('Data type:', typeof data?.documents)
           console.log('Data value:', data?.documents)
           setDocuments([])
+        }
+
+        // Load related events
+        try {
+          const evs = await listEventsByTarget(EventTarget.EAC, id)
+          setEvents(evs)
+        } catch (e) {
+          // ignore
         }
       } catch (error) {
         console.error('Failed to load certificate:', error)
@@ -342,6 +353,37 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
                             <a href={doc.url} target="_blank" rel="noreferrer">View</a>
                           </Button>
                         </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+            {/* Events */}
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-medium">Events</h3>
+                <Button asChild size="sm">
+                  <Link href={`/events/new?target=EAC&targetId=${id}`}>Add event</Link>
+                </Button>
+              </div>
+              {events.length === 0 ? (
+                <div className="text-sm text-gray-600">No events for this certificate yet.</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Start</TableHead>
+                      <TableHead>Updated</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {events.map((ev: any) => (
+                      <TableRow key={ev.id}>
+                        <TableCell className="font-medium"><Link className="text-blue-600 hover:underline" href={`/events/${ev.id}`}>{ev.type}</Link></TableCell>
+                        <TableCell>{ev.dates?.start ? new Date(ev.dates.start).toLocaleDateString() : '—'}</TableCell>
+                        <TableCell>{new Date(ev.updated_at || ev.created_at).toLocaleString()}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
