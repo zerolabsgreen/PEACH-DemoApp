@@ -1,9 +1,11 @@
 import EventForm from '@/components/events/EventForm'
-import { BackButton } from '@/components/ui/back-button'
+import { Suspense } from 'react'
 
 export default function NewEventPage() {
   return (
-    <EventForm mode="create" backHref="/events" />
+    <Suspense>
+      <EventForm mode="create" backHref="/events" />
+    </Suspense>
   )
 }
 

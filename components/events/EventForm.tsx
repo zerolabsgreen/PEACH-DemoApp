@@ -156,7 +156,7 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
           organizations: form.organizations,
           notes: form.notes,
           links: form.links,
-          documents: form.documents,
+          // documents: form.documents,
         }
         await createEvent(payload)
       } else if (mode === 'edit' && eventId) {
@@ -255,11 +255,11 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
 
             <LinksField value={form.links ?? []} onChange={(v) => set('links', v)} />
 
-            {mode === 'create' && (
+            {/* {mode === 'create' && (
               <div>
                 <DocumentUploader onChange={(items) => set('documents', items)} />
               </div>
-            )}
+            )} */}
 
             {/* Metadata field removed for events */}
 

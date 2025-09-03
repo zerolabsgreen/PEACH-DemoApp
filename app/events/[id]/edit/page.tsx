@@ -1,11 +1,13 @@
 import EventForm from '@/components/events/EventForm'
+import { use } from 'react'
 
 interface EditEventPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function EditEventPage({ params }: EditEventPageProps) {
-  return <EventForm mode="edit" eventId={params.id} backHref={`/events/${params.id}`} />
+  const { id } = use(params)
+  return <EventForm mode="edit" eventId={id} backHref={`/events/${id}`} />
 }
 
 
