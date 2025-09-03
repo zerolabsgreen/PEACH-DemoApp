@@ -75,7 +75,7 @@ export default function LocationField({
           <input 
             className="sr-only" 
             tabIndex={-1} 
-            value={value.country} 
+            value={value.country || ''} 
             onChange={() => {}} 
             required={required} 
             aria-hidden="true" 

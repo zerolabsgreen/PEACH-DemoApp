@@ -81,6 +81,14 @@ export default function DashboardPage() {
                     </CardHeader>
                   </Card>
                 </Link>
+                <Link href="/events">
+                  <Card className="hover:bg-gray-50 transition-colors">
+                    <CardHeader>
+                      <CardTitle>Events</CardTitle>
+                      <CardDescription>Create and manage events across entities</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
               </div>
             </div>
           </div>

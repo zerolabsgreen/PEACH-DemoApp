@@ -22,6 +22,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import type { ProductionSourceDB } from '@/lib/types/eacertificate'
+import { listEventsByTarget } from '@/lib/services/events'
+import { EventTarget } from '@/lib/types/eacertificate'
 
 export default function ProductionSourceDetailPage() {
   const router = useRouter()
@@ -33,6 +35,7 @@ export default function ProductionSourceDetailPage() {
   const [deleting, setDeleting] = useState(false)
   const [documents, setDocuments] = useState<any[]>([])
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [events, setEvents] = useState<any[]>([])
 
   useEffect(() => {
     const load = async () => {
@@ -52,6 +55,11 @@ export default function ProductionSourceDetailPage() {
         } else {
           setDocuments([])
         }
+        // Load related events
+        try {
+          const evs = await listEventsByTarget(EventTarget.PSOURCE, id)
+          setEvents(evs)
+        } catch (_) {}
       } catch (e: any) {
         toast.error(e.message ?? 'Failed to load production source')
         router.push('/production-sources')
@@ -313,6 +321,38 @@ export default function ProductionSourceDetailPage() {
                         <a href={d.url} target="_blank" rel="noreferrer">View</a>
                       </Button>
                     </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+
+        {/* Events Section */}
+        <div className="bg-white border rounded p-6 space-y-4 mt-6">
+          <div className="flex items-center justify-between">
+            <div className="text-lg font-semibold">Events</div>
+            <Button asChild size="sm">
+              <a href={`/events/new?target=PSOURCE&targetId=${id}`}>Add event</a>
+            </Button>
+          </div>
+          {events.length === 0 ? (
+            <div className="text-sm text-gray-600">No events for this production source yet.</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Start</TableHead>
+                  <TableHead>Updated</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {events.map((ev: any) => (
+                  <TableRow key={ev.id}>
+                    <TableCell className="font-medium"><a className="text-blue-600 hover:underline" href={`/events/${ev.id}`}>{ev.type}</a></TableCell>
+                    <TableCell>{ev.dates?.start ? new Date(ev.dates.start).toLocaleDateString() : '—'}</TableCell>
+                    <TableCell>{new Date(ev.updated_at || ev.created_at).toLocaleString()}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
