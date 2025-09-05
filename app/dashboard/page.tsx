@@ -56,36 +56,36 @@ export default function DashboardPage() {
                 </dl>
               </div>
 
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Link href="/organizations">
-                  <Card className="hover:bg-gray-50 transition-colors">
-                    <CardHeader>
-                      <CardTitle>Organizations</CardTitle>
-                      <CardDescription>Create and manage your organizations</CardDescription>
+                  <Card className="hover:bg-gray-50 transition-colors h-full">
+                    <CardHeader className="h-full flex flex-col">
+                      <CardTitle className="text-lg">Organizations</CardTitle>
+                      <CardDescription className="flex-1">Create and manage your organizations</CardDescription>
                     </CardHeader>
                   </Card>
                 </Link>
                 <Link href="/production-sources">
-                  <Card className="hover:bg-gray-50 transition-colors">
-                    <CardHeader>
-                      <CardTitle>Production Sources</CardTitle>
-                      <CardDescription>Create and manage your production sources</CardDescription>
+                  <Card className="hover:bg-gray-50 transition-colors h-full">
+                    <CardHeader className="h-full flex flex-col">
+                      <CardTitle className="text-lg">Production Sources</CardTitle>
+                      <CardDescription className="flex-1">Create and manage your production sources</CardDescription>
                     </CardHeader>
                   </Card>
                 </Link>
                 <Link href="/eacertificates">
-                  <Card className="hover:bg-gray-50 transition-colors">
-                    <CardHeader>
-                      <CardTitle>EA Certificates</CardTitle>
-                      <CardDescription>Create and manage your environmental certificates</CardDescription>
+                  <Card className="hover:bg-gray-50 transition-colors h-full">
+                    <CardHeader className="h-full flex flex-col">
+                      <CardTitle className="text-lg">EA Certificates</CardTitle>
+                      <CardDescription className="flex-1">Create and manage your environmental certificates</CardDescription>
                     </CardHeader>
                   </Card>
                 </Link>
                 <Link href="/events">
-                  <Card className="hover:bg-gray-50 transition-colors">
-                    <CardHeader>
-                      <CardTitle>Events</CardTitle>
-                      <CardDescription>Create and manage events across entities</CardDescription>
+                  <Card className="hover:bg-gray-50 transition-colors h-full">
+                    <CardHeader className="h-full flex flex-col">
+                      <CardTitle className="text-lg">Events</CardTitle>
+                      <CardDescription className="flex-1">Create and manage events across entities</CardDescription>
                     </CardHeader>
                   </Card>
                 </Link>
