@@ -297,14 +297,16 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               description="Related URLs and references"
             />
 
-                        {/* Documents */}
-            <DocumentUploader
-              defaultItems={[]}
-              onChange={(items: DocumentFormItem[]) => {
-                // Store the DocumentFormItem directly to preserve file objects for upload
-                setFormData({ ...formData, documents: items })
-              }}
-            />
+            {/* Documents - only show in create mode */}
+            {mode === 'create' && (
+              <DocumentUploader
+                defaultItems={[]}
+                onChange={(items: DocumentFormItem[]) => {
+                  // Store the DocumentFormItem directly to preserve file objects for upload
+                  setFormData({ ...formData, documents: items })
+                }}
+              />
+            )}
 
             {/* Submit Button */}
             <div className="flex justify-end gap-3 pt-6 border-t">

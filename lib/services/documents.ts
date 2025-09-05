@@ -79,7 +79,7 @@ export async function uploadAndCreateDocument(input: UpsertDocumentInput): Promi
       .from('documents')
       .insert({
         url: publicUrl.publicUrl,
-        file_type: input.fileType ?? FileType.ORGANIZATION_DOCUMENT,
+        file_type: input.fileType,
         title: input.title ?? null,
         description: input.description ?? null,
         metadata: input.metadata ?? null,
