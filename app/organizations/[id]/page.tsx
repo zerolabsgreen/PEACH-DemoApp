@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { FILE_TYPE_NAMES, FileType, OrganizationRole } from '@/lib/types/eacertificate'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
+import DocumentManager from '@/components/documents/DocumentManager'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +34,7 @@ export default function ViewOrganizationPage() {
   const [documents, setDocuments] = useState<any[]>([])
   const [deleting, setDeleting] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [documentIds, setDocumentIds] = useState<string[]>([])
 
   useEffect(() => {
     const load = async () => {
@@ -42,7 +44,10 @@ export default function ViewOrganizationPage() {
         .select('id, name, url, description, contact, location, documents')
         .eq('id', orgId)
         .single()
-      if (!error) setOrg(data)
+      if (!error) {
+        setOrg(data)
+        setDocumentIds(data.documents || [])
+      }
 
       // Load documents using the organization's documents array
       if (data && data.documents && Array.isArray(data.documents) && data.documents.length > 0) {
@@ -198,7 +203,32 @@ export default function ViewOrganizationPage() {
         )}
 
         <div className="bg-white border rounded p-6 space-y-4">
-          <div className="text-lg font-semibold">Documents</div>
+          <div className="flex items-center justify-between">
+            <div className="text-lg font-semibold">Documents</div>
+            <DocumentManager
+              entityType="organizations"
+              entityId={orgId}
+              currentDocumentIds={documentIds}
+              onDocumentsChange={(newIds) => {
+                setDocumentIds(newIds)
+                // Reload documents to reflect changes
+                const loadDocs = async () => {
+                  const supabase = getSupabase()
+                  if (newIds.length > 0) {
+                    const { data: docs } = await supabase
+                      .from('documents')
+                      .select('id, url, file_type, title, description, organizations, updated_at, created_at')
+                      .in('id', newIds)
+                      .order('updated_at', { ascending: false })
+                    setDocuments(docs || [])
+                  } else {
+                    setDocuments([])
+                  }
+                }
+                loadDocs()
+              }}
+            />
+          </div>
           {documents.length === 0 ? (
             <div className="text-sm text-gray-600">No documents for this organization yet.</div>
           ) : (

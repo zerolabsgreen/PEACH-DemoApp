@@ -13,6 +13,7 @@ import { createClientComponentClient } from '@/lib/supabase'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { listEventsByTarget } from '@/lib/services/events'
 import { EventTarget } from '@/lib/types/eacertificate'
+import DocumentManager from '@/components/documents/DocumentManager'
 
 interface EACertificatePageProps {
   params: Promise<{ id: string }>
@@ -26,6 +27,7 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
   const [deleting, setDeleting] = useState(false)
   const [documents, setDocuments] = useState<any[]>([])
   const [events, setEvents] = useState<any[]>([])
+  const [documentIds, setDocumentIds] = useState<string[]>([])
 
   useEffect(() => {
     const load = async () => {
@@ -36,6 +38,7 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
         console.log('Documents field type:', typeof data?.documents)
         console.log('Documents is array:', Array.isArray(data?.documents))
         setCertificate(data)
+        setDocumentIds(data.documents || [])
         
         // Load documents using the certificate's documents array
         console.log('Checking documents field...')
@@ -327,7 +330,32 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
 
             {/* Documents */}
             <div>
-              <h3 className="text-lg font-medium mb-3">Documents</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-medium">Documents</h3>
+                <DocumentManager
+                  entityType="eacertificates"
+                  entityId={id}
+                  currentDocumentIds={documentIds}
+                  onDocumentsChange={(newIds) => {
+                    setDocumentIds(newIds)
+                    // Reload documents to reflect changes
+                    const loadDocs = async () => {
+                      const supabase = createClientComponentClient()
+                      if (newIds.length > 0) {
+                        const { data: docs } = await supabase
+                          .from('documents')
+                          .select('id, url, file_type, title, description, organizations, updated_at, created_at')
+                          .in('id', newIds)
+                          .order('updated_at', { ascending: false })
+                        setDocuments(docs || [])
+                      } else {
+                        setDocuments([])
+                      }
+                    }
+                    loadDocs()
+                  }}
+                />
+              </div>
               {documents.length === 0 ? (
                 <div className="text-sm text-gray-600">No documents for this certificate yet.</div>
               ) : (

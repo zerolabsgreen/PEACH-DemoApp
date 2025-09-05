@@ -204,15 +204,6 @@ export default function EditProductionSourcePage() {
             />
           </div>
 
-          <div className="mt-8">
-            <label className="block text-sm font-medium text-gray-700">Documents</label>
-            <div className="mt-2">
-              <DocumentUploader
-                defaultOrganizations={[] as OrganizationRole[]}
-                onChange={(items) => set('documents', items)}
-              />
-            </div>
-          </div>
 
           <div className="mt-8">
             <MetadataField

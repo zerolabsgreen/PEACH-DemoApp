@@ -24,6 +24,7 @@ import {
 import type { ProductionSourceDB } from '@/lib/types/eacertificate'
 import { listEventsByTarget } from '@/lib/services/events'
 import { EventTarget } from '@/lib/types/eacertificate'
+import DocumentManager from '@/components/documents/DocumentManager'
 
 export default function ProductionSourceDetailPage() {
   const router = useRouter()
@@ -36,12 +37,14 @@ export default function ProductionSourceDetailPage() {
   const [documents, setDocuments] = useState<any[]>([])
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [events, setEvents] = useState<any[]>([])
+  const [documentIds, setDocumentIds] = useState<string[]>([])
 
   useEffect(() => {
     const load = async () => {
       try {
         const data = await getProductionSource(id)
         setSource(data)
+        setDocumentIds(data.documents || [])
         
         // Load documents using the production source's documents array
         if (data && data.documents && Array.isArray(data.documents) && data.documents.length > 0) {
@@ -295,7 +298,32 @@ export default function ProductionSourceDetailPage() {
 
         {/* Documents Section */}
         <div className="bg-white border rounded p-6 space-y-4">
-          <div className="text-lg font-semibold">Documents</div>
+          <div className="flex items-center justify-between">
+            <div className="text-lg font-semibold">Documents</div>
+            <DocumentManager
+              entityType="production-sources"
+              entityId={id}
+              currentDocumentIds={documentIds}
+              onDocumentsChange={(newIds) => {
+                setDocumentIds(newIds)
+                // Reload documents to reflect changes
+                const loadDocs = async () => {
+                  const supabase = createClientComponentClient()
+                  if (newIds.length > 0) {
+                    const { data: docs } = await supabase
+                      .from('documents')
+                      .select('id, url, file_type, title, description, organizations, updated_at, created_at')
+                      .in('id', newIds)
+                      .order('updated_at', { ascending: false })
+                    setDocuments(docs || [])
+                  } else {
+                    setDocuments([])
+                  }
+                }
+                loadDocs()
+              }}
+            />
+          </div>
           {documents.length === 0 ? (
             <div className="text-sm text-gray-600">No documents for this production source yet.</div>
           ) : (

@@ -36,7 +36,7 @@ export default function DocumentUploader(props: DocumentUploaderProps) {
       ...prev,
       {
         localId: crypto.randomUUID(),
-        fileType: FileType.ORGANIZATION_DOCUMENT,
+        fileType: '' as any, // No default - user must select
         title: '',
         description: '',
         metadata: [],
@@ -59,6 +59,19 @@ export default function DocumentUploader(props: DocumentUploaderProps) {
       const updated: DocumentFormItem[] = []
       for (const item of items) {
         if (item.file && !item.createdRowId) {
+          // Validate file type selection
+          if (!item.fileType) {
+            alert(`Please select a file type for "${item.file.name}".`)
+            continue
+          }
+
+          // Validate file extension
+          const fileExtension = item.file.name.split('.').pop()?.toLowerCase()
+          if (fileExtension !== 'pdf' && fileExtension !== 'csv') {
+            alert(`File "${item.file.name}" is not a valid file type. Only PDF and CSV files are allowed.`)
+            continue
+          }
+
           const row = await uploadAndCreateDocument({
             file: item.file,
             fileName: item.file.name,
@@ -101,10 +114,42 @@ export default function DocumentUploader(props: DocumentUploaderProps) {
                 <div className="text-sm text-gray-600">Document {idx + 1}</div>
                 <Button type="button" variant="ghost" onClick={() => removeItem(item.localId)}>Remove</Button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">File</label>
-                  <Input type="file" onChange={e => updateItem(item.localId, { file: e.target.files?.[0] })} />
+                  <Input 
+                    type="file" 
+                    accept=".pdf,.csv"
+                    onChange={e => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        const fileExtension = file.name.split('.').pop()?.toLowerCase()
+                        if (fileExtension !== 'pdf' && fileExtension !== 'csv') {
+                          alert(`File "${file.name}" is not a valid file type. Only PDF and CSV files are allowed.`)
+                          e.target.value = '' // Clear the input
+                          return
+                        }
+                      }
+                      updateItem(item.localId, { file })
+                    }} 
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Only PDF and CSV files are allowed</p>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Type</label>
+                  <select
+                    value={item.fileType}
+                    onChange={e => updateItem(item.localId, { fileType: e.target.value as FileType })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="">Select file type...</option>
+                    {Object.entries(FILE_TYPE_NAMES).map(([key, name]) => (
+                      <option key={key} value={key}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Title</label>

@@ -158,15 +158,6 @@ export default function EditOrganizationPage() {
                 <Input placeholder="Address" value={form.location.address} onChange={e => set('location', { ...form.location, address: e.target.value })} />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Documents</label>
-              <div className="mt-2">
-                <DocumentUploader
-                  defaultOrganizations={[] as OrganizationRole[]}
-                  onChange={(items) => set('documents', items)}
-                />
-              </div>
-            </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => router.push('/organizations')}>Cancel</Button>
               <Button disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</Button>
