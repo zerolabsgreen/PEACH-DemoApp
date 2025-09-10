@@ -34,7 +34,7 @@ export default function NewOrganizationPage() {
       <div className="max-w-3xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <BackButton href="/organizations" />
+            <BackButton />
             <h1 className="text-2xl font-semibold">Create Organization</h1>
           </div>
         </div>

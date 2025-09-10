@@ -87,7 +87,7 @@ export default function ViewOrganizationPage() {
       <div className="max-w-3xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BackButton href="/organizations" />
+            <BackButton />
             <h1 className="text-2xl font-semibold">Organization</h1>
           </div>
           <div className="flex gap-2">

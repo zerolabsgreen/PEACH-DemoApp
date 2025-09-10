@@ -93,7 +93,7 @@ export default function ProductionSourceDetailPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto p-6">
           <div className="flex items-center gap-2 mb-6">
-            <BackButton href="/production-sources" />
+            <BackButton />
             <Skeleton className="h-8 w-64" />
           </div>
           <div className="bg-white border rounded p-6 space-y-4">
@@ -125,7 +125,7 @@ export default function ProductionSourceDetailPage() {
       <div className="max-w-4xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <BackButton href="/production-sources" />
+            <BackButton />
             <h1 className="text-2xl font-semibold">
               {source.name || 'Unnamed Production Source'}
             </h1>

@@ -74,7 +74,7 @@ export default function EditProductionSourcePage() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-3xl mx-auto p-6">
           <div className="flex items-center gap-2 mb-6">
-            <BackButton href={`/production-sources/${params.id}`} />
+            <BackButton />
             <Skeleton className="h-8 w-64" />
           </div>
           <div className="bg-white border rounded p-6 space-y-4">
@@ -97,7 +97,7 @@ export default function EditProductionSourcePage() {
       <div className="max-w-3xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <BackButton href={`/production-sources/${params.id}`} />
+            <BackButton />
             <h1 className="text-2xl font-semibold">Edit Production Source</h1>
           </div>
         </div>

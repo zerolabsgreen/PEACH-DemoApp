@@ -126,7 +126,7 @@ export default function EventsIndexPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <BackButton href="/dashboard" />
+          <BackButton />
           <h1 className="text-2xl font-semibold">Events</h1>
         </div>
         <Button asChild>
