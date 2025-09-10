@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import DatePicker from '@/components/ui/date-picker'
 import LinksField from '@/components/ui/links-field'
 import LocationField from '@/components/ui/location-field'
 // Metadata removed for events for now
@@ -15,6 +16,8 @@ import { listEACertificates } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
 import { createClientComponentClient } from '@/lib/supabase'
 import { EventTarget, type CreateEventData, type UpdateEventData } from '@/lib/types/eacertificate'
+import { toDateInputValue, parseDateInput } from '@/lib/date-utils'
+import { format } from 'date-fns'
 
 export interface EventFormProps {
   mode: 'create' | 'edit'
@@ -115,7 +118,7 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
             targetId: ev.target_id,
             type: ev.type,
             description: ev.description ?? '',
-            dates: { start: ev.dates?.start ? String(ev.dates.start).slice(0,10) : undefined, end: ev.dates?.end ? String(ev.dates.end).slice(0,10) : undefined },
+            dates: { start: toDateInputValue(ev.dates?.start), end: toDateInputValue(ev.dates?.end) },
             location: (ev.location ?? {}) as any,
             organizations: ev.organizations ?? [],
             notes: ev.notes ?? '',
@@ -149,8 +152,8 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
           type: form.type,
           description: form.description,
           dates: {
-            start: new Date(form.dates.start as string),
-            ...(form.dates.end ? { end: new Date(form.dates.end) } : {}),
+            start: parseDateInput(form.dates.start as string) || new Date(),
+            ...(form.dates.end ? { end: parseDateInput(form.dates.end) || new Date() } : {}),
           },
           location: form.location,
           organizations: form.organizations,
@@ -167,8 +170,8 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
           description: form.description,
           dates: form.dates.start || form.dates.end
             ? {
-                ...(form.dates.start ? { start: new Date(form.dates.start) } : {}),
-                ...(form.dates.end ? { end: new Date(form.dates.end) } : {}),
+                ...(form.dates.start ? { start: parseDateInput(form.dates.start) || new Date() } : {}),
+                ...(form.dates.end ? { end: parseDateInput(form.dates.end) || new Date() } : {}),
               }
             : undefined,
           location: form.location,
@@ -227,23 +230,17 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Start date<span className="text-red-600"> *</span></label>
-                <Input
-                  type="date"
-                  value={form.dates.start ?? ''}
-                  onChange={e => set('dates', { ...form.dates, start: e.target.value || undefined })}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">End date</label>
-                <Input
-                  type="date"
-                  value={form.dates.end ?? ''}
-                  onChange={e => set('dates', { ...form.dates, end: e.target.value || undefined })}
-                />
-              </div>
+              <DatePicker
+                label="Start date"
+                value={form.dates.start ? parseDateInput(form.dates.start) || undefined : undefined}
+                onChange={(date) => set('dates', { ...form.dates, start: date ? format(date, 'yyyy-MM-dd') : undefined })}
+                required
+              />
+              <DatePicker
+                label="End date"
+                value={form.dates.end ? parseDateInput(form.dates.end) || undefined : undefined}
+                onChange={(date) => set('dates', { ...form.dates, end: date ? format(date, 'yyyy-MM-dd') : undefined })}
+              />
             </div>
 
             <LocationField value={form.location as any} onChange={(v) => set('location', v)} />

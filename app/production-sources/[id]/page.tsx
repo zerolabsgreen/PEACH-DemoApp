@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getProductionSource, deleteProductionSource } from '@/lib/services/production-sources'
 import { toast } from 'sonner'
+import { formatDate, formatDateTime } from '@/lib/date-utils'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -291,8 +292,8 @@ export default function ProductionSourceDetailPage() {
           )}
 
           <div className="text-sm text-gray-500">
-            <div>Created: {new Date(source.created_at).toLocaleDateString()}</div>
-            <div>Updated: {new Date(source.updated_at).toLocaleDateString()}</div>
+            <div>Created: {formatDate(source.created_at)}</div>
+            <div>Updated: {formatDate(source.updated_at)}</div>
           </div>
         </div>
 
@@ -343,7 +344,7 @@ export default function ProductionSourceDetailPage() {
                     <TableCell className="font-medium">{d.title || '—'}</TableCell>
                     <TableCell>{FILE_TYPE_NAMES[d.file_type as FileType] || d.file_type}</TableCell>
                     <TableCell className="hidden md:table-cell">{d.description || '—'}</TableCell>
-                    <TableCell>{new Date(d.updated_at || d.created_at).toLocaleString()}</TableCell>
+                    <TableCell>{formatDateTime(d.updated_at || d.created_at)}</TableCell>
                     <TableCell>
                       <Button asChild variant="outline" size="sm">
                         <a href={d.url} target="_blank" rel="noreferrer">View</a>
@@ -379,8 +380,8 @@ export default function ProductionSourceDetailPage() {
                 {events.map((ev: any) => (
                   <TableRow key={ev.id}>
                     <TableCell className="font-medium"><a className="text-blue-600 hover:underline" href={`/events/${ev.id}`}>{ev.type}</a></TableCell>
-                    <TableCell>{ev.dates?.start ? new Date(ev.dates.start).toLocaleDateString() : '—'}</TableCell>
-                    <TableCell>{new Date(ev.updated_at || ev.created_at).toLocaleString()}</TableCell>
+                    <TableCell>{formatDate(ev.dates?.start)}</TableCell>
+                    <TableCell>{formatDateTime(ev.updated_at || ev.created_at)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

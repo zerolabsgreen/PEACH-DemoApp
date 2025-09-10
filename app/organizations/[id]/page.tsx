@@ -7,6 +7,7 @@ import { BackButton } from '@/components/ui/back-button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { getSupabase, deleteOrganization } from '@/lib/services/organizations'
+import { formatDateTime } from '@/lib/date-utils'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { FILE_TYPE_NAMES, FileType, OrganizationRole } from '@/lib/types/eacertificate'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -248,7 +249,7 @@ export default function ViewOrganizationPage() {
                     <TableCell className="font-medium">{d.title || '—'}</TableCell>
                     <TableCell>{FILE_TYPE_NAMES[d.file_type as FileType] || d.file_type}</TableCell>
                     <TableCell className="hidden md:table-cell">{d.description || '—'}</TableCell>
-                    <TableCell>{new Date(d.updated_at || d.created_at).toLocaleString()}</TableCell>
+                    <TableCell>{formatDateTime(d.updated_at || d.created_at)}</TableCell>
                     <TableCell>
                       <Button asChild variant="outline" size="sm">
                         <a href={d.url} target="_blank" rel="noreferrer">View</a>
