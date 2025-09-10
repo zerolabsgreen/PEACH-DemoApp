@@ -8,6 +8,7 @@ import DocumentUploader, { type DocumentFormItem } from '@/components/documents/
 import { getDocumentsByIds, deleteDocument, uploadAndCreateDocument, DocumentRecord } from '@/lib/services/documents'
 import { FileType } from '@/lib/types/eacertificate'
 import { createClientComponentClient } from '@/lib/supabase'
+import { formatDate } from '@/lib/date-utils'
 import { toast } from 'sonner'
 
 export interface DocumentManagerProps {
@@ -149,9 +150,6 @@ export default function DocumentManager({
     return fileType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString()
-  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

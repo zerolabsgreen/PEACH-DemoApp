@@ -5,6 +5,7 @@ import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,12 +19,15 @@ import {
 } from '@/components/ui/alert-dialog'
 import { getEvent, deleteEvent } from '@/lib/services/events'
 import { getDocumentsByIds } from '@/lib/services/documents'
+import { useAuth } from '@/lib/auth-context'
+import { formatDate } from '@/lib/date-utils'
 
 interface EventPageProps { params: Promise<{ id: string }> }
 
 export default function EventPage({ params }: EventPageProps) {
   const { id } = use(params)
   const router = useRouter()
+  const { loading: authLoading } = useAuth()
   const [ev, setEv] = useState<any | null>(null)
   const [docs, setDocs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -58,8 +62,110 @@ export default function EventPage({ params }: EventPageProps) {
     }
   }
 
-  if (loading) {
-    return <div className="p-6">Loading…</div>
+  if (loading || authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto p-6">
+          <div className="bg-white shadow rounded-lg p-6">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-8 w-48" />
+              </div>
+              <div className="flex gap-2">
+                <Skeleton className="h-9 w-16" />
+                <Skeleton className="h-9 w-20" />
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {/* Basic Information Section */}
+              <section>
+                <Skeleton className="h-6 w-16 mb-4" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Skeleton className="h-4 w-12 mb-2" />
+                    <Skeleton className="h-5 w-20" />
+                  </div>
+                  <div>
+                    <Skeleton className="h-4 w-16 mb-2" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
+                  <div>
+                    <Skeleton className="h-4 w-12 mb-2" />
+                    <Skeleton className="h-5 w-24" />
+                  </div>
+                  <div>
+                    <Skeleton className="h-4 w-8 mb-2" />
+                    <Skeleton className="h-5 w-20" />
+                  </div>
+                </div>
+              </section>
+
+              {/* Description Section */}
+              <section>
+                <Skeleton className="h-6 w-24 mb-4" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              </section>
+
+              {/* Location Section */}
+              <section>
+                <Skeleton className="h-6 w-20 mb-4" />
+                <div className="bg-gray-50 p-3 rounded">
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-5/6 mb-2" />
+                  <Skeleton className="h-4 w-4/6" />
+                </div>
+              </section>
+
+              {/* Links Section */}
+              <section>
+                <Skeleton className="h-6 w-12 mb-4" />
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <Skeleton className="h-4 w-4 mr-2" />
+                    <Skeleton className="h-4 w-64" />
+                  </div>
+                  <div className="flex items-center">
+                    <Skeleton className="h-4 w-4 mr-2" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                </div>
+              </section>
+
+              {/* Notes Section */}
+              <section>
+                <Skeleton className="h-6 w-12 mb-4" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              </section>
+
+              {/* Documents Section */}
+              <section>
+                <Skeleton className="h-6 w-20 mb-4" />
+                <div className="space-y-3">
+                  <div className="border rounded p-3">
+                    <Skeleton className="h-5 w-32 mb-2" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                  <div className="border rounded p-3">
+                    <Skeleton className="h-5 w-28 mb-2" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (!ev) return null
@@ -70,7 +176,7 @@ export default function EventPage({ params }: EventPageProps) {
         <div className="bg-white shadow rounded-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <BackButton href="/events" />
+              <BackButton />
               <h1 className="text-2xl font-semibold">{ev.type}</h1>
             </div>
             <div className="flex gap-2">
@@ -111,11 +217,11 @@ export default function EventPage({ params }: EventPageProps) {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Start</div>
-                  <div>{ev.dates?.start ? new Date(ev.dates.start).toLocaleDateString() : '-'}</div>
+                  <div>{formatDate(ev.dates?.start)}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">End</div>
-                  <div>{ev.dates?.end ? new Date(ev.dates.end).toLocaleDateString() : '-'}</div>
+                  <div>{formatDate(ev.dates?.end)}</div>
                 </div>
               </div>
             </section>

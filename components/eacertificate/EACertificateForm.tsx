@@ -210,7 +210,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-white shadow rounded-lg p-6">
           <div className="flex items-center gap-2 mb-6">
-            <BackButton href={backHref} />
+            <BackButton />
             <h1 className="text-2xl font-semibold">
               {mode === 'create' ? 'Create EA Certificate' : 'Edit EA Certificate'}
             </h1>

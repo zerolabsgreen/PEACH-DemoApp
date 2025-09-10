@@ -5,15 +5,18 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { getEACertificate, deleteEACertificate } from '@/lib/services/eacertificates'
 import { EAC_TYPE_NAMES, FILE_TYPE_NAMES, type EACertificateDB, FileType } from '@/lib/types/eacertificate'
-import { Skeleton } from '@/components/ui/skeleton'
 import { use } from 'react'
 import { createClientComponentClient } from '@/lib/supabase'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { listEventsByTarget } from '@/lib/services/events'
+import { getProductionSource } from '@/lib/services/production-sources'
 import { EventTarget } from '@/lib/types/eacertificate'
 import DocumentManager from '@/components/documents/DocumentManager'
+import { useAuth } from '@/lib/auth-context'
+import { formatDate, formatDateTime } from '@/lib/date-utils'
 
 interface EACertificatePageProps {
   params: Promise<{ id: string }>
@@ -22,31 +25,31 @@ interface EACertificatePageProps {
 export default function EACertificatePage({ params }: EACertificatePageProps) {
   const router = useRouter()
   const { id } = use(params)
+  const { loading: authLoading } = useAuth()
   const [certificate, setCertificate] = useState<EACertificateDB | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
   const [documents, setDocuments] = useState<any[]>([])
   const [events, setEvents] = useState<any[]>([])
   const [documentIds, setDocumentIds] = useState<string[]>([])
+  const [productionSourceName, setProductionSourceName] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
       try {
         const data = await getEACertificate(id)
-        console.log('Full certificate data:', data)
-        console.log('Certificate documents field:', data?.documents)
-        console.log('Documents field type:', typeof data?.documents)
-        console.log('Documents is array:', Array.isArray(data?.documents))
         setCertificate(data)
+        // Load production source name if available
+        if (data?.production_source_id) {
+          try {
+            const ps = await getProductionSource(data.production_source_id)
+            // @ts-ignore - name may be null
+            setProductionSourceName(ps?.name ?? null)
+          } catch (e) {
+            // ignore if not accessible
+          }
+        }
         setDocumentIds(data.documents || [])
-        
-        // Load documents using the certificate's documents array
-        console.log('Checking documents field...')
-        console.log('Data exists:', !!data)
-        console.log('Documents field exists:', !!data?.documents)
-        console.log('Documents field value:', data?.documents)
-        console.log('Documents is array:', Array.isArray(data?.documents))
-        console.log('Documents length:', data?.documents?.length)
         
         if (data && data.documents && Array.isArray(data.documents) && data.documents.length > 0) {
           console.log('Certificate documents array:', data.documents)
@@ -130,10 +133,12 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
         } catch (e) {
           // ignore
         }
+        
+        // Set loading to false only after all data is loaded
+        setLoading(false)
       } catch (error) {
         console.error('Failed to load certificate:', error)
         // You might want to show an error message here
-      } finally {
         setLoading(false)
       }
     }
@@ -157,18 +162,152 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
     }
   }
 
-  if (loading) {
+  if (loading || authLoading) {
+    console.log('Certificate page loading state:', { loading, authLoading })
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto p-6">
           <div className="bg-white shadow rounded-lg p-6">
-            <div className="animate-pulse space-y-4">
-              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              <div className="space-y-3">
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-32 bg-gray-200 rounded"></div>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-8 w-48" />
+              </div>
+              <div className="flex gap-2">
+                <Skeleton className="h-9 w-16" />
+                <Skeleton className="h-9 w-20" />
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {/* Basic Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Skeleton className="h-6 w-32 mb-3" />
+                  <div className="space-y-3">
+                    <div>
+                      <Skeleton className="h-4 w-12 mb-1" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    <div>
+                      <Skeleton className="h-4 w-20 mb-1" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                    <div>
+                      <Skeleton className="h-4 w-16 mb-1" />
+                      <Skeleton className="h-4 w-28" />
+                    </div>
+                    <div>
+                      <Skeleton className="h-4 w-24 mb-1" />
+                      <Skeleton className="h-4 w-28" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Skeleton className="h-6 w-20 mb-3" />
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-5 w-12" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-5 w-12" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* External IDs Section */}
+              <div>
+                <Skeleton className="h-6 w-24 mb-3" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="border rounded p-3">
+                    <Skeleton className="h-4 w-32 mb-2" />
+                    <Skeleton className="h-3 w-24 mb-1" />
+                    <Skeleton className="h-3 w-40" />
+                  </div>
+                  <div className="border rounded p-3">
+                    <Skeleton className="h-4 w-28 mb-2" />
+                    <Skeleton className="h-3 w-20 mb-1" />
+                    <Skeleton className="h-3 w-36" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Emissions Section */}
+              <div>
+                <Skeleton className="h-6 w-32 mb-3" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="border rounded p-3">
+                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="h-3 w-28 mb-1" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Links Section */}
+              <div>
+                <Skeleton className="h-6 w-16 mb-3" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-64" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
+              </div>
+
+              {/* Documents Section */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-8 w-24" />
+                </div>
+                <div className="border rounded">
+                  <div className="border-b">
+                    <div className="grid grid-cols-5 gap-4 p-3">
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-4 w-8" />
+                      <Skeleton className="h-4 w-16 hidden md:block" />
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  </div>
+                  <div className="p-3">
+                    <div className="grid grid-cols-5 gap-4 items-center">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-32 hidden md:block" />
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-8 w-16" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Events Section */}
+              <div className="mt-8">
+                <div className="flex items-center justify-between mb-2">
+                  <Skeleton className="h-6 w-16" />
+                  <Skeleton className="h-8 w-24" />
+                </div>
+                <div className="border rounded">
+                  <div className="border-b">
+                    <div className="grid grid-cols-3 gap-4 p-3">
+                      <Skeleton className="h-4 w-8" />
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  </div>
+                  <div className="p-3">
+                    <div className="grid grid-cols-3 gap-4 items-center">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -183,7 +322,7 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
         <div className="max-w-4xl mx-auto p-6">
           <div className="bg-white shadow rounded-lg p-6 text-center">
             <div className="text-gray-600 mb-4">Certificate not found.</div>
-            <BackButton href="/eacertificates" />
+            <BackButton />
           </div>
         </div>
       </div>
@@ -196,7 +335,7 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
         <div className="bg-white shadow rounded-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <BackButton href="/eacertificates" />
+              <BackButton />
               <h1 className="text-2xl font-semibold">
                 {EAC_TYPE_NAMES[certificate.type]}
               </h1>
@@ -227,20 +366,24 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
                   </div>
                   {certificate.production_source_id && (
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">Production Source ID</dt>
-                      <dd className="text-sm text-gray-900">{certificate.production_source_id}</dd>
+                      <dt className="text-sm font-medium text-gray-500">Production Source</dt>
+                      <dd className="text-sm text-blue-600">
+                        <Link className="hover:underline" href={`/production-sources/${certificate.production_source_id}`}>
+                          {productionSourceName || certificate.production_source_id}
+                        </Link>
+                      </dd>
                     </div>
                   )}
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Created</dt>
                     <dd className="text-sm text-gray-900">
-                      {new Date(certificate.created_at).toLocaleDateString()}
+                      {formatDate(certificate.created_at)}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
                     <dd className="text-sm text-gray-900">
-                      {new Date(certificate.updated_at).toLocaleDateString()}
+                      {formatDate(certificate.updated_at)}
                     </dd>
                   </div>
                 </dl>
@@ -375,7 +518,7 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
                         <TableCell className="font-medium">{doc.title || '—'}</TableCell>
                         <TableCell>{FILE_TYPE_NAMES[doc.file_type as FileType] || doc.file_type}</TableCell>
                         <TableCell className="hidden md:table-cell">{doc.description || '—'}</TableCell>
-                        <TableCell>{new Date(doc.updated_at || doc.created_at).toLocaleString()}</TableCell>
+                        <TableCell>{formatDateTime(doc.updated_at || doc.created_at)}</TableCell>
                         <TableCell>
                           <Button asChild variant="outline" size="sm">
                             <a href={doc.url} target="_blank" rel="noreferrer">View</a>
@@ -410,8 +553,8 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
                     {events.map((ev: any) => (
                       <TableRow key={ev.id}>
                         <TableCell className="font-medium"><Link className="text-blue-600 hover:underline" href={`/events/${ev.id}`}>{ev.type}</Link></TableCell>
-                        <TableCell>{ev.dates?.start ? new Date(ev.dates.start).toLocaleDateString() : '—'}</TableCell>
-                        <TableCell>{new Date(ev.updated_at || ev.created_at).toLocaleString()}</TableCell>
+                        <TableCell>{formatDate(ev.dates?.start)}</TableCell>
+                        <TableCell>{formatDateTime(ev.updated_at || ev.created_at)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

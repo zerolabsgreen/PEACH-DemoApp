@@ -6,6 +6,7 @@ export type ProductionSource = {
   name: string | null
   description: string | null
   technology: string
+  location: any | null
   created_at: string
 }
 
@@ -49,7 +50,7 @@ export async function listProductionSources() {
   const supabase = getSupabase()
   const { data, error } = await supabase
     .from('production_sources')
-    .select('id, name, description, technology, created_at')
+    .select('id, name, description, technology, location, created_at')
     .order('created_at', { ascending: false })
 
   if (error) throw error

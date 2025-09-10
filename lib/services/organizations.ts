@@ -4,6 +4,7 @@ export type Organization = {
   id: string
   name: string
   created_at: string
+  location?: any[] | null
 }
 
 export type OrganizationMember = {
@@ -65,7 +66,7 @@ export async function listOrganizationsWithRole() {
   const supabase = getSupabase()
   const { data, error } = await supabase
     .from('organizations')
-    .select('id, name, created_at')
+    .select('id, name, created_at, location')
   if (error) throw error
   return (data ?? []).map((row: any) => ({ organizations: row })) as any
 }

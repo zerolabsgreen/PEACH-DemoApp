@@ -38,7 +38,7 @@ export default function NewProductionSourcePage() {
       <div className="max-w-3xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <BackButton href="/production-sources" />
+            <BackButton />
             <h1 className="text-2xl font-semibold">Create Production Source</h1>
           </div>
         </div>
