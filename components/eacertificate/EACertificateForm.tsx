@@ -171,7 +171,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
         const serviceData = {
           ...formData,
           documents: formData.documents.map(item => ({
-            docId: item.createdRowId || item.localId,
+            id: item.createdRowId || item.localId,
             url: item.url || '',
             fileType: item.fileType,
             title: item.title,
@@ -253,12 +253,12 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               )}
               
               <OrganizationCollapsibleForm
-                onOrganizationCreated={setCreatedOrganizationId}
+                onOrganizationCreated={(org) => setCreatedOrganizationId(org.id)}
                 sharedDocuments={formData.documents}
               />
               
               <ProductionSourceCollapsibleForm
-                onProductionSourceCreated={setCreatedProductionSourceId}
+                onProductionSourceCreated={(source) => setCreatedProductionSourceId(source.id)}
                 sharedDocuments={formData.documents}
               />
             </div>
