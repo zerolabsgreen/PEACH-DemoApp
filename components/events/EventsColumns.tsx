@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import type { EventDB } from "@/lib/types/eacertificate"
 import { deleteEvent } from "@/lib/services/events"
 import { formatDate, formatDateTime, formatDateRange } from "@/lib/date-utils"
+import { toast } from "sonner"
 
 export type EventRow = Pick<EventDB, "id" | "type" | "target" | "target_id" | "dates" | "location" | "created_at" | "updated_at">
 
@@ -98,9 +99,11 @@ function ActionCell({ id, onDelete }: { id: string; onDelete?: () => void }) {
   const handleDelete = async () => {
     try {
       await deleteEvent(id)
+      toast.success('Event deleted successfully')
       onDelete?.() // Call the refresh function from parent
     } catch (e) {
       console.error(e)
+      toast.error('Failed to delete event')
     }
   }
 

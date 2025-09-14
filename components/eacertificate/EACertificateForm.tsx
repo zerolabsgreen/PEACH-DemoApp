@@ -14,6 +14,8 @@ import ExternalIdField from '@/components/external-id/ExternalIdField'
 import LinksField from '@/components/ui/links-field'
 import AmountsField from './AmountsField'
 import EmissionsField from './EmissionsField'
+import OrganizationCollapsibleForm from './OrganizationCollapsibleForm'
+import ProductionSourceCollapsibleForm from './ProductionSourceCollapsibleForm'
 import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { createClientComponentClient } from '@/lib/supabase'
 
@@ -33,6 +35,8 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [productionSources, setProductionSources] = useState<Array<{ id: string; name: string | null }>>([])
+  const [createdOrganizationId, setCreatedOrganizationId] = useState<string | null>(null)
+  const [createdProductionSourceId, setCreatedProductionSourceId] = useState<string | null>(null)
   
   const [formData, setFormData] = useState<EACertificateFormData>({
     type: EACType.REC,
@@ -119,8 +123,14 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
           documents: [] // Start with empty documents, will update after upload
         }
         
+        // Use created production source ID if available, otherwise use the selected one
+        const finalProductionSourceId = createdProductionSourceId || formData.productionSourceId
+        
         // Create certificate first
-        const certificate = await createEACertificate(serviceData)
+        const certificate = await createEACertificate({
+          ...serviceData,
+          productionSourceId: finalProductionSourceId
+        })
         
         // Then upload documents if any exist
         const docs = Array.isArray(formData.documents) ? formData.documents : []
@@ -153,13 +163,15 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
           }
         }
         
-        router.push('/eacertificates')
+        // Show success message and redirect to events creation page
+        alert('Certificate created successfully! You can now create events for this certificate.')
+        router.push(`/eacertificates/${certificate.id}/events`)
       } else if (mode === 'edit' && certificateId) {
         // For edit, convert documents to the expected format
         const serviceData = {
           ...formData,
           documents: formData.documents.map(item => ({
-            docId: item.createdRowId || item.localId,
+            id: item.createdRowId || item.localId,
             url: item.url || '',
             fileType: item.fileType,
             title: item.title,
@@ -217,6 +229,40 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Collapsible Forms for Organization and Production Source */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-gray-900">Create Related Entities</h2>
+              <p className="text-sm text-gray-600">
+                Create an organization and production source that will be associated with this certificate. 
+                Documents uploaded below will be shared with these entities.
+              </p>
+              
+              {/* Status of created entities */}
+              {(createdOrganizationId || createdProductionSourceId) && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <h4 className="text-sm font-medium text-green-800 mb-2">Created Entities:</h4>
+                  <div className="space-y-1 text-sm text-green-700">
+                    {createdOrganizationId && (
+                      <p>✓ Organization: {createdOrganizationId.slice(0, 8)}...</p>
+                    )}
+                    {createdProductionSourceId && (
+                      <p>✓ Production Source: {createdProductionSourceId.slice(0, 8)}...</p>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              <OrganizationCollapsibleForm
+                onOrganizationCreated={(org) => setCreatedOrganizationId(org.id)}
+                sharedDocuments={formData.documents}
+              />
+              
+              <ProductionSourceCollapsibleForm
+                onProductionSourceCreated={(source) => setCreatedProductionSourceId(source.id)}
+                sharedDocuments={formData.documents}
+              />
+            </div>
+
             {/* Type Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -242,9 +288,10 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
                 Production Source (Optional)
               </label>
               <select
-                value={formData.productionSourceId || ''}
+                value={createdProductionSourceId || formData.productionSourceId || ''}
                 onChange={(e) => setFormData({ ...formData, productionSourceId: e.target.value || undefined })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={!!createdProductionSourceId}
               >
                 <option value="">Select a production source</option>
                 {productionSources.map((source) => (
@@ -253,6 +300,16 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
                   </option>
                 ))}
               </select>
+              {createdProductionSourceId && (
+                <p className="text-sm text-green-600 mt-1">
+                  ✓ Using newly created production source
+                </p>
+              )}
+              {createdOrganizationId && (
+                <p className="text-sm text-green-600 mt-1">
+                  ✓ Organization created: {createdOrganizationId.slice(0, 8)}...
+                </p>
+              )}
             </div>
 
             {/* External IDs */}
@@ -296,6 +353,22 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               label="Links"
               description="Related URLs and references"
             />
+
+            {/* Events Section - only show in create mode */}
+            {mode === 'create' && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">Events</h3>
+                <p className="text-sm text-gray-600">
+                  Events will be created after the certificate is successfully created. 
+                  You can add multiple events that will be associated with this certificate.
+                </p>
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <p className="text-sm text-gray-500">
+                    Events will be available for creation after the certificate is saved.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Documents - only show in create mode */}
             {mode === 'create' && (

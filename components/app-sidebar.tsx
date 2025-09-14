@@ -35,16 +35,6 @@ const navigationItems = [
     icon: Home,
   },
   {
-    title: "Organizations",
-    url: "/organizations",
-    icon: Building2,
-  },
-  {
-    title: "Production Sources",
-    url: "/production-sources",
-    icon: Factory,
-  },
-  {
     title: "EA Certificates",
     url: "/eacertificates",
     icon: FileText,
@@ -53,6 +43,16 @@ const navigationItems = [
     title: "Events",
     url: "/events",
     icon: Calendar,
+  },
+  {
+    title: "Production Sources",
+    url: "/production-sources",
+    icon: Factory,
+  },
+  {
+    title: "Organizations",
+    url: "/organizations",
+    icon: Building2,
   },
   {
     title: "Profile",

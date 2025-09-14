@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import type { Organization } from "@/lib/services/organizations"
 import { deleteOrganization } from "@/lib/services/organizations"
 import { formatDate } from "@/lib/date-utils"
+import { toast } from "sonner"
 
 export type OrganizationRow = Pick<Organization, "id" | "name" | "created_at">
 
@@ -44,9 +45,11 @@ function ActionCell({ id, onDelete }: { id: string; onDelete?: () => void }) {
   const handleDelete = async () => {
     try {
       await deleteOrganization(id)
+      toast.success('Organization deleted successfully')
       onDelete?.() // Call the refresh function from parent
     } catch (e) {
       console.error(e)
+      toast.error('Failed to delete organization')
     }
   }
 

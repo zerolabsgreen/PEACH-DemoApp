@@ -1,10 +1,10 @@
-import EventForm from '@/components/events/EventForm'
+import EventSplitForm from '@/components/events/EventSplitForm'
 import { Suspense } from 'react'
 
 export default function NewEventPage() {
   return (
     <Suspense>
-      <EventForm mode="create" backHref="/events" />
+      <EventSplitForm mode="create" backHref="/events" />
     </Suspense>
   )
 }

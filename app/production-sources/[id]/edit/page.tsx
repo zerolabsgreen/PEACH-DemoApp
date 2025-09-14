@@ -140,7 +140,7 @@ export default function EditProductionSourcePage() {
                 location: form.location,
                 links: form.links,
                 technology: form.technology,
-                documents: finalDocumentIds.map(docId => ({ docId } as any)),
+                documents: finalDocumentIds.map(id => ({ id } as any)),
                 externalIDs: form.externalIDs,
                 relatedProductionSourcesIds: form.relatedProductionSources.map(eid => eid.id).filter(Boolean),
                 metadata: form.metadata,

@@ -1,8 +1,8 @@
-import EACertificateForm from '@/components/eacertificate/EACertificateForm'
+import EACertificateSplitForm from '@/components/eacertificate/EACertificateSplitForm'
 
 export default function NewEACertificatePage() {
   return (
-    <EACertificateForm 
+    <EACertificateSplitForm 
       mode="create" 
       backHref="/eacertificates" 
     />
