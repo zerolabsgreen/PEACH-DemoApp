@@ -6,19 +6,27 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { BackButton } from '@/components/ui/back-button'
-import { EACType, EAC_TYPE_NAMES, type CreateEACertificateData, type UpdateEACertificateData, FileType, FILE_TYPE_NAMES } from '@/lib/types/eacertificate'
+import { EACType, EAC_TYPE_NAMES, type CreateEACertificateData, type UpdateEACertificateData, FileType, FILE_TYPE_NAMES, EventTarget, type CreateEventData } from '@/lib/types/eacertificate'
 import { FileExtension } from '@/components/documents/FileViewer'
 import { createEACertificate, updateEACertificate, getEACertificate } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
+import { createEvent } from '@/lib/services/events'
 import ExternalIdField from '@/components/external-id/ExternalIdField'
 import LinksField from '@/components/ui/links-field'
 import AmountsField from './AmountsField'
 import EmissionsField from './EmissionsField'
+import OrganizationCollapsibleForm from './OrganizationCollapsibleForm'
+import ProductionSourceCollapsibleForm from './ProductionSourceCollapsibleForm'
 import Dropzone from '@/components/documents/Dropzone'
 import FileViewer from '@/components/documents/FileViewer'
 import DocumentCard from '@/components/documents/DocumentCard'
 import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { createClientComponentClient } from '@/lib/supabase'
+import DatePicker from '@/components/ui/date-picker'
+import LocationField from '@/components/ui/location-field'
+import { parseDateInput } from '@/lib/date-utils'
+import { format } from 'date-fns'
+import { toast } from 'sonner'
 
 export interface EACertificateSplitFormProps {
   mode: 'create' | 'edit'
@@ -48,6 +56,27 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
   const [submitting, setSubmitting] = useState(false)
   const [productionSources, setProductionSources] = useState<Array<{ id: string; name: string | null }>>([])
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null)
+  const [createdOrganization, setCreatedOrganization] = useState<{ id: string; name: string } | null>(null)
+  const [createdProductionSource, setCreatedProductionSource] = useState<{ id: string; name: string } | null>(null)
+  const [events, setEvents] = useState<Array<{
+    type: string
+    description?: string
+    dates: { start?: string; end?: string }
+    location?: any
+    organizations?: any[]
+    notes?: string
+    links?: string[]
+  }>>([
+    {
+      type: '',
+      description: '',
+      dates: {},
+      location: {} as any,
+      organizations: [],
+      notes: '',
+      links: [],
+    }
+  ])
   
   const [formData, setFormData] = useState<EACertificateFormData>({
     type: EACType.REC,
@@ -60,6 +89,29 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
   const selectedDocument = selectedDocumentId 
     ? formData.documents.find(doc => doc.id === selectedDocumentId)
     : formData.documents[0] || null
+
+  // Event management functions
+  const addEvent = () => {
+    setEvents(prev => [...prev, {
+      type: '',
+      description: '',
+      dates: {},
+      location: {} as any,
+      organizations: [],
+      notes: '',
+      links: [],
+    }])
+  }
+
+  const removeEvent = (index: number) => {
+    setEvents(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const updateEvent = (index: number, field: string, value: any) => {
+    setEvents(prev => prev.map((event, i) => 
+      i === index ? { ...event, [field]: value } : event
+    ))
+  }
 
   useEffect(() => {
     const loadProductionSources = async () => {
@@ -199,9 +251,13 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
       }
 
       if (mode === 'create') {
+        // Use created production source ID if available, otherwise use the selected one
+        const finalProductionSourceId = createdProductionSource?.id || formData.productionSourceId
+        
         // Convert form data to service format (without documents for now)
         const serviceData = {
           ...formData,
+          productionSourceId: finalProductionSourceId,
           documents: [] // Start with empty documents, will update after upload
         }
         
@@ -237,6 +293,36 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
           }
         }
         
+        // Create events if any exist
+        const validEvents = events.filter(event => event.type.trim() !== '')
+        if (validEvents.length > 0) {
+          const createEventPromises = validEvents.map(event => {
+            const payload: CreateEventData = {
+              target: EventTarget.EAC,
+              targetId: certificate.id,
+              type: event.type,
+              description: event.description,
+              dates: {
+                start: parseDateInput(event.dates.start as string) || new Date(),
+                ...(event.dates.end ? { end: parseDateInput(event.dates.end) || new Date() } : {}),
+              },
+              location: event.location,
+              organizations: event.organizations,
+              notes: event.notes,
+              links: event.links,
+            }
+            return createEvent(payload)
+          })
+
+          await Promise.all(createEventPromises)
+        }
+        
+        // Show success message and redirect
+        if (validEvents.length > 0) {
+          toast.success(`Certificate created successfully! ${validEvents.length} event(s) also created.`)
+        } else {
+          toast.success('Certificate created successfully!')
+        }
         router.push('/eacertificates')
       } else if (mode === 'edit' && certificateId) {
         // For edit, convert documents to the expected format
@@ -260,9 +346,9 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
       
       // Show user-friendly error message
       if (error instanceof Error) {
-        alert(`Error: ${error.message}`)
+        toast.error(`Error: ${error.message}`)
       } else {
-        alert('An unexpected error occurred while saving the certificate')
+        toast.error('An unexpected error occurred while saving the certificate')
       }
     } finally {
       setSubmitting(false)
@@ -331,6 +417,40 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
             {/* Right Side - Form */}
             <div className="p-6 overflow-y-auto">
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Collapsible Forms for Organization and Production Source */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold text-gray-900">Create Related Entities</h2>
+                  <p className="text-sm text-gray-600">
+                    Create an organization and production source that will be associated with this certificate. 
+                    Documents uploaded on the left will be shared with these entities.
+                  </p>
+                  
+                  {/* Status of created entities */}
+                  {(createdOrganization || createdProductionSource) && (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <h4 className="text-sm font-medium text-green-800 mb-2">Created Entities:</h4>
+                      <div className="space-y-1 text-sm text-green-700">
+                        {createdOrganization && (
+                          <p>✓ Organization: {createdOrganization.name}</p>
+                        )}
+                        {createdProductionSource && (
+                          <p>✓ Production Source: {createdProductionSource.name}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <OrganizationCollapsibleForm
+                    onOrganizationCreated={setCreatedOrganization}
+                    sharedDocuments={formData.documents}
+                  />
+                  
+                  <ProductionSourceCollapsibleForm
+                    onProductionSourceCreated={setCreatedProductionSource}
+                    sharedDocuments={formData.documents}
+                  />
+                </div>
+
                 {/* Type Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -356,17 +476,27 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                     Production Source (Optional)
                   </label>
                   <select
-                    value={formData.productionSourceId || ''}
+                    value={createdProductionSource?.id || formData.productionSourceId || ''}
                     onChange={(e) => setFormData({ ...formData, productionSourceId: e.target.value || undefined })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select a production source</option>
+                    {createdProductionSource && (
+                      <option key={createdProductionSource.id} value={createdProductionSource.id}>
+                        {createdProductionSource.name} (Newly Created)
+                      </option>
+                    )}
                     {productionSources.map((source) => (
                       <option key={source.id} value={source.id}>
                         {source.name || `Source ${source.id.slice(0, 8)}...`}
                       </option>
                     ))}
                   </select>
+                  {createdProductionSource && (
+                    <p className="text-sm text-green-600 mt-1">
+                      ✓ Using newly created production source: {createdProductionSource.name}
+                    </p>
+                  )}
                 </div>
 
                 {/* External IDs */}
@@ -410,6 +540,124 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                   label="Links"
                   description="Related URLs and references"
                 />
+
+                {/* Events Section - only show in create mode */}
+                {mode === 'create' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium text-gray-900">Events</h3>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          addEvent()
+                        }}
+                      >
+                        + Add Event
+                      </Button>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Add events that will be associated with this certificate. 
+                      Events will be created after the certificate is successfully created.
+                    </p>
+
+                    <div className="space-y-4">
+                      {events.map((event, index) => (
+                        <div key={index} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-md font-medium text-gray-700">Event {index + 1}</h4>
+                            {events.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  removeEvent(index)
+                                }}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                Remove
+                              </Button>
+                            )}
+                          </div>
+
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Type<span className="text-red-600"> *</span></label>
+                              <Input 
+                                value={event.type} 
+                                onChange={(e) => {
+                                  e.stopPropagation()
+                                  updateEvent(index, 'type', e.target.value)
+                                }} 
+                                placeholder="e.g., Commissioning, Maintenance, Inspection"
+                                required 
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Description</label>
+                              <Textarea 
+                                value={event.description || ''} 
+                                onChange={(e) => {
+                                  e.stopPropagation()
+                                  updateEvent(index, 'description', e.target.value)
+                                }} 
+                                placeholder="Describe the event"
+                                rows={3} 
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <DatePicker
+                                label="Start date"
+                                value={event.dates.start ? parseDateInput(event.dates.start) || undefined : undefined}
+                                onChange={(date) => updateEvent(index, 'dates', { 
+                                  ...event.dates, 
+                                  start: date ? format(date, 'yyyy-MM-dd') : undefined 
+                                })}
+                                required
+                              />
+                              <DatePicker
+                                label="End date"
+                                value={event.dates.end ? parseDateInput(event.dates.end) || undefined : undefined}
+                                onChange={(date) => updateEvent(index, 'dates', { 
+                                  ...event.dates, 
+                                  end: date ? format(date, 'yyyy-MM-dd') : undefined 
+                                })}
+                              />
+                            </div>
+
+                            <LocationField 
+                              value={event.location as any} 
+                              onChange={(v) => updateEvent(index, 'location', v)} 
+                            />
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Notes</label>
+                              <Textarea 
+                                value={event.notes || ''} 
+                                onChange={(e) => {
+                                  e.stopPropagation()
+                                  updateEvent(index, 'notes', e.target.value)
+                                }} 
+                                rows={3} 
+                              />
+                            </div>
+
+                            <LinksField 
+                              value={event.links ?? []} 
+                              onChange={(v) => updateEvent(index, 'links', v)} 
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Document Management */}
                 {formData.documents.length > 0 && (
