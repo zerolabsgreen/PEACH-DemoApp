@@ -78,9 +78,11 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
     links: [],
   })
 
-  const selectedDocument = selectedDocumentId 
-    ? formData.documents.find(doc => doc.id === selectedDocumentId)
-    : formData.documents[0] || null
+  const selectedDocument = React.useMemo(() => {
+    return selectedDocumentId 
+      ? formData.documents.find(doc => doc.id === selectedDocumentId)
+      : formData.documents[0] || null
+  }, [selectedDocumentId, formData.documents])
 
   // Auto-select first document when documents are added
   React.useEffect(() => {

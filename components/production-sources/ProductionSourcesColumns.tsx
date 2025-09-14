@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import type { ProductionSource } from "@/lib/services/production-sources"
 import { deleteProductionSource } from "@/lib/services/production-sources"
 import { formatDate } from "@/lib/date-utils"
+import { toast } from "sonner"
 
 export type ProductionSourceRow = Pick<ProductionSource, "id" | "name" | "technology" | "description" | "created_at">
 
@@ -71,9 +72,11 @@ function ActionCell({ id, onDelete }: { id: string; onDelete?: () => void }) {
   const handleDelete = async () => {
     try {
       await deleteProductionSource(id)
+      toast.success('Production source deleted successfully')
       onDelete?.() // Call the refresh function from parent
     } catch (e) {
       console.error(e)
+      toast.error('Failed to delete production source')
     }
   }
 

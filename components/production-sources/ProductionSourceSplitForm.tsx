@@ -66,9 +66,11 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
     metadata: [],
   })
 
-  const selectedDocument = selectedDocumentId 
-    ? formData.documents.find(doc => doc.id === selectedDocumentId)
-    : formData.documents[0] || null
+  const selectedDocument = React.useMemo(() => {
+    return selectedDocumentId 
+      ? formData.documents.find(doc => doc.id === selectedDocumentId)
+      : formData.documents[0] || null
+  }, [selectedDocumentId, formData.documents])
 
   // Auto-select first document when documents are added
   React.useEffect(() => {
@@ -177,7 +179,7 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
           // Update the production source with the uploaded document IDs
           if (uploadedDocIds.length > 0) {
             await updateProductionSource(source.id, {
-              documents: uploadedDocIds.map(id => ({ docId: id } as any)),
+              documents: uploadedDocIds.map(id => ({ id } as any)),
             })
           }
         }

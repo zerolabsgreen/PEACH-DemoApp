@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useRouter } from "next/navigation"
 import { deleteEACertificate } from "@/lib/services/eacertificates"
 import { formatDate } from "@/lib/date-utils"
+import { toast } from "sonner"
 
 export type EACertificateRow = Pick<
   EACertificate,
@@ -71,9 +72,11 @@ function ActionCell({ id, onDelete }: { id: string; onDelete?: () => void }) {
   const handleDelete = async () => {
     try {
       await deleteEACertificate(id)
+      toast.success('EA Certificate deleted successfully')
       onDelete?.() // Call the refresh function from parent
     } catch (e) {
       console.error(e)
+      toast.error('Failed to delete EA Certificate')
     }
   }
 

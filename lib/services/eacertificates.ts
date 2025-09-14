@@ -27,7 +27,7 @@ export async function createEACertificate(body: CreateEACertificateData) {
       amounts: body.amounts || [],
       emissions: body.emissions || null,
       links: body.links || null,
-      documents: body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.docId).filter(Boolean) : null,
+      documents: body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null,
       production_source_id: body.productionSourceId || null,
     }
 
@@ -132,7 +132,7 @@ export async function updateEACertificate(id: string, body: UpdateEACertificateD
   if (body.amounts !== undefined) payload.amounts = body.amounts
   if (body.emissions !== undefined) payload.emissions = body.emissions
   if (body.links !== undefined) payload.links = body.links
-  if (body.documents !== undefined) payload.documents = body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.docId).filter(Boolean) : null
+  if (body.documents !== undefined) payload.documents = body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null
   if (body.productionSourceId !== undefined) payload.production_source_id = body.productionSourceId
 
   const { data, error } = await supabase

@@ -1,7 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
+import React, { useState, useEffect, useMemo } from 'react'
 import { FileType } from '@/lib/types/eacertificate'
 
 export type FileExtension = 'PDF' | 'CSV'
@@ -20,7 +19,12 @@ export default function FileViewer({ file, url, fileType, fileExtension, title, 
   const [csvData, setCsvData] = useState<string[][]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [zoom, setZoom] = useState(100)
+  // Memoize the effective file extension to prevent unnecessary re-renders
+  const effectiveFileExtension = useMemo(() => {
+    if (fileExtension) return fileExtension
+    if (file?.name.toLowerCase().endsWith('.csv')) return 'CSV' as FileExtension
+    return 'PDF' as FileExtension
+  }, [fileExtension, file?.name])
 
   // Clean up object URL when component unmounts or file changes
   useEffect(() => {
@@ -42,7 +46,7 @@ export default function FileViewer({ file, url, fileType, fileExtension, title, 
       setObjectUrl(newObjectUrl)
 
       // Handle CSV files
-      if (fileExtension === 'CSV' || file.name.toLowerCase().endsWith('.csv')) {
+      if (effectiveFileExtension === 'CSV') {
         const reader = new FileReader()
         reader.onload = (e) => {
           try {
@@ -73,21 +77,15 @@ export default function FileViewer({ file, url, fileType, fileExtension, title, 
       setIsLoading(false)
       setError(null)
     }
-  }, [file, url, fileExtension])
+  }, [file, url, effectiveFileExtension])
+
 
   const renderCSVTable = () => {
     if (csvData.length === 0) return null
 
     return (
       <div className="w-full h-full overflow-auto bg-white">
-        <table 
-          className="min-w-full border-collapse border border-gray-300"
-          style={{ 
-            transform: `scale(${zoom / 100})`,
-            transformOrigin: 'top left',
-            width: `${100 / (zoom / 100)}%`
-          }}
-        >
+        <table className="min-w-full border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-50">
               {csvData[0]?.map((header, index) => (
@@ -119,14 +117,8 @@ export default function FileViewer({ file, url, fileType, fileExtension, title, 
     return (
       <div className="w-full h-full overflow-auto bg-gray-100">
         <iframe
-          src={`${objectUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
+          src={`${objectUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`}
           className="w-full h-full border-0"
-          style={{ 
-            transform: `scale(${zoom / 100})`,
-            transformOrigin: 'top left',
-            width: `${100 / (zoom / 100)}%`,
-            height: `${100 / (zoom / 100)}%`
-          }}
           title={title || 'PDF Document'}
         />
       </div>
@@ -173,45 +165,16 @@ export default function FileViewer({ file, url, fileType, fileExtension, title, 
 
   return (
     <div className={`bg-white border border-gray-200 rounded-lg overflow-hidden flex flex-col ${className}`}>
-      {/* Header with title and zoom controls */}
-      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+      {/* Header with title */}
+      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
         <h3 className="text-sm font-medium text-gray-900 truncate">
           {title || (file ? file.name : 'Document Preview')}
         </h3>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setZoom(Math.max(50, zoom - 25))}
-            className="h-6 px-2 text-xs"
-          >
-            -
-          </Button>
-          <span className="text-xs text-gray-600 min-w-[3rem] text-center">
-            {zoom}%
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setZoom(Math.min(200, zoom + 25))}
-            className="h-6 px-2 text-xs"
-          >
-            +
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setZoom(100)}
-            className="h-6 px-2 text-xs"
-          >
-            Reset
-          </Button>
-        </div>
       </div>
       
       {/* File content area */}
       <div className="flex-1 overflow-hidden">
-        {fileExtension === 'CSV' || (file && file.name.toLowerCase().endsWith('.csv')) ? (
+        {effectiveFileExtension === 'CSV' ? (
           renderCSVTable()
         ) : (
           renderPDFViewer()

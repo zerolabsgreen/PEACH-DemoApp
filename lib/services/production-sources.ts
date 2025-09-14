@@ -28,7 +28,7 @@ export async function createProductionSource(body: CreateProductionSourceData) {
     location: body.location,
     technology: body.technology,
     links: body.links || null,
-    documents: body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.docId).filter(Boolean) : null,
+    documents: body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null,
     external_ids: body.externalIDs || null,
     related_production_sources: body.relatedProductionSourcesIds || null,
     organizations: body.organizations || null,
@@ -83,7 +83,7 @@ export async function updateProductionSource(id: string, body: UpdateProductionS
   if (body.location !== undefined) payload.location = body.location
   if (body.technology !== undefined) payload.technology = body.technology
   if (body.links !== undefined) payload.links = body.links
-  if (body.documents !== undefined) payload.documents = body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.docId).filter(Boolean) : null
+  if (body.documents !== undefined) payload.documents = body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null
   if (body.externalIDs !== undefined) payload.external_ids = body.externalIDs
   if (body.relatedProductionSourcesIds !== undefined) payload.related_production_sources = body.relatedProductionSourcesIds
   if (body.organizations !== undefined) payload.organizations = body.organizations

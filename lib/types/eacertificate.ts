@@ -31,7 +31,7 @@ export enum EventTarget {
 
 // Document interface
 export interface Document {
-  docId: string;
+  id: string;
   url: string;
   fileType: FileType;
   title?: string;
@@ -336,7 +336,7 @@ export interface UpdateOrganizationData {
 }
 
 export interface CreateDocumentData {
-  docId: string;
+  id: string;
   url: string;
   fileType: FileType;
   title?: string;

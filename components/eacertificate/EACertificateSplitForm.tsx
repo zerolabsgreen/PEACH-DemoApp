@@ -86,9 +86,11 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
     productionSourceId: undefined,
   })
 
-  const selectedDocument = selectedDocumentId 
-    ? formData.documents.find(doc => doc.id === selectedDocumentId)
-    : formData.documents[0] || null
+  const selectedDocument = React.useMemo(() => {
+    return selectedDocumentId 
+      ? formData.documents.find(doc => doc.id === selectedDocumentId)
+      : formData.documents[0] || null
+  }, [selectedDocumentId, formData.documents])
 
   // Event management functions
   const addEvent = () => {
@@ -264,10 +266,10 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
         // Create certificate first
         const certificate = await createEACertificate(serviceData)
         
-        // Then upload documents if any exist
+        // Upload documents if any exist and collect their IDs
+        let uploadedDocIds: string[] = []
         if (formData.documents.length > 0) {
           const supabase = createClientComponentClient()
-          const uploadedDocIds: string[] = []
           
           await Promise.all(
             formData.documents.map(async (doc) => {
@@ -293,7 +295,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
           }
         }
         
-        // Create events if any exist
+        // Create events if any exist, with shared documents
         const validEvents = events.filter(event => event.type.trim() !== '')
         if (validEvents.length > 0) {
           const createEventPromises = validEvents.map(event => {
@@ -310,6 +312,16 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
               organizations: event.organizations,
               notes: event.notes,
               links: event.links,
+              // Include shared documents if any exist
+              documents: uploadedDocIds.length > 0 ? uploadedDocIds.map((id, index) => ({
+                id,
+                url: '', // Will be populated by the service
+                fileType: formData.documents[index]?.fileType || 'PDF',
+                title: formData.documents[index]?.title || '',
+                description: formData.documents[index]?.description || '',
+                metadata: formData.documents[index]?.metadata || [],
+                organizations: formData.documents[index]?.organizations || [],
+              })) : undefined,
             }
             return createEvent(payload)
           })
@@ -329,7 +341,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
         const serviceData = {
           ...formData,
           documents: formData.documents.map(doc => ({
-            docId: doc.id,
+            id: doc.id,
             url: '', // Will be generated during upload
             fileType: doc.fileType,
             title: doc.title,
