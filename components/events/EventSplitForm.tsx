@@ -273,17 +273,15 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto p-6">
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="animate-pulse space-y-4">
-              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              <div className="space-y-3">
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-32 bg-gray-200 rounded"></div>
-              </div>
+          <div className="animate-pulse space-y-4">
+            <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="space-y-3">
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-32 bg-gray-200 rounded"></div>
             </div>
           </div>
         </div>
@@ -292,17 +290,16 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6">
-        <div className="bg-white shadow rounded-lg">
-          <div className="flex items-center gap-2 p-6 border-b">
-            <BackButton />
-            <h1 className="text-2xl font-semibold">
-              {mode === 'create' ? 'Create Event' : 'Edit Event'}
-            </h1>
-          </div>
+        <div className="flex items-center gap-2 mb-6">
+          <BackButton />
+          <h1 className="text-2xl font-semibold">
+            {mode === 'create' ? 'Create Event' : 'Edit Event'}
+          </h1>
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-200px)]">
             {/* Left Side - File Upload & Viewer */}
             <div className="border-r border-gray-200 p-6">
               {formData.documents.length === 0 ? (
@@ -521,7 +518,6 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
               </form>
             </div>
           </div>
-        </div>
       </div>
     </div>
   )

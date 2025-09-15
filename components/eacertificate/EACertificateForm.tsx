@@ -199,17 +199,15 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <div className="max-w-4xl mx-auto p-6">
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="animate-pulse space-y-4">
-              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              <div className="space-y-3">
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-32 bg-gray-200 rounded"></div>
-              </div>
+          <div className="animate-pulse space-y-4">
+            <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="space-y-3">
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-32 bg-gray-200 rounded"></div>
             </div>
           </div>
         </div>
@@ -218,17 +216,16 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <BackButton />
-            <h1 className="text-2xl font-semibold">
-              {mode === 'create' ? 'Create EA Certificate' : 'Edit EA Certificate'}
-            </h1>
-          </div>
+        <div className="flex items-center gap-2 mb-6">
+          <BackButton />
+          <h1 className="text-2xl font-semibold">
+            {mode === 'create' ? 'Create EA Certificate' : 'Edit EA Certificate'}
+          </h1>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
             {/* Collapsible Forms for Organization and Production Source */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900">Create Related Entities</h2>
@@ -398,8 +395,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
                 {submitting ? 'Saving...' : mode === 'create' ? 'Create Certificate' : 'Update Certificate'}
               </Button>
             </div>
-          </form>
-        </div>
+        </form>
       </div>
     </div>
   )

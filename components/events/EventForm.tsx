@@ -188,15 +188,14 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto p-6">
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <BackButton />
-            <h1 className="text-2xl font-semibold">{mode === 'create' ? 'Create Event' : 'Edit Event'}</h1>
-          </div>
+        <div className="flex items-center gap-2 mb-6">
+          <BackButton />
+          <h1 className="text-2xl font-semibold">{mode === 'create' ? 'Create Event' : 'Edit Event'}</h1>
+        </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium text-gray-700">Target Id<span className="text-red-600"> *</span></label>
               <select
@@ -265,7 +264,6 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
               <Button type="submit" disabled={saving}>{saving ? 'Saving…' : (mode === 'create' ? 'Create' : 'Save changes')}</Button>
             </div>
           </form>
-        </div>
       </div>
     </div>
   )

@@ -369,7 +369,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto p-6">
           <div className="bg-white shadow rounded-lg p-6">
             <div className="animate-pulse space-y-4">
@@ -388,7 +388,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6">
         <div className="bg-white shadow rounded-lg">
           <div className="flex items-center gap-2 p-6 border-b">

@@ -165,7 +165,7 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
   if (loading || authLoading) {
     console.log('Certificate page loading state:', { loading, authLoading })
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <div className="max-w-4xl mx-auto p-6">
           <div className="bg-white shadow rounded-lg p-6">
             {/* Header */}
@@ -318,7 +318,7 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
 
   if (!certificate) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <div className="max-w-4xl mx-auto p-6">
           <div className="bg-white shadow rounded-lg p-6 text-center">
             <div className="text-gray-600 mb-4">Certificate not found.</div>
@@ -330,7 +330,7 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-white shadow rounded-lg p-6">
           <div className="flex items-center justify-between mb-6">

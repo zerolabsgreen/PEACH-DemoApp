@@ -200,17 +200,16 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6">
-        <div className="bg-white shadow rounded-lg">
-          <div className="flex items-center gap-2 p-6 border-b">
-            <BackButton />
-            <h1 className="text-2xl font-semibold">
-              {mode === 'create' ? 'Create Production Source' : 'Edit Production Source'}
-            </h1>
-          </div>
+        <div className="flex items-center gap-2 mb-6">
+          <BackButton />
+          <h1 className="text-2xl font-semibold">
+            {mode === 'create' ? 'Create Production Source' : 'Edit Production Source'}
+          </h1>
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-200px)]">
             {/* Left Side - File Upload & Viewer */}
             <div className="border-r border-gray-200 p-6">
               {formData.documents.length === 0 ? (
@@ -415,7 +414,6 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
                 </div>
               </form>
             </div>
-          </div>
         </div>
       </div>
     </div>
