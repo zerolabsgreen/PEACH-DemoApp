@@ -1,9 +1,11 @@
 "use client"
 
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import type { ExternalID } from '@/lib/types/eacertificate'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { listOrganizationsWithRole } from '@/lib/services/organizations'
 
 export interface ExternalIdFieldProps {
   value: ExternalID[]
@@ -25,6 +27,26 @@ export default function ExternalIdField({
   addButtonText = 'Add external ID',
 }: ExternalIdFieldProps) {
   const items = value ?? []
+
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([])
+
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      try {
+        const rows = await listOrganizationsWithRole()
+        // listOrganizationsWithRole returns { organizations: { id,name,... } }
+        const orgs = (rows || []).map((r: any) => ({ id: r.organizations.id, name: r.organizations.name }))
+        if (mounted) setOrganizations(orgs)
+      } catch (e) {
+        // ignore; selector will just be empty
+      }
+    }
+    load()
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const addItem = () => {
     onChange([
@@ -87,25 +109,27 @@ export default function ExternalIdField({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Owner org ID</label>
-                <Input
-                  placeholder="owner org id"
-                  value={item.ownerOrgId ?? ''}
-                  onChange={(e) => updateItem(idx, { ownerOrgId: e.target.value })}
-                  disabled={disabled}
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Owner org name</label>
-                <Input
-                  placeholder="owner org name"
-                  value={item.ownerOrgName ?? ''}
-                  onChange={(e) => updateItem(idx, { ownerOrgName: e.target.value })}
-                  disabled={disabled}
-                />
-              </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Owner organization</label>
+              <Select
+                value={item.ownerOrgId || ''}
+                onValueChange={(orgId) => {
+                  const org = organizations.find(o => o.id === orgId)
+                  updateItem(idx, { ownerOrgId: orgId, ownerOrgName: org?.name })
+                }}
+                disabled={disabled}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select organization" />
+                </SelectTrigger>
+                <SelectContent>
+                  {organizations.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.name || org.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>

@@ -68,6 +68,8 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
   // Removed created entity state as inline creation UI was removed
   // Multiple certificates support (single active view for now)
   const [activeCertificateIndex, setActiveCertificateIndex] = useState(0)
+  // Documents are shared across all certificates in multi-create mode
+  const [sharedDocuments, setSharedDocuments] = useState<UploadedDocument[]>([])
   const [certificates, setCertificates] = useState<EACertificateFormData[]>([
     {
       type: EACType.REC,
@@ -120,11 +122,11 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
   const selectedDocumentId = selectedDocumentIdByCert[activeCertificateIndex] ?? null
   const [showEditModal, setShowEditModal] = useState(false)
   const selectedDocument = React.useMemo(() => {
-    const docs = formData?.documents ?? []
+    const docs = sharedDocuments
     return selectedDocumentId 
       ? docs.find(doc => doc.id === selectedDocumentId) || null
       : docs[0] || null
-  }, [selectedDocumentId, formData?.documents])
+  }, [selectedDocumentId, sharedDocuments])
 
   // Event management functions
   const currentEvents = eventsByCert[activeCertificateIndex] ?? []
@@ -174,7 +176,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
     })
   }
 
-  const removeActiveCertificate = () => {
+  const removeCertificateAt = (index: number) => {
     setCertificates(prev => {
       if (prev.length <= 1) {
         // Reset to a single empty certificate
@@ -183,12 +185,12 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
         setActiveCertificateIndex(0)
         return [{ type: EACType.REC, amounts: [], links: [], documents: [], productionSourceId: undefined }]
       }
-      const next = prev.filter((_, i) => i !== activeCertificateIndex)
-      // Reindex per-certificate maps
+      const next = prev.filter((_, i) => i !== index)
+      // Reindex per-certificate maps based on the removed index
       setEventsByCert(ev => {
         const updated: Record<number, any[]> = {}
         next.forEach((_, i) => {
-          const sourceIndex = i >= activeCertificateIndex ? i + 1 : i
+          const sourceIndex = i >= index ? i + 1 : i
           updated[i] = ev[sourceIndex] ?? []
         })
         return updated
@@ -196,12 +198,16 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
       setSelectedDocumentIdByCert(map => {
         const updated: Record<number, string | null> = {}
         next.forEach((_, i) => {
-          const sourceIndex = i >= activeCertificateIndex ? i + 1 : i
+          const sourceIndex = i >= index ? i + 1 : i
           updated[i] = map[sourceIndex] ?? null
         })
         return updated
       })
-      setActiveCertificateIndex(idx => (idx > 0 ? idx - 1 : 0))
+      setActiveCertificateIndex(curr => {
+        if (curr > index) return curr - 1
+        if (curr === index) return Math.max(0, curr - 1)
+        return curr
+      })
       return next
     })
   }
@@ -333,13 +339,13 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
 
   // Auto-select first document when documents are added
   useEffect(() => {
-    if (formData?.documents?.length > 0 && !selectedDocumentId) {
+    if (sharedDocuments.length > 0 && !selectedDocumentId) {
       setSelectedDocumentIdByCert(prev => ({
         ...prev,
-        [activeCertificateIndex]: formData.documents[0].id,
+        [activeCertificateIndex]: sharedDocuments[0].id,
       }))
     }
-  }, [formData?.documents, selectedDocumentId, activeCertificateIndex])
+  }, [sharedDocuments, selectedDocumentId, activeCertificateIndex])
 
   const handleFilesUploaded = (files: File[]) => {
     const newDocuments: UploadedDocument[] = files.map(file => ({
@@ -353,10 +359,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
       organizations: [],
     }))
 
-    setFormData(prev => ({
-      ...prev,
-      documents: [...prev.documents, ...newDocuments]
-    }))
+    setSharedDocuments(prev => ([...prev, ...newDocuments]))
   }
 
   const handleDocumentSelect = (documentId: string) => {
@@ -364,18 +367,11 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
   }
 
   const handleDocumentRemove = (documentId: string) => {
-    setFormData(prev => {
-      const updatedDocuments = prev.documents.filter(doc => doc.id !== documentId)
-      
-      return {
-        ...prev,
-        documents: updatedDocuments,
-      }
-    })
+    setSharedDocuments(prev => prev.filter(doc => doc.id !== documentId))
 
     // Update selectedDocumentId after state update
     if (selectedDocumentId === documentId) {
-      const remainingDocs = formData.documents.filter(doc => doc.id !== documentId)
+      const remainingDocs = sharedDocuments.filter(doc => doc.id !== documentId)
       setSelectedDocumentIdByCert(prev => ({
         ...prev,
         [activeCertificateIndex]: remainingDocs.length > 0 ? remainingDocs[0].id : null,
@@ -384,12 +380,9 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
   }
 
   const handleDocumentUpdate = (documentId: string, updates: Partial<UploadedDocument>) => {
-    setFormData(prev => ({
-      ...prev,
-      documents: prev.documents.map(doc => 
-        doc.id === documentId ? { ...doc, ...updates } : doc
-      )
-    }))
+    setSharedDocuments(prev => prev.map(doc => (
+      doc.id === documentId ? { ...doc, ...updates } : doc
+    )))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -438,11 +431,11 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
         
         // Upload documents if any exist and collect their IDs
         let uploadedDocIds: string[] = []
-        if (formData.documents.length > 0) {
+        if (sharedDocuments.length > 0) {
           const supabase = createClientComponentClient()
           
           await Promise.all(
-            formData.documents.map(async (doc) => {
+            sharedDocuments.map(async (doc) => {
               const uploadedDoc = await uploadAndCreateDocument({
                 file: doc.file,
                 fileName: doc.file.name,
@@ -486,11 +479,11 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
               documents: uploadedDocIds.length > 0 ? uploadedDocIds.map((id, index) => ({
                 id,
                 url: '', // Will be populated by the service
-                fileType: formData.documents[index]?.fileType || 'PDF',
-                title: formData.documents[index]?.title || '',
-                description: formData.documents[index]?.description || '',
-                metadata: formData.documents[index]?.metadata || [],
-                organizations: formData.documents[index]?.organizations || [],
+                fileType: sharedDocuments[index]?.fileType || 'PDF',
+                title: sharedDocuments[index]?.title || '',
+                description: sharedDocuments[index]?.description || '',
+                metadata: sharedDocuments[index]?.metadata || [],
+                organizations: sharedDocuments[index]?.organizations || [],
               })) : undefined,
             }
             return createEvent(payload)
@@ -571,7 +564,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-200px)]">
             {/* Left Side - File Upload & Viewer */}
             <div className="border-r border-gray-200 p-6">
-              {formData.documents.length === 0 ? (
+              {sharedDocuments.length === 0 ? (
                 // Dropzone when no files are uploaded
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Documents</h2>
@@ -610,7 +603,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                       </Button>
                     </div>
                     <div className="space-y-3 max-h-48 overflow-y-auto">
-                      {formData.documents.map((doc) => (
+                      {sharedDocuments.map((doc) => (
                         <DocumentCard
                           key={doc.id}
                           file={doc.file}
@@ -677,7 +670,12 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                         >
                           <div className="flex items-start justify-between">
                             <div className="min-w-0">
-                              <div className="font-medium">Certificate {(cert.externalIDs?.find(e => (e?.id ?? '').trim() !== '')?.id ?? (idx + 1))}</div>
+                              <div
+                                className="font-medium truncate"
+                                title={`Certificate ${cert.externalIDs?.find(e => (e?.id ?? '').trim() !== '')?.id ?? (idx + 1)}`}
+                              >
+                                Certificate {cert.externalIDs?.find(e => (e?.id ?? '').trim() !== '')?.id ?? (idx + 1)}
+                              </div>
                               <div
                                 className="text-xs text-gray-500 mt-1 truncate"
                                 title={(cert.amounts ?? []).map(a => `${a.amount} ${a.unit}`).join(', ') || 'No amounts'}
@@ -687,7 +685,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                             </div>
                             <button
                               type="button"
-                              onClick={(e) => { e.stopPropagation(); setActiveCertificateIndex(idx); removeActiveCertificate() }}
+                              onClick={(e) => { e.stopPropagation(); removeCertificateAt(idx) }}
                               className="text-gray-400 hover:text-red-600"
                               aria-label="Remove certificate"
                             >
@@ -801,7 +799,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                   onChange={(value) => setFormData({ ...formData, organizations: value })}
                   label="Organizations (Optional)"
                   description="Assign roles to organizations for this certificate"
-                  sharedDocuments={formData.documents}
+                  sharedDocuments={sharedDocuments}
                 />
 
                 {/* 7. Events Section - only show in create mode */}
@@ -994,7 +992,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                       return exists ? prev : [...prev, { id: s.id, name: s.name }]
                     })
                   }}
-                  sharedDocuments={formData.documents}
+                  sharedDocuments={sharedDocuments}
                   defaultExpanded
                   hideHeader
                   plain
