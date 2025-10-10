@@ -15,6 +15,7 @@ export interface DocumentCardProps {
   isSelected?: boolean
   onSelect: () => void
   onRemove: () => void
+  onEdit?: () => void
   className?: string
 }
 
@@ -27,7 +28,8 @@ export default function DocumentCard({
   isSelected = false,
   onSelect, 
   onRemove,
-  className = ""
+  className = "",
+  onEdit
 }: DocumentCardProps) {
   const getFileIcon = (fileExtension: FileExtension) => {
     if (fileExtension === 'PDF') {
@@ -107,11 +109,22 @@ export default function DocumentCard({
           </div>
           
           {isSelected && (
-            <div className="mt-2 flex items-center text-xs text-blue-600">
-              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-              Currently viewing
+            <div className="mt-2 flex items-center justify-between text-xs">
+              <div className="flex items-center text-blue-600">
+                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Currently viewing
+              </div>
+              {onEdit && (
+                <button
+                  type="button"
+                  className="text-gray-600 hover:text-gray-900 underline underline-offset-2"
+                  onClick={(e) => { e.stopPropagation(); onEdit() }}
+                >
+                  Edit info
+                </button>
+              )}
             </div>
           )}
         </div>

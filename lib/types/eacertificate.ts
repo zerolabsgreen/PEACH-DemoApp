@@ -124,9 +124,11 @@ export interface Organization {
 export interface EACertificate {
   id: string;
   type: EACType;
+  type2?: string; // Additional certificate type information (free text)
   externalIDs?: ExternalID[];
   amounts: Amount[];
   emissions?: EmissionsData[];
+  organizations?: OrganizationRole[];
   links?: string[];
   documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
   productionSourceId?: string;
@@ -185,9 +187,11 @@ export interface OrganizationDB {
 export interface EACertificateDB {
   id: string;
   type: EACType;
+  type2: string | null; // Additional certificate type information (free text)
   external_ids: ExternalID[] | null;
   amounts: Amount[];
   emissions: EmissionsData[] | null;
+  organizations: OrganizationRole[] | null;
   links: string[] | null;
   documents: string[] | null; // Array of document UUIDs
   production_source_id: string | null;
@@ -239,9 +243,11 @@ export interface ProductionSourceDB {
 // Create/Update interfaces
 export interface CreateEACertificateData {
   type: EACType;
+  type2?: string; // Additional certificate type information (free text)
   externalIDs?: ExternalID[];
   amounts: Amount[];
   emissions?: EmissionsData[];
+  organizations?: OrganizationRole[];
   links?: string[];
   documents?: Document[];
   productionSourceId?: string;
@@ -279,9 +285,11 @@ export interface CreateProductionSourceData {
 
 export interface UpdateEACertificateData {
   type?: EACType;
+  type2?: string; // Additional certificate type information (free text)
   externalIDs?: ExternalID[];
   amounts?: Amount[];
   emissions?: EmissionsData[];
+  organizations?: OrganizationRole[];
   links?: string[];
   documents?: Document[];
   productionSourceId?: string;

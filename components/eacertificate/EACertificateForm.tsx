@@ -3,8 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { BackButton } from '@/components/ui/back-button'
 import { EACType, EAC_TYPE_NAMES, type CreateEACertificateData, type UpdateEACertificateData } from '@/lib/types/eacertificate'
 import { createEACertificate, updateEACertificate, getEACertificate } from '@/lib/services/eacertificates'
@@ -12,10 +10,11 @@ import { listProductionSources } from '@/lib/services/production-sources'
 import DocumentUploader, { type DocumentFormItem } from '@/components/documents/DocumentUploader'
 import ExternalIdField from '@/components/external-id/ExternalIdField'
 import LinksField from '@/components/ui/links-field'
+import { Switch } from '@/components/ui/switch'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import AmountsField from './AmountsField'
 import EmissionsField from './EmissionsField'
-import OrganizationCollapsibleForm from './OrganizationCollapsibleForm'
-import ProductionSourceCollapsibleForm from './ProductionSourceCollapsibleForm'
+import OrganizationRoleField from './OrganizationRoleField'
 import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { createClientComponentClient } from '@/lib/supabase'
 
@@ -35,12 +34,14 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [productionSources, setProductionSources] = useState<Array<{ id: string; name: string | null }>>([])
-  const [createdOrganizationId, setCreatedOrganizationId] = useState<string | null>(null)
-  const [createdProductionSourceId, setCreatedProductionSourceId] = useState<string | null>(null)
+  const [isMultiCreate, setIsMultiCreate] = useState(false)
+  // Removed created entity state as inline creation UI was removed
   
   const [formData, setFormData] = useState<EACertificateFormData>({
     type: EACType.REC,
+    type2: '', // Additional certificate type information
     amounts: [], // Start with no amounts - user must add them
+    organizations: [], // Start with no organizations
     links: [],
     documents: [],
     productionSourceId: undefined,
@@ -63,9 +64,11 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
           const certificate = await getEACertificate(certificateId)
           setFormData({
             type: certificate.type,
+            type2: certificate.type2 || '',
             externalIDs: certificate.external_ids || [],
             amounts: certificate.amounts || [],
             emissions: certificate.emissions || [],
+            organizations: certificate.organizations || [],
             links: certificate.links || [],
             documents: [], // We'll need to fetch documents separately
             productionSourceId: certificate.production_source_id || undefined,
@@ -123,13 +126,10 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
           documents: [] // Start with empty documents, will update after upload
         }
         
-        // Use created production source ID if available, otherwise use the selected one
-        const finalProductionSourceId = createdProductionSourceId || formData.productionSourceId
-        
         // Create certificate first
         const certificate = await createEACertificate({
           ...serviceData,
-          productionSourceId: finalProductionSourceId
+          productionSourceId: formData.productionSourceId
         })
         
         // Then upload documents if any exist
@@ -221,108 +221,66 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
         <div className="flex items-center gap-2 mb-6">
           <BackButton />
           <h1 className="text-2xl font-semibold">
-            {mode === 'create' ? 'Create EA Certificate' : 'Edit EA Certificate'}
+            {mode === 'create' ? 'Create EACertificate' : 'Edit EACertificate'}
           </h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Collapsible Forms for Organization and Production Source */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">Create Related Entities</h2>
-              <p className="text-sm text-gray-600">
-                Create an organization and production source that will be associated with this certificate. 
-                Documents uploaded below will be shared with these entities.
-              </p>
-              
-              {/* Status of created entities */}
-              {(createdOrganizationId || createdProductionSourceId) && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <h4 className="text-sm font-medium text-green-800 mb-2">Created Entities:</h4>
-                  <div className="space-y-1 text-sm text-green-700">
-                    {createdOrganizationId && (
-                      <p>✓ Organization: {createdOrganizationId.slice(0, 8)}...</p>
-                    )}
-                    {createdProductionSourceId && (
-                      <p>✓ Production Source: {createdProductionSourceId.slice(0, 8)}...</p>
-                    )}
-                  </div>
-                </div>
-              )}
-              
-              <OrganizationCollapsibleForm
-                onOrganizationCreated={(org) => setCreatedOrganizationId(org.id)}
-                sharedDocuments={formData.documents}
-              />
-              
-              <ProductionSourceCollapsibleForm
-                onProductionSourceCreated={(source) => setCreatedProductionSourceId(source.id)}
-                sharedDocuments={formData.documents}
-              />
+        {/* Multi-create switch (create mode only) */}
+        {mode === 'create' && (
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <div className="text-sm font-medium">Do you want to create multiple certificates?</div>
+              <div className="text-xs text-muted-foreground">Toggle to switch between single and multiple creation modes.</div>
             </div>
+            <Switch checked={isMultiCreate} onCheckedChange={setIsMultiCreate} />
+          </div>
+        )}
 
-            {/* Type Selection */}
+        {isMultiCreate ? (
+          <div className="text-sm text-gray-500 text-center py-10 border-2 border-dashed border-gray-300 rounded-md">
+            Multiple certificates form
+          </div>
+        ) : (
+        <form onSubmit={handleSubmit} className="space-y-6">
+
+            {/* 1. Certificate Type */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Certificate Type *
               </label>
-              <select
+              <Select
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as EACType })}
+                onValueChange={(value) => setFormData({ ...formData, type: value as EACType })}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                {Object.entries(EAC_TYPE_NAMES).map(([key, name]) => (
-                  <option key={key} value={key}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select certificate type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(EAC_TYPE_NAMES).map(([key, name]) => (
+                    <SelectItem key={key} value={key}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Production Source Selection */}
+            {/* 2. Subtype */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Production Source (Optional)
+                Subtype
               </label>
-              <select
-                value={createdProductionSourceId || formData.productionSourceId || ''}
-                onChange={(e) => setFormData({ ...formData, productionSourceId: e.target.value || undefined })}
+              <input
+                type="text"
+                value={formData.type2 || ''}
+                onChange={(e) => setFormData({ ...formData, type2: e.target.value })}
+                placeholder="e.g. REC, I-REC, GO, etc."
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled={!!createdProductionSourceId}
-              >
-                <option value="">Select a production source</option>
-                {productionSources.map((source) => (
-                  <option key={source.id} value={source.id}>
-                    {source.name || `Source ${source.id.slice(0, 8)}...`}
-                  </option>
-                ))}
-              </select>
-              {createdProductionSourceId && (
-                <p className="text-sm text-green-600 mt-1">
-                  ✓ Using newly created production source
-                </p>
-              )}
-              {createdOrganizationId && (
-                <p className="text-sm text-green-600 mt-1">
-                  ✓ Organization created: {createdOrganizationId.slice(0, 8)}...
-                </p>
-              )}
-            </div>
-
-            {/* External IDs */}
-            <div className="space-y-2">
-              <div className="text-sm text-gray-600">
-                <span className="text-red-600">*</span> At least one external ID is required to create a certificate.
-              </div>
-              <ExternalIdField
-                value={formData.externalIDs || []}
-                onChange={(value: any[]) => setFormData({ ...formData, externalIDs: value })}
-                label={<span>External IDs <span className="text-red-600">*</span></span>}
-                description="External identifiers for this certificate"
               />
             </div>
 
-            {/* Amounts */}
+            {/* 3. Amounts */}
             <div className="space-y-2">
               <div className="text-sm text-gray-600">
                 <span className="text-red-600">*</span> At least one amount is required to create a certificate.
@@ -335,7 +293,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               />
             </div>
 
-            {/* Emissions */}
+            {/* 4. Emissions Data */}
             <EmissionsField
               value={formData.emissions || []}
               onChange={(value) => setFormData({ ...formData, emissions: value })}
@@ -343,15 +301,39 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               description="Carbon intensity and emissions factor data"
             />
 
-            {/* Links */}
-            <LinksField
-              value={formData.links || []}
-              onChange={(value: string[]) => setFormData({ ...formData, links: value })}
-              label="Links"
-              description="Related URLs and references"
+            {/* 5. Production Source */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Production Source (Optional)
+              </label>
+              <Select
+                value={formData.productionSourceId || 'none'}
+                onValueChange={(value) => setFormData({ ...formData, productionSourceId: value === 'none' ? undefined : value })}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a production source" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {productionSources.map((source) => (
+                    <SelectItem key={source.id} value={source.id}>
+                      {source.name || `Source ${source.id.slice(0, 8)}...`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 6. Organizations */}
+            <OrganizationRoleField
+              value={formData.organizations || []}
+              onChange={(value) => setFormData({ ...formData, organizations: value })}
+              label="Organizations"
+              description="Assign roles to organizations for this certificate"
+              sharedDocuments={formData.documents}
             />
 
-            {/* Events Section - only show in create mode */}
+            {/* 7. Events Section - only show in create mode */}
             {mode === 'create' && (
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-gray-900">Events</h3>
@@ -366,6 +348,27 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
                 </div>
               </div>
             )}
+
+            {/* 8. External IDs */}
+            <div className="space-y-2">
+              <div className="text-sm text-gray-600">
+                <span className="text-red-600">*</span> At least one external ID is required to create a certificate.
+              </div>
+              <ExternalIdField
+                value={formData.externalIDs || []}
+                onChange={(value: any[]) => setFormData({ ...formData, externalIDs: value })}
+                label={<span>External IDs <span className="text-red-600">*</span></span>}
+                description="External identifiers for this certificate"
+              />
+            </div>
+
+            {/* 9. Links */}
+            <LinksField
+              value={formData.links || []}
+              onChange={(value: string[]) => setFormData({ ...formData, links: value })}
+              label="Links"
+              description="Related URLs and references"
+            />
 
             {/* Documents - only show in create mode */}
             {mode === 'create' && (
@@ -396,6 +399,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               </Button>
             </div>
         </form>
+        )}
       </div>
     </div>
   )

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { BackButton } from '@/components/ui/back-button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createOrganizationFull } from '@/lib/services/organizations'
 import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { toast } from 'sonner'
@@ -352,17 +353,21 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
 
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">File Type</label>
-                          <select
+                          <Select
                             value={selectedDocument.fileType}
-                            onChange={(e) => handleDocumentUpdate(selectedDocument.id, { fileType: e.target.value as FileType })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onValueChange={(value) => handleDocumentUpdate(selectedDocument.id, { fileType: value as FileType })}
                           >
-                            {Object.entries(FILE_TYPE_NAMES).map(([key, name]) => (
-                              <option key={key} value={key}>
-                                {name}
-                              </option>
-                            ))}
-                          </select>
+                            <SelectTrigger className="w-full text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(FILE_TYPE_NAMES).map(([key, name]) => (
+                                <SelectItem key={key} value={key}>
+                                  {name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     )}

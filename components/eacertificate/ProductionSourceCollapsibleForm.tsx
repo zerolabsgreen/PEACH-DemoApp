@@ -16,6 +16,9 @@ import type { Location, ExternalID, MetadataItem } from '@/lib/types/eacertifica
 interface ProductionSourceCollapsibleFormProps {
   onProductionSourceCreated: (productionSource: { id: string; name: string }) => void
   sharedDocuments: any[]
+  defaultExpanded?: boolean
+  hideHeader?: boolean
+  plain?: boolean
 }
 
 interface ProductionSourceFormData {
@@ -31,9 +34,12 @@ interface ProductionSourceFormData {
 
 export default function ProductionSourceCollapsibleForm({ 
   onProductionSourceCreated, 
-  sharedDocuments 
+  sharedDocuments,
+  defaultExpanded = false,
+  hideHeader = false,
+  plain = false,
 }: ProductionSourceCollapsibleFormProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [saving, setSaving] = useState(false)
   
   const [formData, setFormData] = useState<ProductionSourceFormData>({
@@ -118,21 +124,23 @@ export default function ProductionSourceCollapsibleForm({
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-gray-900">Create Production Source</h3>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation()
-            setIsExpanded(!isExpanded)
-          }}
-        >
-          {isExpanded ? 'Collapse' : 'Expand'}
-        </Button>
-      </div>
+    <div className={plain ? '' : "border border-gray-200 rounded-lg p-4"}>
+      {!hideHeader && (
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-medium text-gray-900">Create Production Source</h3>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsExpanded(!isExpanded)
+            }}
+          >
+            {isExpanded ? 'Collapse' : 'Expand'}
+          </Button>
+        </div>
+      )}
 
       {isExpanded && (
         <div className="space-y-4">

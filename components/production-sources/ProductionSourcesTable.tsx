@@ -14,6 +14,7 @@ import {
 } from "@tanstack/react-table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { createProductionSourceColumns, ProductionSourceRow } from "./ProductionSourcesColumns"
 import { useRouter } from "next/navigation"
@@ -106,16 +107,20 @@ export function ProductionSourcesTable({ data, sourcesWithLocation = [], onDelet
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-600">Technology</label>
-          <select
-            value={technologyFilter}
-            onChange={(e) => setTechnologyFilter(e.target.value)}
-            className="h-9 rounded-md border px-2 text-sm bg-white w-[200px]"
+          <Select
+            value={technologyFilter || 'all'}
+            onValueChange={(value) => setTechnologyFilter(value === 'all' ? '' : value)}
           >
-            <option value="">All</option>
-            {technologies.map((tech) => (
-              <option key={tech} value={tech}>{tech}</option>
-            ))}
-          </select>
+            <SelectTrigger className="h-9 w-[200px] text-sm">
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              {technologies.map((tech) => (
+                <SelectItem key={tech} value={tech}>{tech}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-600">Country</label>

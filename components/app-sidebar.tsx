@@ -35,14 +35,9 @@ const navigationItems = [
     icon: Home,
   },
   {
-    title: "EA Certificates",
+    title: "EACertificates",
     url: "/eacertificates",
     icon: FileText,
-  },
-  {
-    title: "Events",
-    url: "/events",
-    icon: Calendar,
   },
   {
     title: "Production Sources",
@@ -54,6 +49,13 @@ const navigationItems = [
     url: "/organizations",
     icon: Building2,
   },
+  {
+    title: "Events",
+    url: "/events",
+    icon: Calendar,
+  },
+  
+  
   {
     title: "Profile",
     url: "/profile",
@@ -84,7 +86,7 @@ export function AppSidebar() {
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          {/* <SidebarGroupLabel>Navigation</SidebarGroupLabel> */}
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (

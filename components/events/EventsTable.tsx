@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import DatePickerFilter from "@/components/ui/date-picker-filter"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { eventColumns, EventRow } from "./EventsColumns"
 import { useRouter } from "next/navigation"
@@ -132,16 +133,20 @@ export function EventsTable({ data, targetLabels, onDelete }: Props) {
 
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-600">Target</label>
-          <select
-            value={targetFilter}
-            onChange={(e) => setTargetFilter(e.target.value)}
-            className="h-9 rounded-md border px-2 text-sm bg-white w-[180px]"
+          <Select
+            value={targetFilter || 'all'}
+            onValueChange={(value) => setTargetFilter(value === 'all' ? '' : value)}
           >
-            <option value="">All</option>
-            {targets.map((target) => (
-              <option key={target} value={target}>{target}</option>
-            ))}
-          </select>
+            <SelectTrigger className="h-9 w-[180px] text-sm">
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              {targets.map((target) => (
+                <SelectItem key={target} value={target}>{target}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex flex-col gap-1">

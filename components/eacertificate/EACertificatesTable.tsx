@@ -15,6 +15,7 @@ import {
 } from "@tanstack/react-table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { createEACertificateColumns, EACertificateRow } from "./EACertificatesColumns"
 import Link from "next/link"
@@ -112,30 +113,38 @@ export function EACertificatesTable({ data, onDelete }: Props) {
 
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-600">Type</label>
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="h-9 rounded-md border px-2 text-sm bg-white w-[220px]"
+          <Select
+            value={typeFilter || 'all'}
+            onValueChange={(value) => setTypeFilter(value === 'all' ? '' : value)}
           >
-            <option value="">All</option>
-            {Object.values(EACType).map((t) => (
-              <option key={t} value={t}>{EAC_TYPE_NAMES[t]}</option>
-            ))}
-          </select>
+            <SelectTrigger className="h-9 w-[220px] text-sm">
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              {Object.values(EACType).map((t) => (
+                <SelectItem key={t} value={t}>{EAC_TYPE_NAMES[t]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-600">Production Source</label>
-          <select
-            value={prodSourceFilter}
-            onChange={(e) => setProdSourceFilter(e.target.value)}
-            className="h-9 rounded-md border px-2 text-sm bg-white w-[260px]"
+          <Select
+            value={prodSourceFilter || 'all'}
+            onValueChange={(value) => setProdSourceFilter(value === 'all' ? '' : value)}
           >
-            <option value="">All</option>
-            {prodSources.map((s) => (
-              <option key={s.id} value={s.id}>{s.name || s.id}</option>
-            ))}
-          </select>
+            <SelectTrigger className="h-9 w-[260px] text-sm">
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              {prodSources.map((s) => (
+                <SelectItem key={s.id} value={s.id}>{s.name || s.id}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex flex-col gap-1">

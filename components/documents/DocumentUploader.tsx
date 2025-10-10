@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FileType, FILE_TYPE_NAMES, MetadataItem, OrganizationRole } from '@/lib/types/eacertificate'
 import { uploadAndCreateDocument } from '@/lib/services/documents'
 
@@ -137,19 +138,22 @@ export default function DocumentUploader(props: DocumentUploaderProps) {
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Type</label>
-                  <select
+                  <Select
                     value={item.fileType}
-                    onChange={e => updateItem(item.localId, { fileType: e.target.value as FileType })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onValueChange={(value) => updateItem(item.localId, { fileType: value as FileType })}
                     required
                   >
-                    <option value="">Select file type...</option>
-                    {Object.entries(FILE_TYPE_NAMES).map(([key, name]) => (
-                      <option key={key} value={key}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue placeholder="Select file type..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(FILE_TYPE_NAMES).map(([key, name]) => (
+                        <SelectItem key={key} value={key}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Title</label>
