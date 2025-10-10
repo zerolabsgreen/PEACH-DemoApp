@@ -128,6 +128,7 @@ export interface EACertificate {
   externalIDs?: ExternalID[];
   amounts: Amount[];
   emissions?: EmissionsData[];
+  organizations?: OrganizationRole[];
   links?: string[];
   documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
   productionSourceId?: string;
@@ -190,6 +191,7 @@ export interface EACertificateDB {
   external_ids: ExternalID[] | null;
   amounts: Amount[];
   emissions: EmissionsData[] | null;
+  organizations: OrganizationRole[] | null;
   links: string[] | null;
   documents: string[] | null; // Array of document UUIDs
   production_source_id: string | null;
@@ -245,6 +247,7 @@ export interface CreateEACertificateData {
   externalIDs?: ExternalID[];
   amounts: Amount[];
   emissions?: EmissionsData[];
+  organizations?: OrganizationRole[];
   links?: string[];
   documents?: Document[];
   productionSourceId?: string;
@@ -286,6 +289,7 @@ export interface UpdateEACertificateData {
   externalIDs?: ExternalID[];
   amounts?: Amount[];
   emissions?: EmissionsData[];
+  organizations?: OrganizationRole[];
   links?: string[];
   documents?: Document[];
   productionSourceId?: string;

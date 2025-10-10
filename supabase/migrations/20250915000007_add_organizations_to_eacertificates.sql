@@ -1,13 +1,13 @@
--- Add type2 field to eacertificates table
--- This field will be a regular text input for additional certificate type information
+-- Add organizations array to eacertificates table
+-- This field will store an array of OrganizationRole objects
 
 ALTER TABLE public.eacertificates 
-ADD COLUMN type2 TEXT;
+ADD COLUMN organizations jsonb[] DEFAULT '{}'::jsonb[];
 
 -- Add comment to document the new field
-COMMENT ON COLUMN public.eacertificates.type2 IS 'Additional certificate type information (free text)';
+COMMENT ON COLUMN public.eacertificates.organizations IS 'Array of OrganizationRole objects (jsonb[])';
 
--- Update the ea_certificate_with_documents view to include type2
+-- Update the ea_certificate_with_documents view to include organizations
 DROP VIEW IF EXISTS public.ea_certificate_with_documents;
 
 CREATE OR REPLACE VIEW public.ea_certificate_with_documents AS
@@ -19,6 +19,7 @@ SELECT
     ec.amounts,
     ec.emissions,
     ec.links,
+    ec.organizations,
     ec.production_source_id,
     ec.created_at,
     ec.updated_at,
@@ -37,9 +38,9 @@ SELECT
         ), '[]'::json
     ) as events
 FROM public.eacertificates ec
-GROUP BY ec.id, ec.type, ec.type2, ec.external_ids, ec.amounts, ec.emissions, ec.links, ec.production_source_id, ec.created_at, ec.updated_at;
+GROUP BY ec.id, ec.type, ec.type2, ec.external_ids, ec.amounts, ec.emissions, ec.links, ec.organizations, ec.production_source_id, ec.created_at, ec.updated_at;
 
--- Update the ea_certificate_with_production_source view to include type2
+-- Update the ea_certificate_with_production_source view to include organizations
 DROP VIEW IF EXISTS public.ea_certificate_with_production_source;
 
 CREATE OR REPLACE VIEW public.ea_certificate_with_production_source AS
@@ -51,6 +52,7 @@ SELECT
     ec.amounts,
     ec.emissions,
     ec.links,
+    ec.organizations,
     ec.documents,
     ec.events,
     ec.created_at,

@@ -13,6 +13,7 @@ import LinksField from '@/components/ui/links-field'
 import { Switch } from '@/components/ui/switch'
 import AmountsField from './AmountsField'
 import EmissionsField from './EmissionsField'
+import OrganizationRoleField from './OrganizationRoleField'
 import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { createClientComponentClient } from '@/lib/supabase'
 
@@ -39,6 +40,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
     type: EACType.REC,
     type2: '', // Additional certificate type information
     amounts: [], // Start with no amounts - user must add them
+    organizations: [], // Start with no organizations
     links: [],
     documents: [],
     productionSourceId: undefined,
@@ -65,6 +67,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
             externalIDs: certificate.external_ids || [],
             amounts: certificate.amounts || [],
             emissions: certificate.emissions || [],
+            organizations: certificate.organizations || [],
             links: certificate.links || [],
             documents: [], // We'll need to fetch documents separately
             productionSourceId: certificate.production_source_id || undefined,
@@ -239,7 +242,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
         ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
 
-            {/* Type Selection */}
+            {/* 1. Certificate Type */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Certificate Type *
@@ -258,7 +261,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               </select>
             </div>
 
-            {/* Subtype */}
+            {/* 2. Subtype */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Subtype
@@ -272,7 +275,28 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               />
             </div>
 
-            {/* Production Source Selection */}
+            {/* 3. Amounts */}
+            <div className="space-y-2">
+              <div className="text-sm text-gray-600">
+                <span className="text-red-600">*</span> At least one amount is required to create a certificate.
+              </div>
+              <AmountsField
+                value={formData.amounts || []}
+                onChange={(value) => setFormData({ ...formData, amounts: value })}
+                label="Amounts"
+                description="Energy or carbon amounts associated with this certificate"
+              />
+            </div>
+
+            {/* 4. Emissions Data */}
+            <EmissionsField
+              value={formData.emissions || []}
+              onChange={(value) => setFormData({ ...formData, emissions: value })}
+              label="Emissions Data"
+              description="Carbon intensity and emissions factor data"
+            />
+
+            {/* 5. Production Source */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Production Source (Optional)
@@ -291,49 +315,15 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               </select>
             </div>
 
-            {/* External IDs */}
-            <div className="space-y-2">
-              <div className="text-sm text-gray-600">
-                <span className="text-red-600">*</span> At least one external ID is required to create a certificate.
-              </div>
-              <ExternalIdField
-                value={formData.externalIDs || []}
-                onChange={(value: any[]) => setFormData({ ...formData, externalIDs: value })}
-                label={<span>External IDs <span className="text-red-600">*</span></span>}
-                description="External identifiers for this certificate"
-              />
-            </div>
-
-            {/* Amounts */}
-            <div className="space-y-2">
-              <div className="text-sm text-gray-600">
-                <span className="text-red-600">*</span> At least one amount is required to create a certificate.
-              </div>
-              <AmountsField
-                value={formData.amounts || []}
-                onChange={(value) => setFormData({ ...formData, amounts: value })}
-                label="Amounts"
-                description="Energy or carbon amounts associated with this certificate"
-              />
-            </div>
-
-            {/* Emissions */}
-            <EmissionsField
-              value={formData.emissions || []}
-              onChange={(value) => setFormData({ ...formData, emissions: value })}
-              label="Emissions Data"
-              description="Carbon intensity and emissions factor data"
+            {/* 6. Organizations */}
+            <OrganizationRoleField
+              value={formData.organizations || []}
+              onChange={(value) => setFormData({ ...formData, organizations: value })}
+              label="Organizations"
+              description="Assign roles to organizations for this certificate"
             />
 
-            {/* Links */}
-            <LinksField
-              value={formData.links || []}
-              onChange={(value: string[]) => setFormData({ ...formData, links: value })}
-              label="Links"
-              description="Related URLs and references"
-            />
-
-            {/* Events Section - only show in create mode */}
+            {/* 7. Events Section - only show in create mode */}
             {mode === 'create' && (
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-gray-900">Events</h3>
@@ -348,6 +338,27 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
                 </div>
               </div>
             )}
+
+            {/* 8. External IDs */}
+            <div className="space-y-2">
+              <div className="text-sm text-gray-600">
+                <span className="text-red-600">*</span> At least one external ID is required to create a certificate.
+              </div>
+              <ExternalIdField
+                value={formData.externalIDs || []}
+                onChange={(value: any[]) => setFormData({ ...formData, externalIDs: value })}
+                label={<span>External IDs <span className="text-red-600">*</span></span>}
+                description="External identifiers for this certificate"
+              />
+            </div>
+
+            {/* 9. Links */}
+            <LinksField
+              value={formData.links || []}
+              onChange={(value: string[]) => setFormData({ ...formData, links: value })}
+              label="Links"
+              description="Related URLs and references"
+            />
 
             {/* Documents - only show in create mode */}
             {mode === 'create' && (

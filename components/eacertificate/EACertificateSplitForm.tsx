@@ -15,6 +15,7 @@ import ExternalIdField from '@/components/external-id/ExternalIdField'
 import LinksField from '@/components/ui/links-field'
 import AmountsField from './AmountsField'
 import EmissionsField from './EmissionsField'
+import OrganizationRoleField from './OrganizationRoleField'
 // Removed in-view creation of related entities (organization/production source)
 import ProductionSourceCollapsibleForm from './ProductionSourceCollapsibleForm'
 import Dropzone from '@/components/documents/Dropzone'
@@ -71,6 +72,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
       type: EACType.REC,
       type2: '', // Additional certificate type information
       amounts: [],
+      organizations: [], // Start with no organizations
       links: [],
       documents: [],
       productionSourceId: undefined,
@@ -95,6 +97,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
     type: EACType.REC,
     type2: '', // Additional certificate type information
     amounts: [],
+    organizations: [], // Start with no organizations
     links: [],
     documents: [],
     productionSourceId: undefined,
@@ -308,6 +311,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
             externalIDs: certificate.external_ids || [],
             amounts: certificate.amounts || [],
             emissions: certificate.emissions || [],
+            organizations: certificate.organizations || [],
             links: certificate.links || [],
             documents: [], // We'll need to fetch documents separately
             productionSourceId: certificate.production_source_id || undefined,
@@ -697,7 +701,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
 
                 <React.Fragment>
 
-                {/* Type Selection */}
+                {/* 1. Certificate Type */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Certificate Type *
@@ -716,7 +720,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                   </select>
                 </div>
 
-                {/* Subtype */}
+                {/* 2. Subtype */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Subtype
@@ -730,7 +734,28 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                   />
                 </div>
 
-                {/* Production Source Selection */}
+                {/* 3. Amounts */}
+                <div className="space-y-2">
+                  <div className="text-sm text-gray-600">
+                    <span className="text-red-600">*</span> At least one amount is required to create a certificate.
+                  </div>
+                  <AmountsField
+                    value={formData.amounts || []}
+                    onChange={(value) => setFormData({ ...formData, amounts: value })}
+                    label="Amounts"
+                    description="Energy or carbon amounts associated with this certificate"
+                  />
+                </div>
+
+                {/* 4. Emissions Data */}
+                <EmissionsField
+                  value={formData.emissions || []}
+                  onChange={(value) => setFormData({ ...formData, emissions: value })}
+                  label="Emissions Data"
+                  description="Carbon intensity and emissions factor data"
+                />
+
+                {/* 5. Production Source */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Production Source (Optional)
@@ -761,49 +786,15 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                   </div>
                 </div>
 
-                {/* External IDs */}
-                <div className="space-y-2">
-                  <div className="text-sm text-gray-600">
-                    <span className="text-red-600">*</span> At least one external ID is required to create a certificate.
-                  </div>
-                  <ExternalIdField
-                    value={formData.externalIDs || []}
-                    onChange={(value: any[]) => setFormData({ ...formData, externalIDs: value })}
-                    label={<span>External IDs <span className="text-red-600">*</span></span>}
-                    description="External identifiers for this certificate"
-                  />
-                </div>
-
-                {/* Amounts */}
-                <div className="space-y-2">
-                  <div className="text-sm text-gray-600">
-                    <span className="text-red-600">*</span> At least one amount is required to create a certificate.
-                  </div>
-                  <AmountsField
-                    value={formData.amounts || []}
-                    onChange={(value) => setFormData({ ...formData, amounts: value })}
-                    label="Amounts"
-                    description="Energy or carbon amounts associated with this certificate"
-                  />
-                </div>
-
-                {/* Emissions */}
-                <EmissionsField
-                  value={formData.emissions || []}
-                  onChange={(value) => setFormData({ ...formData, emissions: value })}
-                  label="Emissions Data"
-                  description="Carbon intensity and emissions factor data"
+                {/* 6. Organizations */}
+                <OrganizationRoleField
+                  value={formData.organizations || []}
+                  onChange={(value) => setFormData({ ...formData, organizations: value })}
+                  label="Organizations"
+                  description="Assign roles to organizations for this certificate"
                 />
 
-                {/* Links */}
-                <LinksField
-                  value={formData.links || []}
-                  onChange={(value: string[]) => setFormData({ ...formData, links: value })}
-                  label="Links"
-                  description="Related URLs and references"
-                />
-
-                {/* Events Section - only show in create mode */}
+                {/* 7. Events Section - only show in create mode */}
                 {mode === 'create' && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -839,87 +830,109 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                                   e.stopPropagation()
                                   removeEvent(index)
                                 }}
-                                className="text-red-600 hover:text-red-700"
                               >
-                                Remove
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             )}
                           </div>
 
-                          <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700">Type<span className="text-red-600"> *</span></label>
-                              <Input 
-                                value={event.type} 
-                                onChange={(e) => {
-                                  e.stopPropagation()
-                                  updateEvent(index, 'type', e.target.value)
-                                }} 
-                                placeholder="e.g., Commissioning, Maintenance, Inspection"
-                                required 
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">Description</label>
-                              <Textarea 
-                                value={event.description || ''} 
-                                onChange={(e) => {
-                                  e.stopPropagation()
-                                  updateEvent(index, 'description', e.target.value)
-                                }} 
-                                placeholder="Describe the event"
-                                rows={3} 
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <DatePicker
-                                label="Start date"
-                                value={event.dates.start ? parseDateInput(event.dates.start) || undefined : undefined}
-                                onChange={(date) => updateEvent(index, 'dates', { 
-                                  ...event.dates, 
-                                  start: date ? format(date, 'yyyy-MM-dd') : undefined 
-                                })}
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Event Type *
+                              </label>
+                              <input
+                                type="text"
+                                value={event.type}
+                                onChange={(e) => updateEvent(index, 'type', e.target.value)}
+                                placeholder="e.g. Generation, Transfer, Retirement"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 required
                               />
-                              <DatePicker
-                                label="End date"
-                                value={event.dates.end ? parseDateInput(event.dates.end) || undefined : undefined}
-                                onChange={(date) => updateEvent(index, 'dates', { 
-                                  ...event.dates, 
-                                  end: date ? format(date, 'yyyy-MM-dd') : undefined 
-                                })}
-                              />
                             </div>
-
-                            <LocationField 
-                              value={event.location as any} 
-                              onChange={(v) => updateEvent(index, 'location', v)} 
-                            />
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700">Notes</label>
-                              <Textarea 
-                                value={event.notes || ''} 
-                                onChange={(e) => {
-                                  e.stopPropagation()
-                                  updateEvent(index, 'notes', e.target.value)
-                                }} 
-                                rows={3} 
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Description
+                              </label>
+                              <input
+                                type="text"
+                                value={event.description || ''}
+                                onChange={(e) => updateEvent(index, 'description', e.target.value)}
+                                placeholder="Brief description of the event"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             </div>
 
-                            <LinksField 
-                              value={event.links ?? []} 
-                              onChange={(v) => updateEvent(index, 'links', v)} 
-                            />
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Start Date *
+                              </label>
+                              <DatePicker
+                                value={event.dates.start ? new Date(event.dates.start) : undefined}
+                                onChange={(date) => updateEvent(index, 'dates', { ...event.dates, start: date ? format(date, 'yyyy-MM-dd') : '' })}
+                                placeholder="Select start date"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                End Date
+                              </label>
+                              <DatePicker
+                                value={event.dates.end ? new Date(event.dates.end) : undefined}
+                                onChange={(date) => updateEvent(index, 'dates', { ...event.dates, end: date ? format(date, 'yyyy-MM-dd') : '' })}
+                                placeholder="Select end date (optional)"
+                              />
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <LocationField
+                                value={event.location || {}}
+                                onChange={(location) => updateEvent(index, 'location', location)}
+                              />
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Notes
+                              </label>
+                              <textarea
+                                value={event.notes || ''}
+                                onChange={(e) => updateEvent(index, 'notes', e.target.value)}
+                                placeholder="Additional notes about this event"
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
+
+                {/* 8. External IDs */}
+                <div className="space-y-2">
+                  <div className="text-sm text-gray-600">
+                    <span className="text-red-600">*</span> At least one external ID is required to create a certificate.
+                  </div>
+                  <ExternalIdField
+                    value={formData.externalIDs || []}
+                    onChange={(value: any[]) => setFormData({ ...formData, externalIDs: value })}
+                    label={<span>External IDs <span className="text-red-600">*</span></span>}
+                    description="External identifiers for this certificate"
+                  />
+                </div>
+
+                {/* 9. Links */}
+                <LinksField
+                  value={formData.links || []}
+                  onChange={(value: string[]) => setFormData({ ...formData, links: value })}
+                  label="Links"
+                  description="Related URLs and references"
+                />
+
 
                 {/* Document Management moved to left column */}
 
