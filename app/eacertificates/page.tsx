@@ -40,11 +40,11 @@ export default function EACertificatesIndexPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <BackButton />
-          <h1 className="text-2xl font-semibold">EA Certificates</h1>
+          <h1 className="text-2xl font-semibold">EACertificates</h1>
         </div>
         <div className="flex gap-2">
           <Button asChild>
-            <Link href="/eacertificates/new">Create EA Certificate</Link>
+            <Link href="/eacertificates/new">Create EACertificate</Link>
           </Button>
         </div>
       </div>
@@ -81,7 +81,7 @@ export default function EACertificatesIndexPage() {
           </div>
         ) : certificates.length === 0 ? (
           <div className="bg-white border rounded p-6 text-center">
-            <div className="text-gray-600 mb-4">No EA certificates yet.</div>
+            <div className="text-gray-600 mb-4">No EACertificates yet.</div>
             <Button asChild>
               <Link href="/eacertificates/new">Create your first certificate</Link>
             </Button>

@@ -97,7 +97,7 @@ export default function DashboardPage() {
       bgColor: "bg-blue-50"
     },
     {
-      title: "EA Certificates",
+      title: "EACertificates",
       value: stats?.eacertificates || 0,
       description: "Environmental certificates",
       icon: FileText,
@@ -222,7 +222,7 @@ export default function DashboardPage() {
                   className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <FileText className="h-5 w-5 text-green-600 mb-2" />
-                  <p className="text-sm font-medium">New Certificate</p>
+                  <p className="text-sm font-medium">New EACertificate</p>
                 </a>
                 <a
                   href="/events/new"

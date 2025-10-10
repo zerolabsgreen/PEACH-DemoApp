@@ -35,7 +35,7 @@ const navigationItems = [
     icon: Home,
   },
   {
-    title: "EA Certificates",
+    title: "EACertificates",
     url: "/eacertificates",
     icon: FileText,
   },

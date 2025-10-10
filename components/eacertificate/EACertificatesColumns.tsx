@@ -72,11 +72,11 @@ function ActionCell({ id, onDelete }: { id: string; onDelete?: () => void }) {
   const handleDelete = async () => {
     try {
       await deleteEACertificate(id)
-      toast.success('EA Certificate deleted successfully')
+      toast.success('EACertificate deleted successfully')
       onDelete?.() // Call the refresh function from parent
     } catch (e) {
       console.error(e)
-      toast.error('Failed to delete EA Certificate')
+      toast.error('Failed to delete EACertificate')
     }
   }
 
