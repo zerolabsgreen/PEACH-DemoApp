@@ -69,6 +69,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
   const [certificates, setCertificates] = useState<EACertificateFormData[]>([
     {
       type: EACType.REC,
+      type2: '', // Additional certificate type information
       amounts: [],
       links: [],
       documents: [],
@@ -92,6 +93,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
   // Backwards-compatible accessors for current certificate (with safe fallback)
   const formData = certificates[activeCertificateIndex] ?? {
     type: EACType.REC,
+    type2: '', // Additional certificate type information
     amounts: [],
     links: [],
     documents: [],
@@ -302,6 +304,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
           setCertificates([
             {
             type: certificate.type,
+            type2: certificate.type2 || '',
             externalIDs: certificate.external_ids || [],
             amounts: certificate.amounts || [],
             emissions: certificate.emissions || [],
@@ -711,6 +714,20 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Subtype */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Subtype
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.type2 || ''}
+                    onChange={(e) => setFormData({ ...formData, type2: e.target.value })}
+                    placeholder="e.g. REC, I-REC, GO, etc."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
                 </div>
 
                 {/* Production Source Selection */}

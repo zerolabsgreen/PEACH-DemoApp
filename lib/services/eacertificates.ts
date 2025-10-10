@@ -23,6 +23,7 @@ export async function createEACertificate(body: CreateEACertificateData) {
 
     const payload = {
       type: body.type,
+      type2: body.type2 || null,
       external_ids: body.externalIDs || null,
       amounts: body.amounts || [],
       emissions: body.emissions || null,
@@ -128,6 +129,7 @@ export async function updateEACertificate(id: string, body: UpdateEACertificateD
 
   const payload: any = {}
   if (body.type !== undefined) payload.type = body.type
+  if (body.type2 !== undefined) payload.type2 = body.type2
   if (body.externalIDs !== undefined) payload.external_ids = body.externalIDs
   if (body.amounts !== undefined) payload.amounts = body.amounts
   if (body.emissions !== undefined) payload.emissions = body.emissions

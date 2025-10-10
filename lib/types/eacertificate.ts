@@ -124,6 +124,7 @@ export interface Organization {
 export interface EACertificate {
   id: string;
   type: EACType;
+  type2?: string; // Additional certificate type information (free text)
   externalIDs?: ExternalID[];
   amounts: Amount[];
   emissions?: EmissionsData[];
@@ -185,6 +186,7 @@ export interface OrganizationDB {
 export interface EACertificateDB {
   id: string;
   type: EACType;
+  type2: string | null; // Additional certificate type information (free text)
   external_ids: ExternalID[] | null;
   amounts: Amount[];
   emissions: EmissionsData[] | null;
@@ -239,6 +241,7 @@ export interface ProductionSourceDB {
 // Create/Update interfaces
 export interface CreateEACertificateData {
   type: EACType;
+  type2?: string; // Additional certificate type information (free text)
   externalIDs?: ExternalID[];
   amounts: Amount[];
   emissions?: EmissionsData[];
@@ -279,6 +282,7 @@ export interface CreateProductionSourceData {
 
 export interface UpdateEACertificateData {
   type?: EACType;
+  type2?: string; // Additional certificate type information (free text)
   externalIDs?: ExternalID[];
   amounts?: Amount[];
   emissions?: EmissionsData[];
