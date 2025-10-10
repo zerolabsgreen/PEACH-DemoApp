@@ -72,7 +72,11 @@ export default function LinksField({
           </div>
         ))}
         {items.length === 0 && (
-          <div className="text-sm text-gray-500">No links added yet.</div>
+          <div className="text-sm text-gray-500 text-center py-4 border-2 border-dashed border-gray-300 rounded-md">
+            <div className="mb-2">No links added yet.</div>
+            <div className="text-xs text-gray-400">Related URLs and references</div>
+            <div className="mt-2">Click "Add link" to get started.</div>
+          </div>
         )}
       </div>
     </div>

@@ -331,7 +331,7 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
             <div className="p-6 overflow-y-auto">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Target Id<span className="text-red-600"> *</span></label>
+                  <label className="block text-sm font-medium text-gray-700">Event Target<span className="text-red-600"> *</span></label>
                   <select
                     className="mt-1 block w-full border rounded px-3 py-2"
                     value={formData.targetId}

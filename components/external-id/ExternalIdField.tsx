@@ -131,6 +131,13 @@ export default function ExternalIdField({
             </div>
           </div>
         ))}
+        {items.length === 0 && (
+          <div className="text-sm text-gray-500 text-center py-4 border-2 border-dashed border-gray-300 rounded-md">
+            <div className="mb-2">No external IDs added yet.</div>
+            <div className="text-xs text-gray-400">External identifiers for this certificate</div>
+            <div className="mt-2">Click "{addButtonText}" to get started.</div>
+          </div>
+        )}
       </div>
     </div>
   )
