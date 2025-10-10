@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { FileType, FILE_TYPE_NAMES } from "@/lib/types/eacertificate"
 import { FileExtension } from "@/components/documents/FileViewer"
 
@@ -105,17 +106,21 @@ export function DocumentEditModal({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               File Type
             </label>
-            <select
+            <Select
               value={formData.fileType}
-              onChange={(e) => setFormData(prev => ({ ...prev, fileType: e.target.value as FileType }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onValueChange={(value) => setFormData(prev => ({ ...prev, fileType: value as FileType }))}
             >
-              {Object.entries(FILE_TYPE_NAMES).map(([key, name]) => (
-                <option key={key} value={key}>
-                  {name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(FILE_TYPE_NAMES).map(([key, name]) => (
+                  <SelectItem key={key} value={key}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

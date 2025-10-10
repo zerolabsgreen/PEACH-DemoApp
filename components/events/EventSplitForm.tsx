@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { BackButton } from '@/components/ui/back-button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import DatePicker from '@/components/ui/date-picker'
 import LinksField from '@/components/ui/links-field'
 import LocationField from '@/components/ui/location-field'
@@ -332,17 +333,20 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Event Target<span className="text-red-600"> *</span></label>
-                  <select
-                    className="mt-1 block w-full border rounded px-3 py-2"
+                  <Select
                     value={formData.targetId}
-                    onChange={(e) => handleTargetIdChange(e.target.value)}
+                    onValueChange={(value) => handleTargetIdChange(value)}
                     required
                   >
-                    <option value="" disabled>Select target…</option>
-                    {targets.map(t => (
-                      <option key={t.id} value={t.id}>{t.label}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="mt-1 w-full">
+                      <SelectValue placeholder="Select target…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {targets.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <p className="text-xs text-gray-500 mt-1">Target is derived automatically from selection.</p>
                 </div>
 
@@ -481,17 +485,21 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
 
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">File Type</label>
-                          <select
+                          <Select
                             value={selectedDocument.fileType}
-                            onChange={(e) => handleDocumentUpdate(selectedDocument.id, { fileType: e.target.value as FileType })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onValueChange={(value) => handleDocumentUpdate(selectedDocument.id, { fileType: value as FileType })}
                           >
-                            {Object.entries(FILE_TYPE_NAMES).map(([key, name]) => (
-                              <option key={key} value={key}>
-                                {name}
-                              </option>
-                            ))}
-                          </select>
+                            <SelectTrigger className="w-full text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(FILE_TYPE_NAMES).map(([key, name]) => (
+                                <SelectItem key={key} value={key}>
+                                  {name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     )}

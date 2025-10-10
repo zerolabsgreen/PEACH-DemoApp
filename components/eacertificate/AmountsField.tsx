@@ -3,6 +3,7 @@
 import React from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Amount, AmountUnit } from '@/lib/types/eacertificate'
 
 export interface AmountsFieldProps {
@@ -115,18 +116,22 @@ export default function AmountsField({
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Unit *</label>
-                <select
+                <Select
                   value={amount.unit || 'MWh'}
-                  onChange={(e) => updateAmount(idx, { unit: e.target.value as AmountUnit })}
+                  onValueChange={(value) => updateAmount(idx, { unit: value as AmountUnit })}
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  {COMMON_UNITS.map((unit) => (
-                    <option key={unit} value={unit}>
-                      {unit}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COMMON_UNITS.map((unit) => (
+                      <SelectItem key={unit} value={unit}>
+                        {unit}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

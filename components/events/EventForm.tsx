@@ -11,6 +11,7 @@ import LocationField from '@/components/ui/location-field'
 // Metadata removed for events for now
 import DocumentUploader, { type DocumentFormItem } from '@/components/documents/DocumentUploader'
 import { BackButton } from '@/components/ui/back-button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createEvent, getEvent, updateEvent } from '@/lib/services/events'
 import { listEACertificates } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
@@ -198,17 +199,20 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
         <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium text-gray-700">Target Id<span className="text-red-600"> *</span></label>
-              <select
-                className="mt-1 block w-full border rounded px-3 py-2"
+              <Select
                 value={form.targetId}
-                onChange={(e) => handleTargetIdChange(e.target.value)}
+                onValueChange={(value) => handleTargetIdChange(value)}
                 required
               >
-                <option value="" disabled>Select target…</option>
-                {targets.map(t => (
-                  <option key={t.id} value={t.id}>{t.label}</option>
-                ))}
-              </select>
+                <SelectTrigger className="mt-1 w-full">
+                  <SelectValue placeholder="Select target…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {targets.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <p className="text-xs text-gray-500 mt-1">Target is derived automatically from selection.</p>
             </div>
 

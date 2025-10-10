@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { BackButton } from '@/components/ui/back-button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { EACType, EAC_TYPE_NAMES, type CreateEACertificateData, type UpdateEACertificateData, FileType, FILE_TYPE_NAMES, EventTarget, type CreateEventData } from '@/lib/types/eacertificate'
 import { FileExtension } from '@/components/documents/FileViewer'
 import { createEACertificate, updateEACertificate, getEACertificate } from '@/lib/services/eacertificates'
@@ -706,18 +707,22 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Certificate Type *
                   </label>
-                  <select
+                  <Select
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value as EACType })}
+                    onValueChange={(value) => setFormData({ ...formData, type: value as EACType })}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    {Object.entries(EAC_TYPE_NAMES).map(([key, name]) => (
-                      <option key={key} value={key}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select certificate type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(EAC_TYPE_NAMES).map(([key, name]) => (
+                        <SelectItem key={key} value={key}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* 2. Subtype */}
@@ -760,18 +765,22 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Production Source (Optional)
                   </label>
-                  <select
-                    value={formData.productionSourceId || ''}
-                    onChange={(e) => setFormData({ ...formData, productionSourceId: e.target.value || undefined })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  <Select
+                    value={formData.productionSourceId || 'none'}
+                    onValueChange={(value) => setFormData({ ...formData, productionSourceId: value === 'none' ? undefined : value })}
                   >
-                    <option value="">Select a production source</option>
-                    {productionSources.map((source) => (
-                      <option key={source.id} value={source.id}>
-                        {source.name || `Source ${source.id.slice(0, 8)}...`}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a production source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {productionSources.map((source) => (
+                        <SelectItem key={source.id} value={source.id}>
+                          {source.name || `Source ${source.id.slice(0, 8)}...`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <div className="text-xs mt-2">
                     <button
                       type="button"
@@ -790,8 +799,9 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                 <OrganizationRoleField
                   value={formData.organizations || []}
                   onChange={(value) => setFormData({ ...formData, organizations: value })}
-                  label="Organizations"
+                  label="Organizations (Optional)"
                   description="Assign roles to organizations for this certificate"
+                  sharedDocuments={formData.documents}
                 />
 
                 {/* 7. Events Section - only show in create mode */}

@@ -4,11 +4,13 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { OrganizationRole } from '@/lib/types/eacertificate'
 import { Plus, Trash2 } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
-import { createOrganizationFull, listOrganizationsWithRole } from '@/lib/services/organizations'
+import { listOrganizationsWithRole } from '@/lib/services/organizations'
 import { toast } from 'sonner'
+import OrganizationCollapsibleForm from './OrganizationCollapsibleForm'
 
 export interface OrganizationRoleFieldProps {
   value: OrganizationRole[]
@@ -16,6 +18,7 @@ export interface OrganizationRoleFieldProps {
   label?: React.ReactNode
   description?: string
   onCreateOrganization?: (orgId: string, orgName: string) => void
+  sharedDocuments?: any[]
 }
 
 export default function OrganizationRoleField({ 
@@ -23,13 +26,14 @@ export default function OrganizationRoleField({
   onChange, 
   label = "Organizations",
   description,
-  onCreateOrganization 
+  onCreateOrganization,
+  sharedDocuments = []
 }: OrganizationRoleFieldProps) {
   const [isCreatingOrg, setIsCreatingOrg] = useState(false)
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null }>>([])
-  const [selectedOrgId, setSelectedOrgId] = useState('')
-  const [role, setRole] = useState('')
   const [isLoadingOrgs, setIsLoadingOrgs] = useState(true)
+  const [creatingForIndex, setCreatingForIndex] = useState<number | null>(null)
+  const [selectKey, setSelectKey] = useState(0)
 
   useEffect(() => {
     const loadOrganizations = async () => {
@@ -53,18 +57,13 @@ export default function OrganizationRoleField({
   }, [])
 
   const handleAddRole = () => {
-    if (!role.trim() || !selectedOrgId.trim()) return
-
-    const selectedOrg = organizations.find(org => org.id === selectedOrgId)
     const newOrganizationRole: OrganizationRole = {
-      orgId: selectedOrgId.trim(),
-      role: role.trim(),
-      orgName: selectedOrg?.name || undefined
+      orgId: '',
+      role: '',
+      orgName: undefined
     }
 
     onChange([...value, newOrganizationRole])
-    setRole('')
-    setSelectedOrgId('')
   }
 
   const handleRemoveRole = (index: number) => {
@@ -72,230 +71,158 @@ export default function OrganizationRoleField({
     onChange(updatedRoles)
   }
 
-  const handleCreateOrganization = async (name: string, description?: string) => {
-    try {
-      const newOrg = await createOrganizationFull({
-        name,
-        description: description || '',
-        externalIDs: [],
-        location: {},
-        organizations: [],
-        links: [],
-        documents: [],
-        metadata: []
-      })
+  const handleOrganizationCreated = (organization: { id: string; name: string }) => {
+    // Add to organizations list
+    setOrganizations(prev => {
+      const exists = prev.some(org => org.id === organization.id)
+      return exists ? prev : [...prev, { id: organization.id, name: organization.name }]
+    })
+    
+    // Populate the specific organization role that triggered the creation
+    if (creatingForIndex !== null) {
+      const updatedRoles = [...value]
+      updatedRoles[creatingForIndex] = {
+        ...updatedRoles[creatingForIndex],
+        orgId: organization.id,
+        orgName: organization.name
+      }
+      onChange(updatedRoles)
       
-      // Add to organizations list
-      setOrganizations(prev => [...prev, { id: newOrg.id, name: newOrg.name }])
-      
-      // Set the new organization as selected
-      setSelectedOrgId(newOrg.id)
-      
-      // Notify parent component
-      onCreateOrganization?.(newOrg.id, newOrg.name || '')
-      
-      toast.success('Organization created successfully')
-      setIsCreatingOrg(false)
-    } catch (error) {
-      console.error('Failed to create organization:', error)
-      toast.error('Failed to create organization')
+      // Force Select component to re-render
+      setSelectKey(prev => prev + 1)
     }
+    
+    // Notify parent component
+    onCreateOrganization?.(organization.id, organization.name)
+    
+    setIsCreatingOrg(false)
+    setCreatingForIndex(null)
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <Label className="text-sm font-medium text-gray-700">{label}</Label>
-        {description && (
-          <p className="text-sm text-gray-600 mt-1">{description}</p>
-        )}
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between">
+        <div>
+          <div className="text-sm font-medium">
+            {label}
+          </div>
+          {description ? <div className="text-xs text-muted-foreground">{description}</div> : null}
+        </div>
+        <Button type="button" variant="outline" size="sm" onClick={handleAddRole}>
+          Add role
+        </Button>
       </div>
 
-      {/* Existing Organizations */}
-      {value.length > 0 && (
-        <div className="space-y-2">
-          {value.map((orgRole, index) => (
-            <div key={index} className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900">
-                  {orgRole.orgName || `Organization ${orgRole.orgId.slice(0, 8)}...`}
-                </div>
-                <div className="text-sm text-gray-600">
-                  Role: {orgRole.role}
-                </div>
-              </div>
+      <div className="space-y-4">
+        {value.map((orgRole, index) => (
+          <div key={index} className="space-y-3 rounded-md border p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium">Organization {index + 1}</div>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => handleRemoveRole(index)}
-                className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                className="text-red-600 hover:text-red-800 hover:bg-red-50"
               >
-                <Trash2 className="h-4 w-4" />
+                Remove
               </Button>
             </div>
-          ))}
-        </div>
-      )}
 
-      {/* Add New Organization Role */}
-      <div className="border border-gray-200 rounded-lg p-4 bg-white">
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <Label htmlFor="organization" className="text-sm font-medium text-gray-700">
-                Organization *
-              </Label>
-              <select
-                id="organization"
-                value={selectedOrgId}
-                onChange={(e) => setSelectedOrgId(e.target.value)}
-                disabled={isLoadingOrgs}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-1 disabled:bg-gray-100 disabled:cursor-not-allowed"
-              >
-                <option value="">
-                  {isLoadingOrgs ? 'Loading organizations...' : 'Select an organization'}
-                </option>
-                {organizations.map((org) => (
-                  <option key={org.id} value={org.id}>
-                    {org.name || `Organization ${org.id.slice(0, 8)}...`}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <Label htmlFor="role" className="text-sm font-medium text-gray-700">
-                Role *
-              </Label>
-              <Input
-                id="role"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                placeholder="e.g. Issuer, Verifier, Buyer, etc."
-                className="mt-1"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Organization</label>
+                <Select
+                  key={`org-select-${index}-${orgRole.orgId}-${selectKey}`}
+                  value={orgRole.orgId || ''}
+                  onValueChange={(selectedValue) => {
+                    const selectedOrg = organizations.find(org => org.id === selectedValue)
+                    const updatedRoles = [...value]
+                    updatedRoles[index] = {
+                      ...orgRole,
+                      orgId: selectedValue,
+                      orgName: selectedOrg?.name || undefined
+                    }
+                    onChange(updatedRoles)
+                  }}
+                  disabled={isLoadingOrgs}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={isLoadingOrgs ? 'Loading organizations...' : 'Select an organization'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {organizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id}>
+                        {org.name || `Organization ${org.id.slice(0, 8)}...`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="text-xs mt-2">
+                  <button
+                    type="button"
+                    className="text-blue-600 hover:text-blue-700"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setCreatingForIndex(index)
+                      setIsCreatingOrg(true)
+                    }}
+                  >
+                    Can't find it? Create a new organization
+                  </button>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Role</label>
+                <Input
+                  value={orgRole.role}
+                  onChange={(e) => {
+                    const updatedRoles = [...value]
+                    updatedRoles[index] = { ...orgRole, role: e.target.value }
+                    onChange(updatedRoles)
+                  }}
+                  placeholder="e.g. Issuer, Verifier, Buyer, etc."
+                />
+              </div>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              onClick={handleAddRole}
-              disabled={!role.trim() || !selectedOrgId.trim() || isLoadingOrgs}
-              size="sm"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Role
-            </Button>
-            
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsCreatingOrg(true)}
-              size="sm"
-            >
-              Create New Organization
-            </Button>
+        ))}
+        
+        {value.length === 0 && (
+          <div className="text-sm text-gray-500 text-center py-4 border-2 border-dashed border-gray-300 rounded-md">
+            <div className="mb-2">No organizations added yet.</div>
+            <div className="text-xs text-gray-400">Organizations are optional for this certificate.</div>
+            <div className="mt-2">Click "Add role" to get started.</div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Create Organization Sidebar */}
-      <CreateOrganizationSidebar
-        isOpen={isCreatingOrg}
-        onClose={() => setIsCreatingOrg(false)}
-        onCreate={handleCreateOrganization}
-      />
+      {/* Create Organization Sheet */}
+      <Sheet open={isCreatingOrg} onOpenChange={(open) => {
+        setIsCreatingOrg(open)
+        if (!open) {
+          setCreatingForIndex(null)
+        }
+      }}>
+        <SheetContent side="right">
+          <SheetHeader>
+            <SheetTitle>Create Organization</SheetTitle>
+            <SheetDescription>
+              We'll reuse the documents you uploaded for this certificate.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="p-4 pt-0">
+            <OrganizationCollapsibleForm
+              onOrganizationCreated={handleOrganizationCreated}
+              sharedDocuments={sharedDocuments}
+              defaultExpanded
+              hideHeader
+              plain
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
-  )
-}
-
-// Create Organization Sidebar Component
-interface CreateOrganizationSidebarProps {
-  isOpen: boolean
-  onClose: () => void
-  onCreate: (name: string, description?: string) => void
-}
-
-function CreateOrganizationSidebar({ isOpen, onClose, onCreate }: CreateOrganizationSidebarProps) {
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name.trim()) return
-
-    setIsSubmitting(true)
-    try {
-      await onCreate(name.trim(), description.trim() || undefined)
-      setName('')
-      setDescription('')
-    } catch (error) {
-      // Error handling is done in parent component
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Create New Organization</SheetTitle>
-          <SheetDescription>
-            Create a new organization that can be assigned roles in certificates.
-          </SheetDescription>
-        </SheetHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-          <div>
-            <Label htmlFor="org-name" className="text-sm font-medium text-gray-700">
-              Organization Name *
-            </Label>
-            <Input
-              id="org-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter organization name"
-              required
-              className="mt-1"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="org-description" className="text-sm font-medium text-gray-700">
-              Description
-            </Label>
-            <textarea
-              id="org-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter organization description"
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-1"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={!name.trim() || isSubmitting}
-            >
-              {isSubmitting ? 'Creating...' : 'Create Organization'}
-            </Button>
-          </div>
-        </form>
-      </SheetContent>
-    </Sheet>
   )
 }

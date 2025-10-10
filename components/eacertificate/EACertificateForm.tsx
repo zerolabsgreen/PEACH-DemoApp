@@ -11,6 +11,7 @@ import DocumentUploader, { type DocumentFormItem } from '@/components/documents/
 import ExternalIdField from '@/components/external-id/ExternalIdField'
 import LinksField from '@/components/ui/links-field'
 import { Switch } from '@/components/ui/switch'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import AmountsField from './AmountsField'
 import EmissionsField from './EmissionsField'
 import OrganizationRoleField from './OrganizationRoleField'
@@ -247,18 +248,22 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Certificate Type *
               </label>
-              <select
+              <Select
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as EACType })}
+                onValueChange={(value) => setFormData({ ...formData, type: value as EACType })}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                {Object.entries(EAC_TYPE_NAMES).map(([key, name]) => (
-                  <option key={key} value={key}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select certificate type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(EAC_TYPE_NAMES).map(([key, name]) => (
+                    <SelectItem key={key} value={key}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* 2. Subtype */}
@@ -301,18 +306,22 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Production Source (Optional)
               </label>
-              <select
-                value={formData.productionSourceId || ''}
-                onChange={(e) => setFormData({ ...formData, productionSourceId: e.target.value || undefined })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              <Select
+                value={formData.productionSourceId || 'none'}
+                onValueChange={(value) => setFormData({ ...formData, productionSourceId: value === 'none' ? undefined : value })}
               >
-                <option value="">Select a production source</option>
-                {productionSources.map((source) => (
-                  <option key={source.id} value={source.id}>
-                    {source.name || `Source ${source.id.slice(0, 8)}...`}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a production source" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {productionSources.map((source) => (
+                    <SelectItem key={source.id} value={source.id}>
+                      {source.name || `Source ${source.id.slice(0, 8)}...`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* 6. Organizations */}
@@ -321,6 +330,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               onChange={(value) => setFormData({ ...formData, organizations: value })}
               label="Organizations"
               description="Assign roles to organizations for this certificate"
+              sharedDocuments={formData.documents}
             />
 
             {/* 7. Events Section - only show in create mode */}

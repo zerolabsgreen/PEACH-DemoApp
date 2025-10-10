@@ -3,6 +3,7 @@
 import React from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { EmissionsData, EmissionsUnit } from '@/lib/types/eacertificate'
 
 export interface EmissionsFieldProps {
@@ -87,18 +88,22 @@ export default function EmissionsField({
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">CI Unit</label>
-                <select
+                <Select
                   value={emission.ciUnit || 'gCO2e/kWh'}
-                  onChange={(e) => updateEmission(idx, { ciUnit: e.target.value as EmissionsUnit })}
+                  onValueChange={(value) => updateEmission(idx, { ciUnit: value as EmissionsUnit })}
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  {COMMON_EMISSIONS_UNITS.map((unit) => (
-                    <option key={unit} value={unit}>
-                      {unit}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COMMON_EMISSIONS_UNITS.map((unit) => (
+                      <SelectItem key={unit} value={unit}>
+                        {unit}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -127,18 +132,22 @@ export default function EmissionsField({
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">EF Unit</label>
-                <select
+                <Select
                   value={emission.efUnit || 'gCO2e/kWh'}
-                  onChange={(e) => updateEmission(idx, { efUnit: e.target.value as EmissionsUnit })}
+                  onValueChange={(value) => updateEmission(idx, { efUnit: value as EmissionsUnit })}
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  {COMMON_EMISSIONS_UNITS.map((unit) => (
-                    <option key={unit} value={unit}>
-                      {unit}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COMMON_EMISSIONS_UNITS.map((unit) => (
+                      <SelectItem key={unit} value={unit}>
+                        {unit}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
