@@ -52,7 +52,7 @@ export default function LocationField({
                 {value.country || 'Select a country'}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="p-0 w-[--radix-popover-trigger-width]">
+            <PopoverContent className="p-0 popover-content-width-full">
               <Command>
                 <CommandInput placeholder="Search country..." />
                 <CommandList>
