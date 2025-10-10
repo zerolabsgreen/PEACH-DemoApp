@@ -18,6 +18,7 @@ import {
 import { listOrganizationsWithRole } from '@/lib/services/organizations'
 import { listEACertificates } from '@/lib/services/eacertificates'
 import { listEvents } from '@/lib/services/events'
+import { listProductionSources } from '@/lib/services/production-sources'
 
 interface DashboardStats {
   organizations: number
@@ -35,10 +36,11 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [organizations, eacertificates, events] = await Promise.all([
+        const [organizations, eacertificates, events, productionSources] = await Promise.all([
           listOrganizationsWithRole(),
           listEACertificates(),
-          listEvents()
+          listEvents(),
+          listProductionSources()
         ])
 
         // Get recent activity (last 5 events)
@@ -48,7 +50,7 @@ export default function DashboardPage() {
           organizations: organizations.length,
           eacertificates: eacertificates.length,
           events: events.length,
-          productionSources: 0, // We'll need to implement this service
+          productionSources: productionSources.length,
           recentActivity
         })
       } catch (error) {
@@ -89,14 +91,6 @@ export default function DashboardPage() {
 
   const statCards = [
     {
-      title: "Organizations",
-      value: stats?.organizations || 0,
-      description: "Total organizations",
-      icon: Building2,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50"
-    },
-    {
       title: "EACertificates",
       value: stats?.eacertificates || 0,
       description: "Environmental certificates",
@@ -105,6 +99,23 @@ export default function DashboardPage() {
       bgColor: "bg-green-50"
     },
     {
+      title: "Production Sources",
+      value: stats?.productionSources || 0,
+      description: "Active production sources",
+      icon: Factory,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50"
+    },
+    {
+      title: "Organizations",
+      value: stats?.organizations || 0,
+      description: "Total organizations",
+      icon: Building2,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50"
+    },
+    
+    {
       title: "Events",
       value: stats?.events || 0,
       description: "Total events tracked",
@@ -112,14 +123,6 @@ export default function DashboardPage() {
       color: "text-purple-600",
       bgColor: "bg-purple-50"
     },
-    {
-      title: "Production Sources",
-      value: stats?.productionSources || 0,
-      description: "Active production sources",
-      icon: Factory,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50"
-    }
   ]
 
   return (
@@ -179,7 +182,7 @@ export default function DashboardPage() {
                           {event.type || 'Event'}
                         </p>
                         <p className="text-sm text-gray-500 truncate">
-                          {event.description || 'No description available'}
+                          {event.description || ''}
                         </p>
                         <p className="text-xs text-gray-400">
                           {new Date(event.created_at).toLocaleDateString()}
