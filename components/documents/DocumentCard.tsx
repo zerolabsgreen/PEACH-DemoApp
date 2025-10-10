@@ -15,8 +15,7 @@ export interface DocumentCardProps {
   isSelected?: boolean
   onSelect: () => void
   onRemove: () => void
-  onToggleEdit?: () => void
-  showEdit?: boolean
+  onEdit?: () => void
   className?: string
 }
 
@@ -30,8 +29,7 @@ export default function DocumentCard({
   onSelect, 
   onRemove,
   className = "",
-  onToggleEdit,
-  showEdit = false
+  onEdit
 }: DocumentCardProps) {
   const getFileIcon = (fileExtension: FileExtension) => {
     if (fileExtension === 'PDF') {
@@ -118,13 +116,13 @@ export default function DocumentCard({
                 </svg>
                 Currently viewing
               </div>
-              {onToggleEdit && (
+              {onEdit && (
                 <button
                   type="button"
                   className="text-gray-600 hover:text-gray-900 underline underline-offset-2"
-                  onClick={(e) => { e.stopPropagation(); onToggleEdit() }}
+                  onClick={(e) => { e.stopPropagation(); onEdit() }}
                 >
-                  {showEdit ? 'Hide info' : 'Edit info'}
+                  Edit info
                 </button>
               )}
             </div>

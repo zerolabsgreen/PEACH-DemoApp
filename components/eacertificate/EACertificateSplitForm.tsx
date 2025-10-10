@@ -20,6 +20,7 @@ import ProductionSourceCollapsibleForm from './ProductionSourceCollapsibleForm'
 import Dropzone from '@/components/documents/Dropzone'
 import FileViewer from '@/components/documents/FileViewer'
 import DocumentCard from '@/components/documents/DocumentCard'
+import {DocumentEditModal} from "@/components/documents/DocumentEditModal"
 import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { createClientComponentClient } from '@/lib/supabase'
 import DatePicker from '@/components/ui/date-picker'
@@ -111,8 +112,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
   }
 
   const selectedDocumentId = selectedDocumentIdByCert[activeCertificateIndex] ?? null
-  const [showDocEdit, setShowDocEdit] = useState(false)
-  const docDetailsRef = React.useRef<HTMLDivElement | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
   const selectedDocument = React.useMemo(() => {
     const docs = formData?.documents ?? []
     return selectedDocumentId 
@@ -575,8 +575,8 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                 </div>
               ) : (
                 // When files exist: cards list, preview, and details
-                <div className="space-y-4">
-                  <div>
+                <div className="flex flex-col h-full">
+                  <div className="flex-shrink-0">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-sm font-medium text-gray-700">Uploaded Documents</h3>
                       <Button
@@ -601,7 +601,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                         + Add More Files
                       </Button>
                     </div>
-                    <div className="space-y-3">
+                    <div className="space-y-3 max-h-48 overflow-y-auto">
                       {formData.documents.map((doc) => (
                         <DocumentCard
                           key={doc.id}
@@ -611,63 +611,27 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                           title={doc.title}
                           description={doc.description}
                           isSelected={selectedDocumentId === doc.id}
-                          onSelect={() => { setShowDocEdit(false); handleDocumentSelect(doc.id) }}
+                          onSelect={() => handleDocumentSelect(doc.id)}
                           onRemove={() => handleDocumentRemove(doc.id)}
-                          onToggleEdit={() => setShowDocEdit(prev => !prev)}
-                          showEdit={showDocEdit}
+                          onEdit={() => setShowEditModal(true)}
                         />
                       ))}
                     </div>
                   </div>
 
-                  <div className={`${showDocEdit ? '' : 'sticky top-2.5'}`}>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Preview</h2>
-                  <FileViewer
-                    file={selectedDocument?.file}
-                    fileType={selectedDocument?.fileType}
-                    fileExtension={selectedDocument?.fileExtension}
-                    title={selectedDocument?.title}
-                    className={showDocEdit ? 'h-[60vh]' : 'h-[calc(100vh-220px)]'}
-                    />
+                  <div className="flex-1 mt-4">
+                    <div className="sticky top-4">
+                      <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Preview</h2>
+                      <FileViewer
+                        file={selectedDocument?.file}
+                        fileType={selectedDocument?.fileType}
+                        fileExtension={selectedDocument?.fileExtension}
+                        title={selectedDocument?.title}
+                        className="h-[calc(100vh-100px)]"
+                      />
+                    </div>
                   </div>
 
-                  {/* Document Details Form */}
-                  {selectedDocument && showDocEdit && (
-                    <div ref={docDetailsRef} className="border-t pt-4 space-y-4">
-                      <h4 className="text-sm font-medium text-gray-700">Document Details</h4>
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">Title</label>
-                        <Input
-                          value={selectedDocument.title}
-                          onChange={(e) => handleDocumentUpdate(selectedDocument.id, { title: e.target.value })}
-                          placeholder="Document title"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">Description</label>
-                        <Textarea
-                          value={selectedDocument.description}
-                          onChange={(e) => handleDocumentUpdate(selectedDocument.id, { description: e.target.value })}
-                          rows={3}
-                          placeholder="Document description"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">File Type</label>
-                        <select
-                          value={selectedDocument.fileType}
-                          onChange={(e) => handleDocumentUpdate(selectedDocument.id, { fileType: e.target.value as FileType })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                          {Object.entries(FILE_TYPE_NAMES).map(([key, name]) => (
-                            <option key={key} value={key}>
-                              {name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
@@ -1001,6 +965,16 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
 
         </div>
       </div>
+
+      {/* Document Edit Modal */}
+      {selectedDocument && (
+        <DocumentEditModal
+          document={selectedDocument}
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onUpdate={handleDocumentUpdate}
+        />
+      )}
     </div>
   )
 }
