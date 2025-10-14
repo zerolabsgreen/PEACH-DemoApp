@@ -17,6 +17,7 @@ import DocumentCard from '@/components/documents/DocumentCard'
 import { createEvent, getEvent, updateEvent } from '@/lib/services/events'
 import { listEACertificates } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
+import { formatProductionSourceLabel } from '@/lib/utils/production-source-utils'
 import { EventTarget, type CreateEventData, type UpdateEventData, type MetadataItem } from '@/lib/types/eacertificate'
 import { toDateInputValue, parseDateInput } from '@/lib/date-utils'
 import { format } from 'date-fns'
@@ -109,7 +110,7 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
         }))
         const sourceOptions: TargetOption[] = (sources ?? []).map((s: any) => ({
           id: s.id,
-          label: `Production Source • ${s.name ?? s.id}`,
+          label: `Production Source • ${formatProductionSourceLabel(s)}`,
           target: EventTarget.PSOURCE,
         }))
         let options = [...certOptions, ...sourceOptions]

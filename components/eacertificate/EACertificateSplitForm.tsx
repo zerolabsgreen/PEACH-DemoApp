@@ -35,6 +35,7 @@ import { Switch } from '@/components/ui/switch'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Trash2, Eye } from 'lucide-react'
 import ProductionSourcePreview from './ProductionSourcePreview'
+import { formatProductionSourceLabel } from '@/lib/utils/production-source-utils'
 
 export interface EACertificateSplitFormProps {
   mode: 'create' | 'edit'
@@ -816,7 +817,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                       <SelectItem value="none">None</SelectItem>
                       {productionSources.map((source) => (
                         <SelectItem key={source.id} value={source.id}>
-                          {source.name || `Source ${source.id.slice(0, 8)}...`}
+                          {formatProductionSourceLabel(source)}
                         </SelectItem>
                       ))}
                     </SelectContent>

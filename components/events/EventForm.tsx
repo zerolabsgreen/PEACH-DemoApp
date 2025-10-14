@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { createEvent, getEvent, updateEvent } from '@/lib/services/events'
 import { listEACertificates } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
+import { formatProductionSourceLabel } from '@/lib/utils/production-source-utils'
 import { createClientComponentClient } from '@/lib/supabase'
 import { EventTarget, type CreateEventData, type UpdateEventData, type MetadataItem } from '@/lib/types/eacertificate'
 import { toDateInputValue, parseDateInput } from '@/lib/date-utils'
@@ -83,7 +84,7 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
         }))
         const sourceOptions: TargetOption[] = (sources ?? []).map((s: any) => ({
           id: s.id,
-          label: `Production Source • ${s.name ?? s.id}`,
+          label: `Production Source • ${formatProductionSourceLabel(s)}`,
           target: EventTarget.PSOURCE,
         }))
         let options = [...certOptions, ...sourceOptions]

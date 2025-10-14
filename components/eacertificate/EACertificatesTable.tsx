@@ -21,6 +21,7 @@ import { createEACertificateColumns, EACertificateRow } from "./EACertificatesCo
 import Link from "next/link"
 import { EACType, EAC_TYPE_NAMES } from "@/lib/types/eacertificate"
 import { listProductionSources } from "@/lib/services/production-sources"
+import { formatProductionSourceLabel } from "@/lib/utils/production-source-utils"
 import { useRouter } from "next/navigation"
 import { countries } from "countries-list"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -141,7 +142,7 @@ export function EACertificatesTable({ data, onDelete }: Props) {
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
               {prodSources.map((s) => (
-                <SelectItem key={s.id} value={s.id}>{s.name || s.id}</SelectItem>
+                <SelectItem key={s.id} value={s.id}>{formatProductionSourceLabel(s)}</SelectItem>
               ))}
             </SelectContent>
           </Select>

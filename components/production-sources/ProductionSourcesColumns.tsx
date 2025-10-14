@@ -10,6 +10,7 @@ import type { ProductionSource } from "@/lib/services/production-sources"
 import { deleteProductionSource } from "@/lib/services/production-sources"
 import { formatDate } from "@/lib/date-utils"
 import { toast } from "sonner"
+import { formatProductionSourceLabel } from "@/lib/utils/production-source-utils"
 
 export type ProductionSourceRow = Pick<ProductionSource, "id" | "name" | "technology" | "description" | "created_at">
 
@@ -23,7 +24,7 @@ export const createProductionSourceColumns = (onDelete?: () => void): ColumnDef<
     ),
     cell: ({ row }) => (
       <div className="font-medium">
-        {row.original.name || 'Unnamed Source'}
+        {formatProductionSourceLabel(row.original)}
       </div>
     ),
   },
