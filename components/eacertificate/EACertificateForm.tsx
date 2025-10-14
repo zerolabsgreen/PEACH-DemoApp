@@ -7,6 +7,7 @@ import { BackButton } from '@/components/ui/back-button'
 import { EACType, EAC_TYPE_NAMES, type CreateEACertificateData, type UpdateEACertificateData } from '@/lib/types/eacertificate'
 import { createEACertificate, updateEACertificate, getEACertificate } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
+import { formatProductionSourceLabel } from '@/lib/utils/production-source-utils'
 import DocumentUploader, { type DocumentFormItem } from '@/components/documents/DocumentUploader'
 import ExternalIdField from '@/components/external-id/ExternalIdField'
 import LinksField from '@/components/ui/links-field'
@@ -317,7 +318,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
                   <SelectItem value="none">None</SelectItem>
                   {productionSources.map((source) => (
                     <SelectItem key={source.id} value={source.id}>
-                      {source.name || `Source ${source.id.slice(0, 8)}...`}
+                      {formatProductionSourceLabel(source)}
                     </SelectItem>
                   ))}
                 </SelectContent>

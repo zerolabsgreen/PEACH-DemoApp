@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { OrganizationRole } from '@/lib/types/eacertificate'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Eye } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
-import { listOrganizationsWithRole } from '@/lib/services/organizations'
+import { listOrganizationsWithRole, getOrganization } from '@/lib/services/organizations'
 import { toast } from 'sonner'
 import OrganizationCollapsibleForm from './OrganizationCollapsibleForm'
+import OrganizationPreview from './OrganizationPreview'
+import FileViewer from '@/components/documents/FileViewer'
 
 export interface OrganizationRoleFieldProps {
   value: OrganizationRole[]
@@ -19,6 +21,7 @@ export interface OrganizationRoleFieldProps {
   description?: string
   onCreateOrganization?: (orgId: string, orgName: string) => void
   sharedDocuments?: any[]
+  selectedDocumentId?: string | null
 }
 
 export default function OrganizationRoleField({ 
@@ -27,13 +30,25 @@ export default function OrganizationRoleField({
   label = "Organizations",
   description,
   onCreateOrganization,
-  sharedDocuments = []
+  sharedDocuments = [],
+  selectedDocumentId
 }: OrganizationRoleFieldProps) {
   const [isCreatingOrg, setIsCreatingOrg] = useState(false)
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null }>>([])
   const [isLoadingOrgs, setIsLoadingOrgs] = useState(true)
   const [creatingForIndex, setCreatingForIndex] = useState<number | null>(null)
   const [selectKey, setSelectKey] = useState(0)
+  const [previewOrgId, setPreviewOrgId] = useState<string | null>(null)
+  const [previewOrg, setPreviewOrg] = useState<any>(null)
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false)
+
+  // Get the selected document for preview
+  const selectedDocument = React.useMemo(() => {
+    const docs = sharedDocuments
+    return selectedDocumentId 
+      ? docs.find(doc => doc.id === selectedDocumentId) || null
+      : docs[0] || null
+  }, [selectedDocumentId, sharedDocuments])
 
   useEffect(() => {
     const loadOrganizations = async () => {
@@ -99,6 +114,26 @@ export default function OrganizationRoleField({
     setCreatingForIndex(null)
   }
 
+  const handlePreviewOrganization = async (orgId: string) => {
+    if (previewOrgId === orgId) {
+      setPreviewOrgId(null)
+      setPreviewOrg(null)
+      return
+    }
+
+    setIsLoadingPreview(true)
+    try {
+      const org = await getOrganization(orgId)
+      setPreviewOrg(org)
+      setPreviewOrgId(orgId)
+    } catch (error) {
+      console.error('Failed to load organization:', error)
+      toast.error('Failed to load organization details')
+    } finally {
+      setIsLoadingPreview(false)
+    }
+  }
+
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
@@ -131,7 +166,20 @@ export default function OrganizationRoleField({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Organization</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs text-gray-500">Organization</label>
+                  {orgRole.orgId && (
+                    <button
+                      type="button"
+                      className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                      onClick={() => handlePreviewOrganization(orgRole.orgId)}
+                      disabled={isLoadingPreview}
+                    >
+                      <Eye className="h-3 w-3" />
+                      {isLoadingPreview ? 'Loading...' : 'Preview'}
+                    </button>
+                  )}
+                </div>
                 <Select
                   key={`org-select-${index}-${orgRole.orgId}-${selectKey}`}
                   value={orgRole.orgId || ''}
@@ -205,21 +253,68 @@ export default function OrganizationRoleField({
           setCreatingForIndex(null)
         }
       }}>
-        <SheetContent side="right">
+        <SheetContent side="right" className="w-[90vw] max-w-[90vw]">
+          <div className="flex h-full">
+            {/* Document Preview Section */}
+            <div className="w-1/2 border-r border-gray-200 p-4">
+              <div className="h-full flex flex-col">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Preview</h2>
+                <div className="flex-1 min-h-0">
+                  <FileViewer
+                    file={selectedDocument?.file}
+                    fileType={selectedDocument?.fileType}
+                    fileExtension={selectedDocument?.fileExtension}
+                    title={selectedDocument?.title}
+                    className="h-full"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Form Section */}
+            <div className="w-1/2 flex flex-col">
+              <SheetHeader className="p-4 pb-0">
+                <SheetTitle>Create Organization</SheetTitle>
+                <SheetDescription>
+                  We'll reuse the documents you uploaded for this certificate.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="p-4 pt-0 flex-1 overflow-y-auto">
+                <OrganizationCollapsibleForm
+                  onOrganizationCreated={handleOrganizationCreated}
+                  sharedDocuments={sharedDocuments}
+                  defaultExpanded
+                  hideHeader
+                  plain
+                />
+              </div>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Organization Preview Sheet */}
+      <Sheet open={previewOrgId !== null} onOpenChange={(open) => {
+        if (!open) {
+          setPreviewOrgId(null)
+          setPreviewOrg(null)
+        }
+      }}>
+        <SheetContent side="right" className="w-[60vw] max-w-[60vw]">
           <SheetHeader>
-            <SheetTitle>Create Organization</SheetTitle>
+            <SheetTitle>Organization Preview</SheetTitle>
             <SheetDescription>
-              We'll reuse the documents you uploaded for this certificate.
+              View organization details (read-only)
             </SheetDescription>
           </SheetHeader>
-          <div className="p-4 pt-0">
-            <OrganizationCollapsibleForm
-              onOrganizationCreated={handleOrganizationCreated}
-              sharedDocuments={sharedDocuments}
-              defaultExpanded
-              hideHeader
-              plain
-            />
+          <div className="p-4 pt-0 flex-1 overflow-y-auto">
+            {previewOrg ? (
+              <OrganizationPreview organization={previewOrg} />
+            ) : (
+              <div className="flex items-center justify-center h-32">
+                <div className="text-sm text-gray-500">Loading organization details...</div>
+              </div>
+            )}
           </div>
         </SheetContent>
       </Sheet>

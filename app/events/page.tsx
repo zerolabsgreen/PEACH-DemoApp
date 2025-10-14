@@ -5,6 +5,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { listEvents } from '@/lib/services/events'
 import { listEACertificates } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
+import { formatProductionSourceLabel } from '@/lib/utils/production-source-utils'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { BackButton } from '@/components/ui/back-button'
@@ -36,7 +37,7 @@ export default function EventsIndexPage() {
 
         const sourceMap: Record<string, string> = {}
         for (const s of sources ?? []) {
-          sourceMap[s.id] = `Production Source • ${s.name ?? s.id}`
+          sourceMap[s.id] = `Production Source • ${formatProductionSourceLabel(s)}`
         }
 
         const labels: Record<string, string> = {}
@@ -118,6 +119,7 @@ export default function EventsIndexPage() {
     target_id: event.target_id,
     dates: event.dates,
     location: event.location,
+    metadata: event.metadata,
     created_at: event.created_at,
     updated_at: event.updated_at,
   }))

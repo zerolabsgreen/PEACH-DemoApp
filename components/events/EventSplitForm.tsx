@@ -10,13 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import DatePicker from '@/components/ui/date-picker'
 import LinksField from '@/components/ui/links-field'
 import LocationField from '@/components/ui/location-field'
+import MetadataField from '@/components/ui/metadata-field'
 import Dropzone from '@/components/documents/Dropzone'
 import FileViewer from '@/components/documents/FileViewer'
 import DocumentCard from '@/components/documents/DocumentCard'
 import { createEvent, getEvent, updateEvent } from '@/lib/services/events'
 import { listEACertificates } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
-import { EventTarget, type CreateEventData, type UpdateEventData } from '@/lib/types/eacertificate'
+import { formatProductionSourceLabel } from '@/lib/utils/production-source-utils'
+import { EventTarget, type CreateEventData, type UpdateEventData, type MetadataItem } from '@/lib/types/eacertificate'
 import { toDateInputValue, parseDateInput } from '@/lib/date-utils'
 import { format } from 'date-fns'
 import { FileType, FILE_TYPE_NAMES } from '@/lib/types/eacertificate'
@@ -56,6 +58,7 @@ interface EventFormData {
   notes?: string
   links?: string[]
   documents: UploadedDocument[]
+  metadata: MetadataItem[]
 }
 
 export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFormProps) {
@@ -77,6 +80,7 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
     notes: '',
     documents: [],
     links: [],
+    metadata: [],
   })
 
   const selectedDocument = React.useMemo(() => {
@@ -106,7 +110,7 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
         }))
         const sourceOptions: TargetOption[] = (sources ?? []).map((s: any) => ({
           id: s.id,
-          label: `Production Source • ${s.name ?? s.id}`,
+          label: `Production Source • ${formatProductionSourceLabel(s)}`,
           target: EventTarget.PSOURCE,
         }))
         let options = [...certOptions, ...sourceOptions]
@@ -150,6 +154,7 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
             notes: ev.notes ?? '',
             documents: [],
             links: ev.links ?? [],
+            metadata: ev.metadata ?? [],
           })
         } finally {
           setLoading(false)
@@ -245,6 +250,7 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
           organizations: formData.organizations,
           notes: formData.notes,
           links: formData.links,
+          metadata: formData.metadata,
         }
         await createEvent(payload)
       } else if (mode === 'edit' && eventId) {
@@ -263,6 +269,7 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
           organizations: formData.organizations,
           notes: formData.notes,
           links: formData.links,
+          metadata: formData.metadata,
         }
         await updateEvent(eventId, patch)
       }
@@ -411,6 +418,13 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
                 <LinksField 
                   value={formData.links ?? []} 
                   onChange={(v) => setFormData(prev => ({ ...prev, links: v }))} 
+                />
+
+                <MetadataField
+                  value={formData.metadata}
+                  onChange={(v) => setFormData(prev => ({ ...prev, metadata: v }))}
+                  label="Metadata"
+                  description="Add custom metadata fields for this event"
                 />
 
                 {/* Document Management */}

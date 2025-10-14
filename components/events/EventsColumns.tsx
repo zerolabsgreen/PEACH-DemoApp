@@ -11,7 +11,7 @@ import { deleteEvent } from "@/lib/services/events"
 import { formatDate, formatDateTime, formatDateRange } from "@/lib/date-utils"
 import { toast } from "sonner"
 
-export type EventRow = Pick<EventDB, "id" | "type" | "target" | "target_id" | "dates" | "location" | "created_at" | "updated_at">
+export type EventRow = Pick<EventDB, "id" | "type" | "target" | "target_id" | "dates" | "location" | "metadata" | "created_at" | "updated_at">
 
 function formatTargetLabel(target: string, targetId: string, targetLabels: Record<string, string>) {
   const key = `${target}:${targetId}`
@@ -69,6 +69,31 @@ export const eventColumns = (targetLabels: Record<string, string>, onDelete?: ()
     cell: ({ row }) => (
       <div className="text-sm text-gray-600">
         {row.original.location?.country || "—"}
+      </div>
+    ),
+    enableSorting: false,
+  },
+  {
+    accessorKey: "metadata",
+    header: () => <div className="text-left">Metadata</div>,
+    cell: ({ row }) => (
+      <div className="text-sm text-gray-600">
+        {row.original.metadata && row.original.metadata.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {row.original.metadata.slice(0, 2).map((item, index) => (
+              <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
+                {item.label || item.key}: {item.value}
+              </span>
+            ))}
+            {row.original.metadata.length > 2 && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-500">
+                +{row.original.metadata.length - 2} more
+              </span>
+            )}
+          </div>
+        ) : (
+          "—"
+        )}
       </div>
     ),
     enableSorting: false,

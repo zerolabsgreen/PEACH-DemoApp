@@ -71,6 +71,17 @@ export async function listOrganizationsWithRole() {
   return (data ?? []).map((row: any) => ({ organizations: row })) as any
 }
 
+export async function getOrganization(id: string) {
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('organizations')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return data as any
+}
+
 export async function inviteToOrganization(orgId: string, email: string) {
   throw new Error('Invitations feature is disabled')
 }
