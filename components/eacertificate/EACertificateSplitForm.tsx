@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { EACType, EAC_TYPE_NAMES, type CreateEACertificateData, type UpdateEACertificateData, FileType, FILE_TYPE_NAMES, EventTarget, type CreateEventData, type MetadataItem } from '@/lib/types/eacertificate'
 import { FileExtension } from '@/components/documents/FileViewer'
 import { createEACertificate, updateEACertificate, getEACertificate } from '@/lib/services/eacertificates'
-import { listProductionSources } from '@/lib/services/production-sources'
+import { listProductionSources, getProductionSource } from '@/lib/services/production-sources'
 import { createEvent } from '@/lib/services/events'
 import ExternalIdField from '@/components/external-id/ExternalIdField'
 import LinksField from '@/components/ui/links-field'
@@ -33,7 +33,8 @@ import { format } from 'date-fns'
 import { toast } from 'sonner'
 import { Switch } from '@/components/ui/switch'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Eye } from 'lucide-react'
+import ProductionSourcePreview from './ProductionSourcePreview'
 
 export interface EACertificateSplitFormProps {
   mode: 'create' | 'edit'
@@ -66,6 +67,9 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
   const [selectedDocumentIdByCert, setSelectedDocumentIdByCert] = useState<Record<number, string | null>>({})
   const [isMultiCreate, setIsMultiCreate] = useState(false)
   const [psSheetOpen, setPsSheetOpen] = useState(false)
+  const [previewPsId, setPreviewPsId] = useState<string | null>(null)
+  const [previewPs, setPreviewPs] = useState<any>(null)
+  const [isLoadingPsPreview, setIsLoadingPsPreview] = useState(false)
   // Removed created entity state as inline creation UI was removed
   // Multiple certificates support (single active view for now)
   const [activeCertificateIndex, setActiveCertificateIndex] = useState(0)
@@ -299,15 +303,36 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
     }
   }
 
-  useEffect(() => {
-    const loadProductionSources = async () => {
-      try {
-        const sources = await listProductionSources()
-        setProductionSources(sources)
-      } catch (error) {
-        console.error('Failed to load production sources:', error)
-      }
+  const loadProductionSources = async () => {
+    try {
+      const sources = await listProductionSources()
+      setProductionSources(sources)
+    } catch (error) {
+      console.error('Failed to load production sources:', error)
     }
+  }
+
+  const handlePreviewProductionSource = async (psId: string) => {
+    if (previewPsId === psId) {
+      setPreviewPsId(null)
+      setPreviewPs(null)
+      return
+    }
+
+    setIsLoadingPsPreview(true)
+    try {
+      const ps = await getProductionSource(psId)
+      setPreviewPs(ps)
+      setPreviewPsId(psId)
+    } catch (error) {
+      console.error('Failed to load production source:', error)
+      toast.error('Failed to load production source details')
+    } finally {
+      setIsLoadingPsPreview(false)
+    }
+  }
+
+  useEffect(() => {
 
     const loadCertificate = async () => {
       if (mode === 'edit' && certificateId) {
@@ -764,9 +789,22 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
 
                 {/* 5. Production Source */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Production Source (Optional)
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Production Source (Optional)
+                    </label>
+                    {formData.productionSourceId && formData.productionSourceId !== 'none' && (
+                      <button
+                        type="button"
+                        className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                        onClick={() => handlePreviewProductionSource(formData.productionSourceId!)}
+                        disabled={isLoadingPsPreview}
+                      >
+                        <Eye className="h-3 w-3" />
+                        {isLoadingPsPreview ? 'Loading...' : 'Preview'}
+                      </button>
+                    )}
+                  </div>
                   <Select
                     value={formData.productionSourceId || 'none'}
                     onValueChange={(value) => setFormData({ ...formData, productionSourceId: value === 'none' ? undefined : value })}
@@ -1048,6 +1086,32 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
           onUpdate={handleDocumentUpdate}
         />
       )}
+
+      {/* Production Source Preview Sheet */}
+      <Sheet open={previewPsId !== null} onOpenChange={(open) => {
+        if (!open) {
+          setPreviewPsId(null)
+          setPreviewPs(null)
+        }
+      }}>
+        <SheetContent side="right" className="w-[60vw] max-w-[60vw]">
+          <SheetHeader>
+            <SheetTitle>Production Source Preview</SheetTitle>
+            <SheetDescription>
+              View production source details (read-only)
+            </SheetDescription>
+          </SheetHeader>
+          <div className="p-4 pt-0 flex-1 overflow-y-auto">
+            {previewPs ? (
+              <ProductionSourcePreview productionSource={previewPs} />
+            ) : (
+              <div className="flex items-center justify-center h-32">
+                <div className="text-sm text-gray-500">Loading production source details...</div>
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
