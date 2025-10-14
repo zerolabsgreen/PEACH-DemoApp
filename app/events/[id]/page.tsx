@@ -251,6 +251,25 @@ export default function EventPage({ params }: EventPageProps) {
               </section>
             )}
 
+            {ev.metadata && ev.metadata.length > 0 && (
+              <section>
+                <h2 className="text-lg font-medium mb-2">Metadata</h2>
+                <div className="space-y-2">
+                  {ev.metadata.map((item: any, i: number) => (
+                    <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium text-gray-900">{item.label || item.key}</div>
+                        {item.description && (
+                          <div className="text-xs text-gray-500 mt-1">{item.description}</div>
+                        )}
+                        <div className="text-sm text-gray-700 mt-1">{item.value || '—'}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {ev.notes && (
               <section>
                 <h2 className="text-lg font-medium mb-2">Notes</h2>

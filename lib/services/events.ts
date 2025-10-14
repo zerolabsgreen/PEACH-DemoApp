@@ -29,6 +29,7 @@ export async function createEvent(body: CreateEventData) {
     notes: body.notes ?? null,
     documents: body.documents && body.documents.length > 0 ? body.documents.map(d => d.id).filter(Boolean) : null,
     links: body.links ?? null,
+    metadata: body.metadata ?? null,
   }
 
   const { data, error } = await supabase
@@ -102,6 +103,7 @@ export async function updateEvent(id: string, body: UpdateEventData) {
   if (body.notes !== undefined) payload.notes = body.notes
   if (body.documents !== undefined) payload.documents = body.documents && body.documents.length > 0 ? body.documents.map(d => d.id).filter(Boolean) : null
   if (body.links !== undefined) payload.links = body.links
+  if (body.metadata !== undefined) payload.metadata = body.metadata
 
   const { data, error } = await supabase
     .from('events')

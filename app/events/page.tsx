@@ -118,6 +118,7 @@ export default function EventsIndexPage() {
     target_id: event.target_id,
     dates: event.dates,
     location: event.location,
+    metadata: event.metadata,
     created_at: event.created_at,
     updated_at: event.updated_at,
   }))

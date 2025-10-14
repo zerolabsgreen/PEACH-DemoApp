@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import DatePicker from '@/components/ui/date-picker'
 import LinksField from '@/components/ui/links-field'
 import LocationField from '@/components/ui/location-field'
-// Metadata removed for events for now
+import MetadataField from '@/components/ui/metadata-field'
 import DocumentUploader, { type DocumentFormItem } from '@/components/documents/DocumentUploader'
 import { BackButton } from '@/components/ui/back-button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -16,7 +16,7 @@ import { createEvent, getEvent, updateEvent } from '@/lib/services/events'
 import { listEACertificates } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
 import { createClientComponentClient } from '@/lib/supabase'
-import { EventTarget, type CreateEventData, type UpdateEventData } from '@/lib/types/eacertificate'
+import { EventTarget, type CreateEventData, type UpdateEventData, type MetadataItem } from '@/lib/types/eacertificate'
 import { toDateInputValue, parseDateInput } from '@/lib/date-utils'
 import { format } from 'date-fns'
 
@@ -43,6 +43,7 @@ interface EventFormData {
   notes?: string
   links?: string[]
   documents: DocumentFormItem[]
+  metadata: MetadataItem[]
 }
 
 export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
@@ -63,6 +64,7 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
     notes: '',
     documents: [],
     links: [],
+    metadata: [],
   })
 
   const set = (k: keyof EventFormData, v: any) => setForm(prev => ({ ...prev, [k]: v }))
@@ -125,6 +127,7 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
             notes: ev.notes ?? '',
             documents: [],
             links: ev.links ?? [],
+            metadata: ev.metadata ?? [],
           })
         } finally {
           setLoading(false)
@@ -160,6 +163,7 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
           organizations: form.organizations,
           notes: form.notes,
           links: form.links,
+          metadata: form.metadata,
           // documents: form.documents,
         }
         await createEvent(payload)
@@ -179,6 +183,7 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
           organizations: form.organizations,
           notes: form.notes,
           links: form.links,
+          metadata: form.metadata,
         }
         await updateEvent(eventId, patch)
       }
@@ -255,13 +260,18 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
 
             <LinksField value={form.links ?? []} onChange={(v) => set('links', v)} />
 
+            <MetadataField
+              value={form.metadata}
+              onChange={(v) => set('metadata', v)}
+              label="Metadata"
+              description="Add custom metadata fields for this event"
+            />
+
             {/* {mode === 'create' && (
               <div>
                 <DocumentUploader onChange={(items) => set('documents', items)} />
               </div>
             )} */}
-
-            {/* Metadata field removed for events */}
 
             <div className="flex gap-3 justify-end">
               <Button type="button" variant="outline" onClick={() => router.push(backHref)}>Cancel</Button>

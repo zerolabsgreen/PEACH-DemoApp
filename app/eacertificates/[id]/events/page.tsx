@@ -8,10 +8,11 @@ import { Textarea } from '@/components/ui/textarea'
 import DatePicker from '@/components/ui/date-picker'
 import LinksField from '@/components/ui/links-field'
 import LocationField from '@/components/ui/location-field'
+import MetadataField from '@/components/ui/metadata-field'
 import { BackButton } from '@/components/ui/back-button'
 import { createEvent } from '@/lib/services/events'
 import { getEACertificate } from '@/lib/services/eacertificates'
-import { EventTarget, type CreateEventData } from '@/lib/types/eacertificate'
+import { EventTarget, type CreateEventData, type MetadataItem } from '@/lib/types/eacertificate'
 import { parseDateInput } from '@/lib/date-utils'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
@@ -24,6 +25,7 @@ interface EventFormData {
   organizations?: any[]
   notes?: string
   links?: string[]
+  metadata: MetadataItem[]
 }
 
 export default function CreateEventsPage() {
@@ -42,6 +44,7 @@ export default function CreateEventsPage() {
       organizations: [],
       notes: '',
       links: [],
+      metadata: [],
     }
   ])
 
@@ -72,6 +75,7 @@ export default function CreateEventsPage() {
       organizations: [],
       notes: '',
       links: [],
+      metadata: [],
     }])
   }
 
@@ -108,6 +112,7 @@ export default function CreateEventsPage() {
           organizations: event.organizations,
           notes: event.notes,
           links: event.links,
+          metadata: event.metadata,
         }
         return createEvent(payload)
       })
@@ -247,6 +252,13 @@ export default function CreateEventsPage() {
                     <LinksField 
                       value={event.links ?? []} 
                       onChange={(v) => updateEvent(index, 'links', v)} 
+                    />
+
+                    <MetadataField
+                      value={event.metadata}
+                      onChange={(v) => updateEvent(index, 'metadata', v)}
+                      label="Metadata"
+                      description="Add custom metadata fields for this event"
                     />
                   </div>
                 </div>

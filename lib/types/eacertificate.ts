@@ -152,6 +152,7 @@ export interface Event {
   notes?: string;
   documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
   links?: string[];
+  metadata?: MetadataItem[];
 }
 
 // Main ProductionSource interface (exact match to your requirements)
@@ -267,6 +268,7 @@ export interface CreateEventData {
   notes?: string;
   documents?: Document[];
   links?: string[];
+  metadata?: MetadataItem[];
 }
 
 export interface CreateProductionSourceData {
@@ -309,6 +311,7 @@ export interface UpdateEventData {
   notes?: string;
   documents?: Document[];
   links?: string[];
+  metadata?: MetadataItem[];
 }
 
 export interface UpdateProductionSourceData {

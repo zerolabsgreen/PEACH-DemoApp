@@ -7,13 +7,14 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { BackButton } from '@/components/ui/back-button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { EACType, EAC_TYPE_NAMES, type CreateEACertificateData, type UpdateEACertificateData, FileType, FILE_TYPE_NAMES, EventTarget, type CreateEventData } from '@/lib/types/eacertificate'
+import { EACType, EAC_TYPE_NAMES, type CreateEACertificateData, type UpdateEACertificateData, FileType, FILE_TYPE_NAMES, EventTarget, type CreateEventData, type MetadataItem } from '@/lib/types/eacertificate'
 import { FileExtension } from '@/components/documents/FileViewer'
 import { createEACertificate, updateEACertificate, getEACertificate } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
 import { createEvent } from '@/lib/services/events'
 import ExternalIdField from '@/components/external-id/ExternalIdField'
 import LinksField from '@/components/ui/links-field'
+import MetadataField from '@/components/ui/metadata-field'
 import AmountsField from './AmountsField'
 import EmissionsField from './EmissionsField'
 import OrganizationRoleField from './OrganizationRoleField'
@@ -89,9 +90,10 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
     organizations?: any[]
     notes?: string
     links?: string[]
+    metadata: MetadataItem[]
   }>>>({
     0: [
-      { type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [] }
+      { type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] }
     ]
   })
   
@@ -136,7 +138,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
       ...prev,
       [activeCertificateIndex]: [
         ...(prev[activeCertificateIndex] ?? []),
-        { type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [] }
+        { type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] }
       ]
     }))
   }
@@ -168,7 +170,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
       setEventsByCert(ev => ({
         ...ev,
         [newIndex]: [
-          { type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [] },
+          { type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] },
         ],
       }))
       setSelectedDocumentIdByCert(map => ({ ...map, [newIndex]: null }))
@@ -180,7 +182,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
     setCertificates(prev => {
       if (prev.length <= 1) {
         // Reset to a single empty certificate
-        setEventsByCert({ 0: [{ type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [] }] })
+        setEventsByCert({ 0: [{ type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] }] })
         setSelectedDocumentIdByCert({ 0: null })
         setActiveCertificateIndex(0)
         return [{ type: EACType.REC, amounts: [], links: [], documents: [], productionSourceId: undefined }]
@@ -271,6 +273,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
               organizations: event.organizations,
               notes: event.notes,
               links: event.links,
+              metadata: event.metadata,
               documents: uploadedDocIds.length > 0 ? uploadedDocIds.map((id, index) => ({
                 id,
                 url: '',
@@ -475,6 +478,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
               organizations: event.organizations,
               notes: event.notes,
               links: event.links,
+              metadata: event.metadata,
               // Include shared documents if any exist
               documents: uploadedDocIds.length > 0 ? uploadedDocIds.map((id, index) => ({
                 id,
@@ -912,6 +916,15 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                                 placeholder="Additional notes about this event"
                                 rows={3}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <MetadataField
+                                value={event.metadata}
+                                onChange={(v) => updateEvent(index, 'metadata', v)}
+                                label="Metadata"
+                                description="Add custom metadata fields for this event"
                               />
                             </div>
                           </div>
