@@ -220,6 +220,7 @@ export interface EventDB {
   notes: string | null;
   documents: string[] | null; // Array of document UUIDs
   links: string[] | null;
+  metadata: MetadataItem[] | null;
   created_at: string;
   updated_at: string;
 }
