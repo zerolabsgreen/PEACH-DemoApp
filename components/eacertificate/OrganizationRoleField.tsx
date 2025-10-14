@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { listOrganizationsWithRole } from '@/lib/services/organizations'
 import { toast } from 'sonner'
 import OrganizationCollapsibleForm from './OrganizationCollapsibleForm'
+import FileViewer from '@/components/documents/FileViewer'
 
 export interface OrganizationRoleFieldProps {
   value: OrganizationRole[]
@@ -19,6 +20,7 @@ export interface OrganizationRoleFieldProps {
   description?: string
   onCreateOrganization?: (orgId: string, orgName: string) => void
   sharedDocuments?: any[]
+  selectedDocumentId?: string | null
 }
 
 export default function OrganizationRoleField({ 
@@ -27,13 +29,22 @@ export default function OrganizationRoleField({
   label = "Organizations",
   description,
   onCreateOrganization,
-  sharedDocuments = []
+  sharedDocuments = [],
+  selectedDocumentId
 }: OrganizationRoleFieldProps) {
   const [isCreatingOrg, setIsCreatingOrg] = useState(false)
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null }>>([])
   const [isLoadingOrgs, setIsLoadingOrgs] = useState(true)
   const [creatingForIndex, setCreatingForIndex] = useState<number | null>(null)
   const [selectKey, setSelectKey] = useState(0)
+
+  // Get the selected document for preview
+  const selectedDocument = React.useMemo(() => {
+    const docs = sharedDocuments
+    return selectedDocumentId 
+      ? docs.find(doc => doc.id === selectedDocumentId) || null
+      : docs[0] || null
+  }, [selectedDocumentId, sharedDocuments])
 
   useEffect(() => {
     const loadOrganizations = async () => {
@@ -205,21 +216,42 @@ export default function OrganizationRoleField({
           setCreatingForIndex(null)
         }
       }}>
-        <SheetContent side="right">
-          <SheetHeader>
-            <SheetTitle>Create Organization</SheetTitle>
-            <SheetDescription>
-              We'll reuse the documents you uploaded for this certificate.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="p-4 pt-0">
-            <OrganizationCollapsibleForm
-              onOrganizationCreated={handleOrganizationCreated}
-              sharedDocuments={sharedDocuments}
-              defaultExpanded
-              hideHeader
-              plain
-            />
+        <SheetContent side="right" className="w-[90vw] max-w-[90vw]">
+          <div className="flex h-full">
+            {/* Document Preview Section */}
+            <div className="w-1/2 border-r border-gray-200 p-4">
+              <div className="h-full flex flex-col">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Preview</h2>
+                <div className="flex-1 min-h-0">
+                  <FileViewer
+                    file={selectedDocument?.file}
+                    fileType={selectedDocument?.fileType}
+                    fileExtension={selectedDocument?.fileExtension}
+                    title={selectedDocument?.title}
+                    className="h-full"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Form Section */}
+            <div className="w-1/2 flex flex-col">
+              <SheetHeader className="p-4 pb-0">
+                <SheetTitle>Create Organization</SheetTitle>
+                <SheetDescription>
+                  We'll reuse the documents you uploaded for this certificate.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="p-4 pt-0 flex-1 overflow-y-auto">
+                <OrganizationCollapsibleForm
+                  onOrganizationCreated={handleOrganizationCreated}
+                  sharedDocuments={sharedDocuments}
+                  defaultExpanded
+                  hideHeader
+                  plain
+                />
+              </div>
+            </div>
           </div>
         </SheetContent>
       </Sheet>

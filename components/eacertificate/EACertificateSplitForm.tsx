@@ -22,7 +22,7 @@ import ProductionSourceCollapsibleForm from './ProductionSourceCollapsibleForm'
 import Dropzone from '@/components/documents/Dropzone'
 import FileViewer from '@/components/documents/FileViewer'
 import DocumentCard from '@/components/documents/DocumentCard'
-import {DocumentEditModal} from "@/components/documents/DocumentEditModal"
+import {DocumentEditSheet} from "@/components/documents/DocumentEditSheet"
 import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { createClientComponentClient } from '@/lib/supabase'
 import DatePicker from '@/components/ui/date-picker'
@@ -800,6 +800,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                   label="Organizations (Optional)"
                   description="Assign roles to organizations for this certificate"
                   sharedDocuments={sharedDocuments}
+                  selectedDocumentId={selectedDocumentId}
                 />
 
                 {/* 7. Events Section - only show in create mode */}
@@ -972,31 +973,52 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
           
           {/* Production Source creation sheet */}
           <Sheet open={psSheetOpen} onOpenChange={setPsSheetOpen}>
-            <SheetContent side="right">
-              <SheetHeader>
-                <SheetTitle>Create Production Source</SheetTitle>
-                <SheetDescription>
-                  We'll reuse the documents you uploaded for this certificate.
-                </SheetDescription>
-              </SheetHeader>
-              <div className="p-4 pt-0">
-                <ProductionSourceCollapsibleForm
-                  onProductionSourceCreated={(s) => {
-                    setPsSheetOpen(false)
-                    toast.success('Production source created')
-                    // Prefill into active certificate
-                    setFormData(prev => ({ ...prev, productionSourceId: s.id }))
-                    // Ensure the selector contains the new option
-                    setProductionSources(prev => {
-                      const exists = prev.some(ps => ps.id === s.id)
-                      return exists ? prev : [...prev, { id: s.id, name: s.name }]
-                    })
-                  }}
-                  sharedDocuments={sharedDocuments}
-                  defaultExpanded
-                  hideHeader
-                  plain
-                />
+            <SheetContent side="right" className="w-[90vw] max-w-[90vw]">
+              <div className="flex h-full">
+                {/* Document Preview Section */}
+                <div className="w-1/2 border-r border-gray-200 p-4">
+                  <div className="h-full flex flex-col">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Preview</h2>
+                    <div className="flex-1 min-h-0">
+                      <FileViewer
+                        file={selectedDocument?.file}
+                        fileType={selectedDocument?.fileType}
+                        fileExtension={selectedDocument?.fileExtension}
+                        title={selectedDocument?.title}
+                        className="h-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Form Section */}
+                <div className="w-1/2 flex flex-col">
+                  <SheetHeader className="p-4 pb-0">
+                    <SheetTitle>Create Production Source</SheetTitle>
+                    <SheetDescription>
+                      We'll reuse the documents you uploaded for this certificate.
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="p-4 pt-0 flex-1 overflow-y-auto">
+                    <ProductionSourceCollapsibleForm
+                      onProductionSourceCreated={(s) => {
+                        setPsSheetOpen(false)
+                        toast.success('Production source created')
+                        // Prefill into active certificate
+                        setFormData(prev => ({ ...prev, productionSourceId: s.id }))
+                        // Ensure the selector contains the new option
+                        setProductionSources(prev => {
+                          const exists = prev.some(ps => ps.id === s.id)
+                          return exists ? prev : [...prev, { id: s.id, name: s.name }]
+                        })
+                      }}
+                      sharedDocuments={sharedDocuments}
+                      defaultExpanded
+                      hideHeader
+                      plain
+                    />
+                  </div>
+                </div>
               </div>
             </SheetContent>
           </Sheet>
@@ -1004,9 +1026,9 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
         </div>
       </div>
 
-      {/* Document Edit Modal */}
+      {/* Document Edit Sheet */}
       {selectedDocument && (
-        <DocumentEditModal
+        <DocumentEditSheet
           document={selectedDocument}
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
