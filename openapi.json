@@ -1,0 +1,3501 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "",
+    "title": "standard public schema",
+    "version": "13.0.4"
+  },
+  "host": "localhost:3000",
+  "basePath": "/api",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json",
+    "application/vnd.pgrst.object+json;nulls=stripped",
+    "application/vnd.pgrst.object+json",
+    "text/csv"
+  ],
+  "produces": [
+    "application/json",
+    "application/vnd.pgrst.object+json;nulls=stripped",
+    "application/vnd.pgrst.object+json",
+    "text/csv"
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "produces": [
+          "application/openapi+json",
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "OpenAPI description (this document)",
+        "tags": [
+          "Introspection"
+        ]
+      }
+    },
+    "/ea_certificate_with_documents": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.type2"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.external_ids"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.amounts"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.emissions"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.production_source_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_documents.events"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/ea_certificate_with_documents"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "ea_certificate_with_documents"
+        ]
+      }
+    },
+    "/ea_event_with_documents": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.target"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.target_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.dates"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.location"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.notes"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.owner_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_event_with_documents.documents"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/ea_event_with_documents"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "ea_event_with_documents"
+        ]
+      }
+    },
+    "/profiles": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.profiles.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.full_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.avatar_url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.updated_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/profiles"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "profiles"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.profiles"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "profiles"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.profiles.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.full_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.avatar_url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.updated_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "profiles"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.profiles.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.full_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.avatar_url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.profiles.updated_at"
+          },
+          {
+            "$ref": "#/parameters/body.profiles"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/ea_certificate_with_production_source": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.type2"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.external_ids"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.amounts"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.emissions"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.events"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ea_certificate_with_production_source.production_source"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/ea_certificate_with_production_source"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "ea_certificate_with_production_source"
+        ]
+      }
+    },
+    "/organizations": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.organizations.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.contact"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.location"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.external_ids"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.owner_id"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/organizations"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "organizations"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.organizations"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "organizations"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.organizations.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.contact"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.location"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.external_ids"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.owner_id"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "organizations"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.organizations.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.contact"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.location"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.external_ids"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.organizations.owner_id"
+          },
+          {
+            "$ref": "#/parameters/body.organizations"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "organizations"
+        ]
+      }
+    },
+    "/production_source_with_documents": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.external_ids"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.related_production_sources"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.location"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.technology"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.events"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.owner_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_source_with_documents.documents"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/production_source_with_documents"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "production_source_with_documents"
+        ]
+      }
+    },
+    "/events": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.events.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.target"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.target_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.dates"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.location"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.notes"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.owner_id"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/events"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "events"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.events"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "events"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.events.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.target"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.target_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.dates"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.location"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.notes"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.owner_id"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "events"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.events.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.target"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.target_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.dates"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.location"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.notes"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.events.owner_id"
+          },
+          {
+            "$ref": "#/parameters/body.events"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "events"
+        ]
+      }
+    },
+    "/documents": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.documents.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.file_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.title"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.owner_id"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/documents"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.documents"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.documents.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.file_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.title"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.owner_id"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.documents.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.file_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.title"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.documents.owner_id"
+          },
+          {
+            "$ref": "#/parameters/body.documents"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/production_sources": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.location"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.technology"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.external_ids"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.related_production_sources"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.events"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.owner_id"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/production_sources"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "production_sources"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.production_sources"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "production_sources"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.location"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.technology"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.external_ids"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.related_production_sources"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.events"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.owner_id"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "production_sources"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.location"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.technology"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.external_ids"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.related_production_sources"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.organizations"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.metadata"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.events"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_sources.owner_id"
+          },
+          {
+            "$ref": "#/parameters/body.production_sources"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "production_sources"
+        ]
+      }
+    },
+    "/eacertificates": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.events"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.production_source_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.external_ids"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.amounts"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.emissions"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.owner_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.type2"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.organizations"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/eacertificates"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "eacertificates"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.eacertificates"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "eacertificates"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.events"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.production_source_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.external_ids"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.amounts"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.emissions"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.owner_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.type2"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.organizations"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "eacertificates"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.links"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.updated_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.documents"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.events"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.production_source_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.external_ids"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.amounts"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.emissions"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.owner_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.type2"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.eacertificates.organizations"
+          },
+          {
+            "$ref": "#/parameters/body.eacertificates"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "eacertificates"
+        ]
+      }
+    },
+    "/rpc/current_user_email": {
+      "get": {
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) current_user_email"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) current_user_email"
+        ]
+      }
+    },
+    "/rpc/add_two_events": {
+      "get": {
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "query",
+            "name": "p_user",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "uuid",
+            "in": "query",
+            "name": "p_cert",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) add_two_events"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_cert": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "p_user": {
+                  "format": "uuid",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_user",
+                "p_cert"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) add_two_events"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ea_certificate_with_documents": {
+      "properties": {
+        "id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "REC",
+            "RTC",
+            "RNG",
+            "SAF",
+            "CC",
+            "CR"
+          ],
+          "format": "public.eac_type_enum",
+          "type": "string"
+        },
+        "type2": {
+          "format": "text",
+          "type": "string"
+        },
+        "external_ids": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "amounts": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "emissions": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "links": {
+          "format": "text[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "organizations": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "production_source_id": {
+          "description": "Note:\nThis is a Foreign Key to `production_sources.id`.<fk table='production_sources' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "documents": {
+          "format": "json"
+        },
+        "events": {
+          "format": "json"
+        }
+      },
+      "type": "object"
+    },
+    "ea_event_with_documents": {
+      "properties": {
+        "id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "target": {
+          "enum": [
+            "EAC",
+            "PRODUCT",
+            "PSOURCE"
+          ],
+          "format": "public.eac_event_target_enum",
+          "type": "string"
+        },
+        "target_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "format": "text",
+          "type": "string"
+        },
+        "description": {
+          "format": "text",
+          "type": "string"
+        },
+        "dates": {
+          "format": "jsonb"
+        },
+        "location": {
+          "format": "jsonb"
+        },
+        "organizations": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "notes": {
+          "format": "text",
+          "type": "string"
+        },
+        "links": {
+          "format": "text[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "documents": {
+          "format": "json"
+        }
+      },
+      "type": "object"
+    },
+    "profiles": {
+      "required": [
+        "id",
+        "email"
+      ],
+      "properties": {
+        "id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "email": {
+          "format": "text",
+          "type": "string"
+        },
+        "full_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "avatar_url": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "ea_certificate_with_production_source": {
+      "properties": {
+        "id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "REC",
+            "RTC",
+            "RNG",
+            "SAF",
+            "CC",
+            "CR"
+          ],
+          "format": "public.eac_type_enum",
+          "type": "string"
+        },
+        "type2": {
+          "format": "text",
+          "type": "string"
+        },
+        "external_ids": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "amounts": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "emissions": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "links": {
+          "format": "text[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "organizations": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "documents": {
+          "format": "uuid[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "events": {
+          "format": "uuid[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "created_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "production_source": {
+          "format": "jsonb"
+        }
+      },
+      "type": "object"
+    },
+    "organizations": {
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "default": "extensions.uuid_generate_v4()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "name": {
+          "format": "text",
+          "type": "string"
+        },
+        "url": {
+          "format": "text",
+          "type": "string"
+        },
+        "description": {
+          "format": "text",
+          "type": "string"
+        },
+        "contact": {
+          "description": "Contact information for the organization (singular)",
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "documents": {
+          "description": "Array of document UUIDs that are related to this organization",
+          "format": "uuid[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "location": {
+          "description": "Array of location objects with city, state, country, address, postalCode",
+          "format": "jsonb"
+        },
+        "external_ids": {
+          "description": "Array of external ID objects (jsonb[])",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "metadata": {
+          "description": "Array of metadata item objects (jsonb[])",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "production_source_with_documents": {
+      "properties": {
+        "id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "external_ids": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "related_production_sources": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "name": {
+          "format": "text",
+          "type": "string"
+        },
+        "description": {
+          "format": "text",
+          "type": "string"
+        },
+        "location": {
+          "format": "jsonb"
+        },
+        "organizations": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "links": {
+          "format": "text[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "technology": {
+          "format": "text",
+          "type": "string"
+        },
+        "events": {
+          "format": "uuid[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "metadata": {
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "documents": {
+          "format": "json"
+        }
+      },
+      "type": "object"
+    },
+    "events": {
+      "required": [
+        "id",
+        "target",
+        "target_id",
+        "type",
+        "dates"
+      ],
+      "properties": {
+        "id": {
+          "default": "extensions.uuid_generate_v4()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "target": {
+          "enum": [
+            "EAC",
+            "PRODUCT",
+            "PSOURCE"
+          ],
+          "format": "public.eac_event_target_enum",
+          "type": "string"
+        },
+        "target_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "format": "text",
+          "type": "string"
+        },
+        "description": {
+          "format": "text",
+          "type": "string"
+        },
+        "dates": {
+          "format": "jsonb"
+        },
+        "location": {
+          "format": "jsonb"
+        },
+        "notes": {
+          "format": "text",
+          "type": "string"
+        },
+        "links": {
+          "format": "text[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "documents": {
+          "description": "Array of document UUIDs that are related to this event",
+          "format": "uuid[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "organizations": {
+          "description": "Array of organization role objects (jsonb[])",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "metadata": {
+          "description": "Array of metadata item objects (jsonb[])",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "documents": {
+      "required": [
+        "id",
+        "url",
+        "file_type"
+      ],
+      "properties": {
+        "id": {
+          "default": "extensions.uuid_generate_v4()",
+          "description": "Primary key UUID for the document\n\nNote:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "url": {
+          "format": "text",
+          "type": "string"
+        },
+        "file_type": {
+          "enum": [
+            "Certificate",
+            "Proof of Sustainability",
+            "Contract",
+            "Audit",
+            "Lab Test",
+            "Consignment receipt",
+            "Image",
+            "Organization Document"
+          ],
+          "format": "public.file_type_enum",
+          "type": "string"
+        },
+        "title": {
+          "format": "text",
+          "type": "string"
+        },
+        "description": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "metadata": {
+          "description": "Array of metadata item objects (jsonb[])",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "organizations": {
+          "description": "Array of organization role objects (jsonb[])",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "production_sources": {
+      "required": [
+        "id",
+        "location",
+        "technology"
+      ],
+      "properties": {
+        "id": {
+          "default": "extensions.uuid_generate_v4()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "name": {
+          "format": "text",
+          "type": "string"
+        },
+        "description": {
+          "format": "text",
+          "type": "string"
+        },
+        "location": {
+          "format": "jsonb"
+        },
+        "links": {
+          "format": "text[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "technology": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "documents": {
+          "description": "Array of document UUIDs that are related to this production source",
+          "format": "uuid[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "external_ids": {
+          "description": "Array of external ID objects (jsonb[])",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "related_production_sources": {
+          "description": "Array of related production source objects (jsonb[])",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "organizations": {
+          "description": "Array of organization role objects (jsonb[])",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "metadata": {
+          "description": "Array of metadata item objects (jsonb[])",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "events": {
+          "description": "Array of UUIDs referencing events that happened to the source",
+          "format": "uuid[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "eacertificates": {
+      "required": [
+        "id",
+        "type",
+        "external_ids",
+        "amounts"
+      ],
+      "properties": {
+        "id": {
+          "default": "extensions.uuid_generate_v4()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "REC",
+            "RTC",
+            "RNG",
+            "SAF",
+            "CC",
+            "CR"
+          ],
+          "format": "public.eac_type_enum",
+          "type": "string"
+        },
+        "links": {
+          "format": "text[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "documents": {
+          "description": "Array of document UUIDs that are related to this EACertificate",
+          "format": "uuid[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "events": {
+          "description": "Array of event UUIDs that are related to this EACertificate",
+          "format": "uuid[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "production_source_id": {
+          "description": "Reference to the production source that generated this EACertificate\n\nNote:\nThis is a Foreign Key to `production_sources.id`.<fk table='production_sources' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "external_ids": {
+          "description": "Array of external ID objects (jsonb[])",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "amounts": {
+          "description": "Array of amount objects (jsonb[]) with amount, unit, conversionFactor, conversionNotes, isPrimary",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "emissions": {
+          "description": "Array of emissions data objects (jsonb[]) with carbonIntensity, ciUnit, ciNotes, emissionsFactor, efUnit, efNotes",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type2": {
+          "description": "Additional certificate type information (free text)",
+          "format": "text",
+          "type": "string"
+        },
+        "organizations": {
+          "description": "Array of OrganizationRole objects (jsonb[])",
+          "format": "jsonb[]",
+          "items": {},
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "parameters": {
+    "preferParams": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [],
+      "in": "header",
+      "type": "string"
+    },
+    "preferReturn": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "return=representation",
+        "return=minimal",
+        "return=none"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "preferCount": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "count=none"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "preferPost": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "return=representation",
+        "return=minimal",
+        "return=none",
+        "resolution=ignore-duplicates",
+        "resolution=merge-duplicates"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "select": {
+      "name": "select",
+      "description": "Filtering Columns",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "on_conflict": {
+      "name": "on_conflict",
+      "description": "On Conflict",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "order": {
+      "name": "order",
+      "description": "Ordering",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "range": {
+      "name": "Range",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "in": "header",
+      "type": "string"
+    },
+    "rangeUnit": {
+      "name": "Range-Unit",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "default": "items",
+      "in": "header",
+      "type": "string"
+    },
+    "offset": {
+      "name": "offset",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "limit": {
+      "name": "limit",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.ea_certificate_with_documents": {
+      "name": "ea_certificate_with_documents",
+      "description": "ea_certificate_with_documents",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/ea_certificate_with_documents"
+      }
+    },
+    "rowFilter.ea_certificate_with_documents.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_documents.type": {
+      "name": "type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_documents.type2": {
+      "name": "type2",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_documents.external_ids": {
+      "name": "external_ids",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_documents.amounts": {
+      "name": "amounts",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_documents.emissions": {
+      "name": "emissions",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_documents.links": {
+      "name": "links",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_documents.organizations": {
+      "name": "organizations",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_documents.production_source_id": {
+      "name": "production_source_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_documents.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_documents.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_documents.documents": {
+      "name": "documents",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_documents.events": {
+      "name": "events",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.ea_event_with_documents": {
+      "name": "ea_event_with_documents",
+      "description": "ea_event_with_documents",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/ea_event_with_documents"
+      }
+    },
+    "rowFilter.ea_event_with_documents.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.target": {
+      "name": "target",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.target_id": {
+      "name": "target_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.type": {
+      "name": "type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.description": {
+      "name": "description",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.dates": {
+      "name": "dates",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.location": {
+      "name": "location",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.organizations": {
+      "name": "organizations",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.notes": {
+      "name": "notes",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.links": {
+      "name": "links",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.owner_id": {
+      "name": "owner_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_event_with_documents.documents": {
+      "name": "documents",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.profiles": {
+      "name": "profiles",
+      "description": "profiles",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/profiles"
+      }
+    },
+    "rowFilter.profiles.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.profiles.email": {
+      "name": "email",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.profiles.full_name": {
+      "name": "full_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.profiles.avatar_url": {
+      "name": "avatar_url",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.profiles.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.profiles.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.ea_certificate_with_production_source": {
+      "name": "ea_certificate_with_production_source",
+      "description": "ea_certificate_with_production_source",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/ea_certificate_with_production_source"
+      }
+    },
+    "rowFilter.ea_certificate_with_production_source.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_production_source.type": {
+      "name": "type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_production_source.type2": {
+      "name": "type2",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_production_source.external_ids": {
+      "name": "external_ids",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_production_source.amounts": {
+      "name": "amounts",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_production_source.emissions": {
+      "name": "emissions",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_production_source.links": {
+      "name": "links",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_production_source.organizations": {
+      "name": "organizations",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_production_source.documents": {
+      "name": "documents",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_production_source.events": {
+      "name": "events",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_production_source.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_production_source.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ea_certificate_with_production_source.production_source": {
+      "name": "production_source",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.organizations": {
+      "name": "organizations",
+      "description": "organizations",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/organizations"
+      }
+    },
+    "rowFilter.organizations.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.organizations.name": {
+      "name": "name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.organizations.url": {
+      "name": "url",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.organizations.description": {
+      "name": "description",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.organizations.contact": {
+      "name": "contact",
+      "description": "Contact information for the organization (singular)",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.organizations.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.organizations.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.organizations.documents": {
+      "name": "documents",
+      "description": "Array of document UUIDs that are related to this organization",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.organizations.location": {
+      "name": "location",
+      "description": "Array of location objects with city, state, country, address, postalCode",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.organizations.external_ids": {
+      "name": "external_ids",
+      "description": "Array of external ID objects (jsonb[])",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.organizations.metadata": {
+      "name": "metadata",
+      "description": "Array of metadata item objects (jsonb[])",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.organizations.owner_id": {
+      "name": "owner_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.production_source_with_documents": {
+      "name": "production_source_with_documents",
+      "description": "production_source_with_documents",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/production_source_with_documents"
+      }
+    },
+    "rowFilter.production_source_with_documents.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.external_ids": {
+      "name": "external_ids",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.related_production_sources": {
+      "name": "related_production_sources",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.name": {
+      "name": "name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.description": {
+      "name": "description",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.location": {
+      "name": "location",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.organizations": {
+      "name": "organizations",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.links": {
+      "name": "links",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.technology": {
+      "name": "technology",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.events": {
+      "name": "events",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.metadata": {
+      "name": "metadata",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.owner_id": {
+      "name": "owner_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_source_with_documents.documents": {
+      "name": "documents",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.events": {
+      "name": "events",
+      "description": "events",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/events"
+      }
+    },
+    "rowFilter.events.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.target": {
+      "name": "target",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.target_id": {
+      "name": "target_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.type": {
+      "name": "type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.description": {
+      "name": "description",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.dates": {
+      "name": "dates",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.location": {
+      "name": "location",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.notes": {
+      "name": "notes",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.links": {
+      "name": "links",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.documents": {
+      "name": "documents",
+      "description": "Array of document UUIDs that are related to this event",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.organizations": {
+      "name": "organizations",
+      "description": "Array of organization role objects (jsonb[])",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.metadata": {
+      "name": "metadata",
+      "description": "Array of metadata item objects (jsonb[])",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.events.owner_id": {
+      "name": "owner_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.documents": {
+      "name": "documents",
+      "description": "documents",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/documents"
+      }
+    },
+    "rowFilter.documents.id": {
+      "name": "id",
+      "description": "Primary key UUID for the document",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.documents.url": {
+      "name": "url",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.documents.file_type": {
+      "name": "file_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.documents.title": {
+      "name": "title",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.documents.description": {
+      "name": "description",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.documents.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.documents.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.documents.metadata": {
+      "name": "metadata",
+      "description": "Array of metadata item objects (jsonb[])",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.documents.organizations": {
+      "name": "organizations",
+      "description": "Array of organization role objects (jsonb[])",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.documents.owner_id": {
+      "name": "owner_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.production_sources": {
+      "name": "production_sources",
+      "description": "production_sources",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/production_sources"
+      }
+    },
+    "rowFilter.production_sources.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.name": {
+      "name": "name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.description": {
+      "name": "description",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.location": {
+      "name": "location",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.links": {
+      "name": "links",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.technology": {
+      "name": "technology",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.documents": {
+      "name": "documents",
+      "description": "Array of document UUIDs that are related to this production source",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.external_ids": {
+      "name": "external_ids",
+      "description": "Array of external ID objects (jsonb[])",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.related_production_sources": {
+      "name": "related_production_sources",
+      "description": "Array of related production source objects (jsonb[])",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.organizations": {
+      "name": "organizations",
+      "description": "Array of organization role objects (jsonb[])",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.metadata": {
+      "name": "metadata",
+      "description": "Array of metadata item objects (jsonb[])",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.events": {
+      "name": "events",
+      "description": "Array of UUIDs referencing events that happened to the source",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_sources.owner_id": {
+      "name": "owner_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.eacertificates": {
+      "name": "eacertificates",
+      "description": "eacertificates",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/eacertificates"
+      }
+    },
+    "rowFilter.eacertificates.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.type": {
+      "name": "type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.links": {
+      "name": "links",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.documents": {
+      "name": "documents",
+      "description": "Array of document UUIDs that are related to this EACertificate",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.events": {
+      "name": "events",
+      "description": "Array of event UUIDs that are related to this EACertificate",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.production_source_id": {
+      "name": "production_source_id",
+      "description": "Reference to the production source that generated this EACertificate",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.external_ids": {
+      "name": "external_ids",
+      "description": "Array of external ID objects (jsonb[])",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.amounts": {
+      "name": "amounts",
+      "description": "Array of amount objects (jsonb[]) with amount, unit, conversionFactor, conversionNotes, isPrimary",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.emissions": {
+      "name": "emissions",
+      "description": "Array of emissions data objects (jsonb[]) with carbonIntensity, ciUnit, ciNotes, emissionsFactor, efUnit, efNotes",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.owner_id": {
+      "name": "owner_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.type2": {
+      "name": "type2",
+      "description": "Additional certificate type information (free text)",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.eacertificates.organizations": {
+      "name": "organizations",
+      "description": "Array of OrganizationRole objects (jsonb[])",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    }
+  },
+  "externalDocs": {
+    "description": "PostgREST Documentation",
+    "url": "https://postgrest.org/en/v\"13\"/references/api.html"
+  },
+  "components": {
+    "securitySchemes": {
+      "apikey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "apikey"
+      },
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "security": [
+    {
+      "apikey": []
+    },
+    {
+      "bearer": []
+    }
+  ],
+  "securityDefinitions": {
+    "apikey": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "apikey"
+    },
+    "bearer": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization"
+    }
+  }
+}
