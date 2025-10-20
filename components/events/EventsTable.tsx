@@ -27,6 +27,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { ChevronsUpDown, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { EventTarget } from "@/lib/types/eacertificate"
+import { exportToCSV, generateCSVFilename } from "@/lib/utils/csv-export"
+import { Download } from "lucide-react"
 
 interface Props {
   data: EventRow[]
@@ -46,6 +48,7 @@ export function EventsTable({ data, targetLabels, onDelete }: Props) {
   const [endDateFilter, setEndDateFilter] = useState("")
   const [countryOpen, setCountryOpen] = useState(false)
   const [country, setCountry] = useState("")
+  const [isExporting, setIsExporting] = useState(false)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -88,6 +91,32 @@ export function EventsTable({ data, targetLabels, onDelete }: Props) {
       return matchesQuery && matchesType && matchesTarget && matchesStartDate && matchesEndDate && matchesCountry
     })
   }, [data, query, typeFilter, targetFilter, startDateFilter, endDateFilter, country])
+
+  const handleExportCSV = async () => {
+    if (filtered.length === 0) {
+      alert('No data to export');
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const filename = generateCSVFilename('events', {
+        type: typeFilter,
+        target: targetFilter,
+        startDate: startDateFilter,
+        endDate: endDateFilter,
+        country,
+        search: query
+      });
+      
+      await exportToCSV(filtered, filename, 'events');
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export CSV. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Get unique types for type filter suggestions
   const types = useMemo(() => {
@@ -200,6 +229,19 @@ export function EventsTable({ data, targetLabels, onDelete }: Props) {
               </Command>
             </PopoverContent>
           </Popover>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-600">Export</label>
+          <Button
+            onClick={handleExportCSV}
+            disabled={isExporting || filtered.length === 0}
+            className="h-9 px-3"
+            variant="outline"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {isExporting ? 'Exporting...' : 'Export CSV'}
+          </Button>
         </div>
       </div>
       <div className="overflow-hidden rounded-md border bg-white">

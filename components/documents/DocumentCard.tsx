@@ -119,7 +119,7 @@ export default function DocumentCard({
               {onEdit && (
                 <button
                   type="button"
-                  className="text-gray-600 hover:text-gray-900 underline underline-offset-2"
+                  className="px-2 py-1 text-xs font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 hover:border-blue-700 transition-colors duration-200"
                   onClick={(e) => { e.stopPropagation(); onEdit() }}
                 >
                   Edit info

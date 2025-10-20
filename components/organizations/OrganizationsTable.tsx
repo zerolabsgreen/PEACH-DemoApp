@@ -22,6 +22,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { ChevronsUpDown, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { exportToCSV, generateCSVFilename } from "@/lib/utils/csv-export"
+import { Download } from "lucide-react"
 
 interface Props {
   data: OrganizationRow[]
@@ -36,6 +38,7 @@ export function OrganizationsTable({ data, onDelete }: Props) {
   const [query, setQuery] = useState("")
   const [countryOpen, setCountryOpen] = useState(false)
   const [country, setCountry] = useState("")
+  const [isExporting, setIsExporting] = useState(false)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -52,6 +55,28 @@ export function OrganizationsTable({ data, onDelete }: Props) {
       return matchesQuery && matchesCountry
     })
   }, [data, query, country])
+
+  const handleExportCSV = async () => {
+    if (filtered.length === 0) {
+      alert('No data to export');
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const filename = generateCSVFilename('organizations', {
+        country,
+        search: query
+      });
+      
+      await exportToCSV(filtered, filename, 'organizations');
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export CSV. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const table = useReactTable({
     data: filtered,
@@ -105,6 +130,19 @@ export function OrganizationsTable({ data, onDelete }: Props) {
               </Command>
             </PopoverContent>
           </Popover>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-600">Export</label>
+          <Button
+            onClick={handleExportCSV}
+            disabled={isExporting || filtered.length === 0}
+            className="h-9 px-3"
+            variant="outline"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {isExporting ? 'Exporting...' : 'Export CSV'}
+          </Button>
         </div>
       </div>
       <div className="overflow-hidden rounded-md border bg-white">

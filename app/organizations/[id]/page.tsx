@@ -42,7 +42,7 @@ export default function ViewOrganizationPage() {
       const supabase = getSupabase()
       const { data, error } = await supabase
         .from('organizations')
-        .select('id, name, url, description, contact, location, documents')
+        .select('id, name, url, description, contact, location, documents, external_ids')
         .eq('id', orgId)
         .single()
       if (!error) {
@@ -200,6 +200,56 @@ export default function ViewOrganizationPage() {
                 />
               </div>
             </div>
+            
+            {org.external_ids && org.external_ids.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">External Identifiers</label>
+                <div className="space-y-3">
+                  {org.external_ids.map((externalId: any, index: number) => (
+                    <div key={index} className="border rounded p-3 bg-gray-50">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">ID</label>
+                          <Input 
+                            value={externalId.id || ''} 
+                            readOnly 
+                            disabled 
+                            className="bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Field Name</label>
+                          <Input 
+                            value={externalId.externalFieldName || ''} 
+                            readOnly 
+                            disabled 
+                            className="bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Owner Organization</label>
+                          <Input 
+                            value={externalId.ownerOrgName || ''} 
+                            readOnly 
+                            disabled 
+                            className="bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Description</label>
+                          <Input 
+                            value={externalId.description || ''} 
+                            readOnly 
+                            disabled 
+                            className="bg-white"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

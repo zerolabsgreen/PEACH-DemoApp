@@ -353,6 +353,7 @@ export interface CreateDocumentData {
   fileType: FileType;
   title?: string;
   description?: string;
+  metadata?: MetadataItem[];
 }
 
 export interface UpdateDocumentData {
@@ -360,6 +361,7 @@ export interface UpdateDocumentData {
   fileType?: FileType;
   title?: string;
   description?: string;
+  metadata?: MetadataItem[];
 }
 
 // Filter and search interfaces

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { BackButton } from '@/components/ui/back-button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { createOrganizationFull } from '@/lib/services/organizations'
+import { createOrganizationFull, getOrganization, updateOrganization } from '@/lib/services/organizations'
 import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { toast } from 'sonner'
 import LocationField from '@/components/ui/location-field'
@@ -15,6 +15,7 @@ import ExternalIdField from '@/components/external-id/ExternalIdField'
 import Dropzone from '@/components/documents/Dropzone'
 import FileViewer from '@/components/documents/FileViewer'
 import DocumentCard from '@/components/documents/DocumentCard'
+import AttachedDocumentsPanel from '@/components/documents/AttachedDocumentsPanel'
 import { createClientComponentClient } from '@/lib/supabase'
 import { FileType, FILE_TYPE_NAMES } from '@/lib/types/eacertificate'
 import { FileExtension } from '@/components/documents/FileViewer'
@@ -51,6 +52,7 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null)
+  const [attachedDocumentIds, setAttachedDocumentIds] = useState<string[]>([])
   
   const [formData, setFormData] = useState<OrganizationFormData>({
     name: '',
@@ -74,6 +76,51 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
       setSelectedDocumentId(formData.documents[0].id)
     }
   }, [formData.documents, selectedDocumentId])
+
+  // Load organization data for edit mode
+  React.useEffect(() => {
+    const loadOrganizationData = async () => {
+      if (mode !== 'edit' || !organizationId) return
+      try {
+        const organization = await getOrganization(organizationId)
+        setFormData({
+          name: organization.name || '',
+          url: organization.url || '',
+          description: organization.description || '',
+          contact: organization.contact || '',
+          location: organization.location && organization.location.length > 0 
+            ? organization.location[0] 
+            : { country: '', city: '', state: '', address: '', postalCode: '' },
+          documents: [],
+          externalIDs: organization.external_ids || [],
+        })
+      } catch (error) {
+        console.error('Failed to load organization:', error)
+        toast.error('Failed to load organization data')
+      }
+    }
+    loadOrganizationData()
+  }, [mode, organizationId])
+
+  // Load attached documents for edit mode
+  React.useEffect(() => {
+    const load = async () => {
+      if (mode !== 'edit' || !organizationId) return
+      try {
+        const supabase = createClientComponentClient()
+        const { data, error } = await supabase
+          .from('organizations')
+          .select('documents')
+          .eq('id', organizationId)
+          .maybeSingle()
+        if (error) throw error
+        setAttachedDocumentIds(Array.isArray(data?.documents) ? (data!.documents as string[]) : [])
+      } catch (_) {
+        setAttachedDocumentIds([])
+      }
+    }
+    load()
+  }, [mode, organizationId])
 
   const handleFilesUploaded = (files: File[]) => {
     const newDocuments: UploadedDocument[] = files.map(file => ({
@@ -175,8 +222,40 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
         toast.success('Organization created')
         router.push('/organizations')
       } else if (mode === 'edit' && organizationId) {
-        // For edit mode, implement update logic here
-        // This would require implementing updateOrganization with documents
+        // Update organization
+        await updateOrganization(organizationId, formData)
+        
+        // Upload new documents if any exist
+        if (formData.documents.length > 0) {
+          const supabase = createClientComponentClient()
+          const uploadedDocIds: string[] = []
+          
+          await Promise.all(
+            formData.documents.map(async (doc) => {
+              const uploadedDoc = await uploadAndCreateDocument({
+                file: doc.file,
+                fileName: doc.file.name,
+                fileType: doc.fileType,
+                title: doc.title,
+                description: doc.description,
+                metadata: doc.metadata,
+                organizations: [{ orgId: organizationId, role: 'owner', orgName: formData.name }],
+              })
+              uploadedDocIds.push(uploadedDoc.id)
+            })
+          )
+          
+          // Update organization with new document IDs
+          if (uploadedDocIds.length > 0) {
+            const existingDocIds = attachedDocumentIds || []
+            const allDocIds = [...existingDocIds, ...uploadedDocIds]
+            await supabase
+              .from('organizations')
+              .update({ documents: allDocIds })
+              .eq('id', organizationId)
+          }
+        }
+        
         toast.success('Organization updated')
         router.push(`/organizations/${organizationId}`)
       }
@@ -198,30 +277,32 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-200px)]">
-            {/* Left Side - File Upload & Viewer */}
+            {/* Left Side - Documents */}
             <div className="border-r border-gray-200 p-6">
-              {formData.documents.length === 0 ? (
-                // Show only dropzone when no files are uploaded
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Documents</h2>
-                  <Dropzone
-                    onFilesAccepted={handleFilesUploaded}
-                    maxFiles={10}
-                    className="h-64"
-                  />
-                </div>
+              {mode === 'edit' ? (
+                <AttachedDocumentsPanel documentIds={attachedDocumentIds} />
               ) : (
-                // Show only file viewer when files are uploaded
-                <div className="sticky top-2.5">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Preview</h2>
-                  <FileViewer
-                    file={selectedDocument?.file}
-                    fileType={selectedDocument?.fileType}
-                    fileExtension={selectedDocument?.fileExtension}
-                    title={selectedDocument?.title}
-                    className="h-[calc(100vh-200px)]"
-                  />
-                </div>
+                formData.documents.length === 0 ? (
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Documents</h2>
+                    <Dropzone
+                      onFilesAccepted={handleFilesUploaded}
+                      maxFiles={10}
+                      className="h-64"
+                    />
+                  </div>
+                ) : (
+                  <div className="sticky top-2.5">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Preview</h2>
+                    <FileViewer
+                      file={selectedDocument?.file}
+                      fileType={selectedDocument?.fileType}
+                      fileExtension={selectedDocument?.fileExtension}
+                      title={selectedDocument?.title}
+                      className="h-[calc(100vh-200px)]"
+                    />
+                  </div>
+                )
               )}
             </div>
 

@@ -118,4 +118,31 @@ export async function getDocumentsByIds(ids: string[]) {
   return data as DocumentRecord[]
 }
 
+export async function updateDocument(id: string, updates: {
+  title?: string
+  description?: string
+  fileType?: FileType
+  metadata?: MetadataItem[]
+  organizations?: OrganizationRole[]
+}): Promise<DocumentRecord> {
+  const supabase = createClientComponentClient()
+  
+  const payload: any = {}
+  if (updates.title !== undefined) payload.title = updates.title
+  if (updates.description !== undefined) payload.description = updates.description
+  if (updates.fileType !== undefined) payload.file_type = updates.fileType
+  if (updates.metadata !== undefined) payload.metadata = updates.metadata
+  if (updates.organizations !== undefined) payload.organizations = updates.organizations
+
+  const { data, error } = await supabase
+    .from('documents')
+    .update(payload)
+    .eq('id', id)
+    .select('*')
+    .single()
+
+  if (error) throw error
+  return data as DocumentRecord
+}
+
 

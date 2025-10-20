@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import type { Organization } from "@/lib/services/organizations"
 import { deleteOrganization } from "@/lib/services/organizations"
 import { formatDate } from "@/lib/date-utils"
+import { formatOrganizationLabel } from "@/lib/utils/production-source-utils"
 import { toast } from "sonner"
 
 export type OrganizationRow = Pick<Organization, "id" | "name" | "created_at">
@@ -21,7 +22,11 @@ export const createOrganizationColumns = (onDelete?: () => void): ColumnDef<Orga
         Name<ArrowUpDown className="ml-2 size-4" />
       </Button>
     ),
-    cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
+    cell: ({ row }) => (
+      <div className="font-medium">
+        {formatOrganizationLabel(row.original)}
+      </div>
+    ),
   },
   {
     accessorKey: "created_at",

@@ -6,6 +6,28 @@ import { Button } from '@/components/ui/button'
 import type { ExternalID } from '@/lib/types/eacertificate'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { listOrganizationsWithRole } from '@/lib/services/organizations'
+import { formatOrganizationLabel } from '@/lib/utils/production-source-utils'
+import OptionalFieldsManager, { type OptionalField } from '@/components/ui/optional-fields-manager'
+import FormFieldWrapper from '@/components/ui/form-field-wrapper'
+
+// Define optional fields configuration
+const OPTIONAL_FIELDS: OptionalField[] = [
+  {
+    key: 'externalFieldName',
+    label: 'External Field Name',
+    description: 'Name of the external field',
+  },
+  {
+    key: 'ownerOrgId',
+    label: 'Owner Organization',
+    description: 'Organization that owns this external ID',
+  },
+  {
+    key: 'description',
+    label: 'Description',
+    description: 'Additional description for this external ID',
+  },
+]
 
 export interface ExternalIdFieldProps {
   value: ExternalID[]
@@ -27,8 +49,9 @@ export default function ExternalIdField({
   addButtonText = 'Add external ID',
 }: ExternalIdFieldProps) {
   const items = value ?? []
+  const [visibleOptionalFields, setVisibleOptionalFields] = useState<string[]>([])
 
-  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([])
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string; external_ids?: any[] | null }>>([])
 
   useEffect(() => {
     let mounted = true
@@ -36,7 +59,7 @@ export default function ExternalIdField({
       try {
         const rows = await listOrganizationsWithRole()
         // listOrganizationsWithRole returns { organizations: { id,name,... } }
-        const orgs = (rows || []).map((r: any) => ({ id: r.organizations.id, name: r.organizations.name }))
+        const orgs = (rows || []).map((r: any) => ({ id: r.organizations.id, name: r.organizations.name, external_ids: r.organizations.external_ids }))
         if (mounted) setOrganizations(orgs)
       } catch (e) {
         // ignore; selector will just be empty
@@ -76,19 +99,25 @@ export default function ExternalIdField({
           </div>
           {description ? <div className="text-xs text-muted-foreground">{description}</div> : null}
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={addItem} disabled={disabled}>
-          {addButtonText}
-        </Button>
+        <div className="flex items-center gap-2">
+          <OptionalFieldsManager
+            fields={OPTIONAL_FIELDS}
+            visibleFields={visibleOptionalFields}
+            onFieldsChange={setVisibleOptionalFields}
+            disabled={disabled}
+            buttonText="Optional fields"
+          />
+          <Button type="button" variant="outline" size="sm" onClick={addItem} disabled={disabled}>
+            {addButtonText}
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-4">
         {items.map((item, idx) => (
           <div key={idx} className="space-y-3 rounded-md border p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  ID {requiredId ? <span className="text-red-600">*</span> : null}
-                </label>
+              <FormFieldWrapper label="ID" required={requiredId}>
                 <Input
                   placeholder="external id"
                   value={item.id ?? ''}
@@ -97,20 +126,24 @@ export default function ExternalIdField({
                   aria-required={requiredId}
                   disabled={disabled}
                 />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">External field name</label>
+              </FormFieldWrapper>
+              <FormFieldWrapper 
+                label="External Field Name" 
+                visible={visibleOptionalFields.includes('externalFieldName')}
+              >
                 <Input
                   placeholder="external field name"
                   value={item.externalFieldName ?? ''}
                   onChange={(e) => updateItem(idx, { externalFieldName: e.target.value })}
                   disabled={disabled}
                 />
-              </div>
+              </FormFieldWrapper>
             </div>
 
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Owner organization</label>
+            <FormFieldWrapper 
+              label="Owner Organization" 
+              visible={visibleOptionalFields.includes('ownerOrgId')}
+            >
               <Select
                 value={item.ownerOrgId || ''}
                 onValueChange={(orgId) => {
@@ -125,22 +158,24 @@ export default function ExternalIdField({
                 <SelectContent>
                   {organizations.map((org) => (
                     <SelectItem key={org.id} value={org.id}>
-                      {org.name || org.id}
+                      {formatOrganizationLabel(org)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </FormFieldWrapper>
 
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Description</label>
+            <FormFieldWrapper 
+              label="Description" 
+              visible={visibleOptionalFields.includes('description')}
+            >
               <Input
                 placeholder="description"
                 value={item.description ?? ''}
                 onChange={(e) => updateItem(idx, { description: e.target.value })}
                 disabled={disabled}
               />
-            </div>
+            </FormFieldWrapper>
 
             <div className="flex justify-end">
               <Button

@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FileType, FILE_TYPE_NAMES } from "@/lib/types/eacertificate"
+import { FileType, FILE_TYPE_NAMES, MetadataItem } from "@/lib/types/eacertificate"
 import { FileExtension } from "@/components/documents/FileViewer"
+import MetadataField from "@/components/ui/metadata-field"
 
 interface DocumentEditData {
   id: string
@@ -16,7 +17,7 @@ interface DocumentEditData {
   fileExtension: FileExtension
   title: string
   description: string
-  metadata: Array<{ key: string; label: string; value: string }>
+  metadata: MetadataItem[]
   organizations: Array<{ orgId: string; role: string }>
 }
 
@@ -36,7 +37,8 @@ export function DocumentEditModal({
   const [formData, setFormData] = useState({
     title: document?.title || "",
     description: document?.description || "",
-    fileType: document?.fileType || "other" as FileType
+    fileType: document?.fileType || "other" as FileType,
+    metadata: document?.metadata || []
   })
 
   // Update form data when document changes
@@ -45,7 +47,8 @@ export function DocumentEditModal({
       setFormData({
         title: document.title,
         description: document.description,
-        fileType: document.fileType
+        fileType: document.fileType,
+        metadata: document.metadata
       })
     }
   }, [document])
@@ -63,7 +66,8 @@ export function DocumentEditModal({
       setFormData({
         title: document.title,
         description: document.description,
-        fileType: document.fileType
+        fileType: document.fileType,
+        metadata: document.metadata
       })
     }
     onClose()
@@ -73,7 +77,7 @@ export function DocumentEditModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Document Details</DialogTitle>
         </DialogHeader>
@@ -122,6 +126,13 @@ export function DocumentEditModal({
               </SelectContent>
             </Select>
           </div>
+
+          <MetadataField
+            value={formData.metadata}
+            onChange={(value) => setFormData(prev => ({ ...prev, metadata: value }))}
+            label="Metadata"
+            description="Add custom metadata fields for this document"
+          />
         </div>
 
         <DialogFooter>
