@@ -17,6 +17,8 @@ import MetadataField from '@/components/ui/metadata-field'
 import Dropzone from '@/components/documents/Dropzone'
 import FileViewer from '@/components/documents/FileViewer'
 import DocumentCard from '@/components/documents/DocumentCard'
+import AttachedDocumentsPanel from '@/components/documents/AttachedDocumentsPanel'
+import { createClientComponentClient } from '@/lib/supabase'
 import { FileType, FILE_TYPE_NAMES } from '@/lib/types/eacertificate'
 import { FileExtension } from '@/components/documents/FileViewer'
 import type { Location, ExternalID, MetadataItem, OrganizationRole } from '@/lib/types/eacertificate'
@@ -54,6 +56,7 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null)
+  const [attachedDocumentIds, setAttachedDocumentIds] = useState<string[]>([])
   
   const [formData, setFormData] = useState<ProductionSourceFormData>({
     name: '',
@@ -79,6 +82,26 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
       setSelectedDocumentId(formData.documents[0].id)
     }
   }, [formData.documents, selectedDocumentId])
+
+  // Load attached documents in edit mode
+  React.useEffect(() => {
+    const load = async () => {
+      if (mode !== 'edit' || !productionSourceId) return
+      try {
+        const supabase = createClientComponentClient()
+        const { data, error } = await supabase
+          .from('production_sources')
+          .select('documents')
+          .eq('id', productionSourceId)
+          .maybeSingle()
+        if (error) throw error
+        setAttachedDocumentIds(Array.isArray(data?.documents) ? (data!.documents as string[]) : [])
+      } catch (_) {
+        setAttachedDocumentIds([])
+      }
+    }
+    load()
+  }, [mode, productionSourceId])
 
   const handleFilesUploaded = (files: File[]) => {
     const newDocuments: UploadedDocument[] = files.map(file => ({
@@ -211,30 +234,32 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-200px)]">
-            {/* Left Side - File Upload & Viewer */}
+            {/* Left Side - Documents */}
             <div className="border-r border-gray-200 p-6">
-              {formData.documents.length === 0 ? (
-                // Show only dropzone when no files are uploaded
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Documents</h2>
-                  <Dropzone
-                    onFilesAccepted={handleFilesUploaded}
-                    maxFiles={10}
-                    className="h-64"
-                  />
-                </div>
+              {mode === 'edit' ? (
+                <AttachedDocumentsPanel documentIds={attachedDocumentIds} />
               ) : (
-                // Show only file viewer when files are uploaded
-                <div className="sticky top-2.5">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Preview</h2>
-                  <FileViewer
-                    file={selectedDocument?.file}
-                    fileType={selectedDocument?.fileType}
-                    fileExtension={selectedDocument?.fileExtension}
-                    title={selectedDocument?.title}
-                    className="h-[calc(100vh-200px)]"
-                  />
-                </div>
+                formData.documents.length === 0 ? (
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Documents</h2>
+                    <Dropzone
+                      onFilesAccepted={handleFilesUploaded}
+                      maxFiles={10}
+                      className="h-64"
+                    />
+                  </div>
+                ) : (
+                  <div className="sticky top-2.5">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Preview</h2>
+                    <FileViewer
+                      file={selectedDocument?.file}
+                      fileType={selectedDocument?.fileType}
+                      fileExtension={selectedDocument?.fileExtension}
+                      title={selectedDocument?.title}
+                      className="h-[calc(100vh-200px)]"
+                    />
+                  </div>
+                )
               )}
             </div>
 

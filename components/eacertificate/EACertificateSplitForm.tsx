@@ -23,6 +23,7 @@ import ProductionSourceCollapsibleForm from './ProductionSourceCollapsibleForm'
 import Dropzone from '@/components/documents/Dropzone'
 import FileViewer from '@/components/documents/FileViewer'
 import DocumentCard from '@/components/documents/DocumentCard'
+import AttachedDocumentsPanel from '@/components/documents/AttachedDocumentsPanel'
 import {DocumentEditSheet} from "@/components/documents/DocumentEditSheet"
 import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { createClientComponentClient } from '@/lib/supabase'
@@ -101,6 +102,26 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
       { type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] }
     ]
   })
+  const [attachedDocumentIds, setAttachedDocumentIds] = useState<string[]>([])
+  // Load attached documents in edit mode
+  useEffect(() => {
+    const load = async () => {
+      if (mode !== 'edit' || !certificateId) return
+      try {
+        const supabase = createClientComponentClient()
+        const { data, error } = await supabase
+          .from('eacertificates')
+          .select('documents')
+          .eq('id', certificateId)
+          .maybeSingle()
+        if (error) throw error
+        setAttachedDocumentIds(Array.isArray(data?.documents) ? (data!.documents as string[]) : [])
+      } catch (_) {
+        setAttachedDocumentIds([])
+      }
+    }
+    load()
+  }, [mode, certificateId])
   
   // Backwards-compatible accessors for current certificate (with safe fallback)
   const formData = certificates[activeCertificateIndex] ?? {
@@ -592,78 +613,81 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-200px)]">
-            {/* Left Side - File Upload & Viewer */}
+            {/* Left Side - Documents */}
             <div className="border-r border-gray-200 p-6">
-              {sharedDocuments.length === 0 ? (
-                // Dropzone when no files are uploaded
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Documents</h2>
-                  <Dropzone
-                    onFilesAccepted={handleFilesUploaded}
-                    maxFiles={10}
-                    className="h-64"
-                  />
-                </div>
+              {mode === 'edit' ? (
+                <AttachedDocumentsPanel documentIds={attachedDocumentIds} />
               ) : (
-                // When files exist: cards list, preview, and details
-                <div className="flex flex-col h-full">
-                  <div className="flex-shrink-0">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-medium text-gray-700">Uploaded Documents</h3>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const input = document.createElement('input')
-                          input.type = 'file'
-                          input.accept = '.pdf,.csv'
-                          input.multiple = true
-                          input.onchange = (e) => {
-                            const files = Array.from((e.target as HTMLInputElement).files || [])
-                            if (files.length > 0) {
-                              handleFilesUploaded(files)
+                sharedDocuments.length === 0 ? (
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Documents</h2>
+                    <Dropzone
+                      onFilesAccepted={handleFilesUploaded}
+                      maxFiles={10}
+                      className="h-64"
+                    />
+                  </div>
+                ) : (
+                  // When files exist: cards list, preview, and details
+                  <div className="flex flex-col h-full">
+                    <div className="flex-shrink-0">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-medium text-gray-700">Uploaded Documents</h3>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const input = document.createElement('input')
+                            input.type = 'file'
+                            input.accept = '.pdf,.csv'
+                            input.multiple = true
+                            input.onchange = (e) => {
+                              const files = Array.from((e.target as HTMLInputElement).files || [])
+                              if (files.length > 0) {
+                                handleFilesUploaded(files)
+                              }
                             }
-                          }
-                          input.click()
-                        }}
-                        className="text-xs"
-                      >
-                        + Add More Files
-                      </Button>
+                            input.click()
+                          }}
+                          className="text-xs"
+                        >
+                          + Add More Files
+                        </Button>
+                      </div>
+                      <div className="space-y-3 max-h-48 overflow-y-auto">
+                        {sharedDocuments.map((doc) => (
+                          <DocumentCard
+                            key={doc.id}
+                            file={doc.file}
+                            fileType={doc.fileType}
+                            fileExtension={doc.fileExtension}
+                            title={doc.title}
+                            description={doc.description}
+                            isSelected={selectedDocumentId === doc.id}
+                            onSelect={() => handleDocumentSelect(doc.id)}
+                            onRemove={() => handleDocumentRemove(doc.id)}
+                            onEdit={() => setShowEditModal(true)}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <div className="space-y-3 max-h-48 overflow-y-auto">
-                      {sharedDocuments.map((doc) => (
-                        <DocumentCard
-                          key={doc.id}
-                          file={doc.file}
-                          fileType={doc.fileType}
-                          fileExtension={doc.fileExtension}
-                          title={doc.title}
-                          description={doc.description}
-                          isSelected={selectedDocumentId === doc.id}
-                          onSelect={() => handleDocumentSelect(doc.id)}
-                          onRemove={() => handleDocumentRemove(doc.id)}
-                          onEdit={() => setShowEditModal(true)}
+
+                    <div className="flex-1 mt-4">
+                      <div className="sticky top-4">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Preview</h2>
+                        <FileViewer
+                          file={selectedDocument?.file}
+                          fileType={selectedDocument?.fileType}
+                          fileExtension={selectedDocument?.fileExtension}
+                          title={selectedDocument?.title}
+                          className="h-[calc(100vh-100px)]"
                         />
-                      ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex-1 mt-4">
-                    <div className="sticky top-4">
-                      <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Preview</h2>
-                      <FileViewer
-                        file={selectedDocument?.file}
-                        fileType={selectedDocument?.fileType}
-                        fileExtension={selectedDocument?.fileExtension}
-                        title={selectedDocument?.title}
-                        className="h-[calc(100vh-100px)]"
-                      />
-                    </div>
                   </div>
-
-                </div>
+                )
               )}
             </div>
 
