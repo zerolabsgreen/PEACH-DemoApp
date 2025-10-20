@@ -12,6 +12,8 @@ import MetadataField from '@/components/ui/metadata-field'
 import DocumentUploader, { type DocumentFormItem } from '@/components/documents/DocumentUploader'
 import { BackButton } from '@/components/ui/back-button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import OptionalFormSection, { useOptionalFields } from '@/components/ui/optional-form-section'
+import FormFieldWrapper from '@/components/ui/form-field-wrapper'
 import { createEvent, getEvent, updateEvent } from '@/lib/services/events'
 import { listEACertificates } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
@@ -20,6 +22,41 @@ import { createClientComponentClient } from '@/lib/supabase'
 import { EventTarget, type CreateEventData, type UpdateEventData, type MetadataItem } from '@/lib/types/eacertificate'
 import { toDateInputValue, parseDateInput } from '@/lib/date-utils'
 import { format } from 'date-fns'
+import { type OptionalField } from '@/components/ui/optional-fields-manager'
+
+// Define optional fields configuration
+const OPTIONAL_FIELDS: OptionalField[] = [
+  {
+    key: 'description',
+    label: 'Description',
+    description: 'Detailed description of the event',
+  },
+  {
+    key: 'endDate',
+    label: 'End Date',
+    description: 'Optional end date for the event',
+  },
+  {
+    key: 'location',
+    label: 'Location',
+    description: 'Event location information',
+  },
+  {
+    key: 'notes',
+    label: 'Notes',
+    description: 'Additional notes about the event',
+  },
+  {
+    key: 'links',
+    label: 'Links',
+    description: 'Related links and references',
+  },
+  {
+    key: 'metadata',
+    label: 'Metadata',
+    description: 'Custom metadata fields',
+  },
+]
 
 export interface EventFormProps {
   mode: 'create' | 'edit'
@@ -53,6 +90,7 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [targets, setTargets] = useState<TargetOption[]>([])
+  const { visibleOptionalFields, setVisibleOptionalFields } = useOptionalFields()
 
   const [form, setForm] = useState<EventFormData>({
     target: EventTarget.PSOURCE,
@@ -203,39 +241,35 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Required fields section */}
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Target Id<span className="text-red-600"> *</span></label>
-              <Select
-                value={form.targetId}
-                onValueChange={(value) => handleTargetIdChange(value)}
-                required
-              >
-                <SelectTrigger className="mt-1 w-full">
-                  <SelectValue placeholder="Select target…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {targets.map(t => (
-                    <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500 mt-1">Target is derived automatically from selection.</p>
+              <FormFieldWrapper label="Target Id" required>
+                <Select
+                  value={form.targetId}
+                  onValueChange={(value) => handleTargetIdChange(value)}
+                  required
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select target…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {targets.map(t => (
+                      <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 mt-1">Target is derived automatically from selection.</p>
+              </FormFieldWrapper>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Target</label>
+              <FormFieldWrapper label="Target">
                 <Input value={form.target} readOnly disabled />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Type<span className="text-red-600"> *</span></label>
+              </FormFieldWrapper>
+              <FormFieldWrapper label="Type" required>
                 <Input value={form.type} onChange={e => set('type', e.target.value)} required />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Description</label>
-              <Textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4} />
+              </FormFieldWrapper>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -245,28 +279,70 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
                 onChange={(date) => set('dates', { ...form.dates, start: date ? format(date, 'yyyy-MM-dd') : undefined })}
                 required
               />
-              <DatePicker
-                label="End date"
-                value={form.dates.end ? parseDateInput(form.dates.end) || undefined : undefined}
-                onChange={(date) => set('dates', { ...form.dates, end: date ? format(date, 'yyyy-MM-dd') : undefined })}
-              />
+              <FormFieldWrapper 
+                label="End Date" 
+                visible={visibleOptionalFields.includes('endDate')}
+              >
+                <DatePicker
+                  label="End date"
+                  value={form.dates.end ? parseDateInput(form.dates.end) || undefined : undefined}
+                  onChange={(date) => set('dates', { ...form.dates, end: date ? format(date, 'yyyy-MM-dd') : undefined })}
+                />
+              </FormFieldWrapper>
             </div>
+          </div>
 
-            <LocationField value={form.location as any} onChange={(v) => set('location', v)} />
+          {/* Optional fields section */}
+          <OptionalFormSection
+            title="Additional Information"
+            description="Optional details about this event"
+            optionalFields={OPTIONAL_FIELDS}
+            visibleOptionalFields={visibleOptionalFields}
+            onOptionalFieldsChange={setVisibleOptionalFields}
+            showAddButton={false}
+          >
+            <div className="space-y-4">
+              <FormFieldWrapper 
+                label="Description" 
+                visible={visibleOptionalFields.includes('description')}
+              >
+                <Textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4} />
+              </FormFieldWrapper>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Notes</label>
-              <Textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={3} />
+              <FormFieldWrapper 
+                label="Location" 
+                visible={visibleOptionalFields.includes('location')}
+              >
+                <LocationField value={form.location as any} onChange={(v) => set('location', v)} />
+              </FormFieldWrapper>
+
+              <FormFieldWrapper 
+                label="Notes" 
+                visible={visibleOptionalFields.includes('notes')}
+              >
+                <Textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={3} />
+              </FormFieldWrapper>
+
+              <FormFieldWrapper 
+                label="Links" 
+                visible={visibleOptionalFields.includes('links')}
+              >
+                <LinksField value={form.links ?? []} onChange={(v) => set('links', v)} />
+              </FormFieldWrapper>
+
+              <FormFieldWrapper 
+                label="Metadata" 
+                visible={visibleOptionalFields.includes('metadata')}
+              >
+                <MetadataField
+                  value={form.metadata}
+                  onChange={(v) => set('metadata', v)}
+                  label="Metadata"
+                  description="Add custom metadata fields for this event"
+                />
+              </FormFieldWrapper>
             </div>
-
-            <LinksField value={form.links ?? []} onChange={(v) => set('links', v)} />
-
-            <MetadataField
-              value={form.metadata}
-              onChange={(v) => set('metadata', v)}
-              label="Metadata"
-              description="Add custom metadata fields for this event"
-            />
+          </OptionalFormSection>
 
             {/* {mode === 'create' && (
               <div>

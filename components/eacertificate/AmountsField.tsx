@@ -1,9 +1,11 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import OptionalFieldsManager, { type OptionalField } from '@/components/ui/optional-fields-manager'
+import FormFieldWrapper from '@/components/ui/form-field-wrapper'
 import type { Amount, AmountUnit } from '@/lib/types/eacertificate'
 
 export interface AmountsFieldProps {
@@ -16,6 +18,20 @@ export interface AmountsFieldProps {
 
 const COMMON_UNITS: AmountUnit[] = ['MWh', 'kWh', 'MMBtu', 'MJ', 'gallons', 'tCO2e', 'kgCO2e']
 
+// Define optional fields configuration
+const OPTIONAL_FIELDS: OptionalField[] = [
+  {
+    key: 'conversionFactor',
+    label: 'Conversion Factor',
+    description: 'Factor for converting between units',
+  },
+  {
+    key: 'conversionNotes',
+    label: 'Conversion Notes',
+    description: 'Additional notes about the conversion',
+  },
+]
+
 export default function AmountsField({
   value,
   onChange,
@@ -24,6 +40,7 @@ export default function AmountsField({
   disabled = false,
 }: AmountsFieldProps) {
   const amounts = Array.isArray(value) ? value : []
+  const [visibleOptionalFields, setVisibleOptionalFields] = useState<string[]>([])
 
   const addAmount = () => {
     onChange([
@@ -67,9 +84,18 @@ export default function AmountsField({
           </div>
           {description ? <div className="text-xs text-muted-foreground">{description}</div> : null}
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={addAmount} disabled={disabled}>
-          Add amount
-        </Button>
+        <div className="flex items-center gap-2">
+          <OptionalFieldsManager
+            fields={OPTIONAL_FIELDS}
+            visibleFields={visibleOptionalFields}
+            onFieldsChange={setVisibleOptionalFields}
+            disabled={disabled}
+            buttonText="Optional fields"
+          />
+          <Button type="button" variant="outline" size="sm" onClick={addAmount} disabled={disabled}>
+            Add amount
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -102,8 +128,7 @@ export default function AmountsField({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Amount *</label>
+              <FormFieldWrapper label="Amount" required>
                 <Input
                   type="number"
                   step="0.01"
@@ -113,9 +138,8 @@ export default function AmountsField({
                   required
                   disabled={disabled}
                 />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Unit *</label>
+              </FormFieldWrapper>
+              <FormFieldWrapper label="Unit" required>
                 <Select
                   value={amount.unit || 'MWh'}
                   onValueChange={(value) => updateAmount(idx, { unit: value as AmountUnit })}
@@ -132,12 +156,14 @@ export default function AmountsField({
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </FormFieldWrapper>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Conversion Factor</label>
+              <FormFieldWrapper 
+                label="Conversion Factor" 
+                visible={visibleOptionalFields.includes('conversionFactor')}
+              >
                 <Input
                   type="number"
                   step="0.01"
@@ -146,16 +172,18 @@ export default function AmountsField({
                   onChange={(e) => updateAmount(idx, { conversionFactor: parseFloat(e.target.value) || undefined })}
                   disabled={disabled}
                 />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Conversion Notes</label>
+              </FormFieldWrapper>
+              <FormFieldWrapper 
+                label="Conversion Notes" 
+                visible={visibleOptionalFields.includes('conversionNotes')}
+              >
                 <Input
                   placeholder="e.g., MWh to kWh conversion"
                   value={amount.conversionNotes || ''}
                   onChange={(e) => updateAmount(idx, { conversionNotes: e.target.value })}
                   disabled={disabled}
                 />
-              </div>
+              </FormFieldWrapper>
             </div>
           </div>
         ))}

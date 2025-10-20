@@ -29,11 +29,43 @@ import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { createClientComponentClient } from '@/lib/supabase'
 import DatePicker from '@/components/ui/date-picker'
 import LocationField from '@/components/ui/location-field'
+import OptionalFormSection, { useOptionalFields } from '@/components/ui/optional-form-section'
+import FormFieldWrapper from '@/components/ui/form-field-wrapper'
+import OptionalFieldsManager, { type OptionalField } from '@/components/ui/optional-fields-manager'
 import { parseDateInput } from '@/lib/date-utils'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 import { Switch } from '@/components/ui/switch'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
+
+// Define optional fields configuration for events
+const EVENT_OPTIONAL_FIELDS: OptionalField[] = [
+  {
+    key: 'description',
+    label: 'Description',
+    description: 'Brief description of the event',
+  },
+  {
+    key: 'endDate',
+    label: 'End Date',
+    description: 'Optional end date for the event',
+  },
+  {
+    key: 'location',
+    label: 'Location',
+    description: 'Event location information',
+  },
+  {
+    key: 'notes',
+    label: 'Notes',
+    description: 'Additional notes about this event',
+  },
+  {
+    key: 'metadata',
+    label: 'Metadata',
+    description: 'Custom metadata fields',
+  },
+]
 import { Trash2, Eye } from 'lucide-react'
 import ProductionSourcePreview from './ProductionSourcePreview'
 import { formatProductionSourceLabel } from '@/lib/utils/production-source-utils'
@@ -55,6 +87,17 @@ interface UploadedDocument {
   organizations: Array<{ orgId: string; role: string }>
 }
 
+interface DocumentEditData {
+  id: string
+  file: File
+  fileType: FileType
+  fileExtension: FileExtension
+  title: string
+  description: string
+  metadata: MetadataItem[]
+  organizations: Array<{ orgId: string; role: string }>
+}
+
 // Form data interface
 interface EACertificateFormData extends Omit<CreateEACertificateData, 'documents'> {
   documents: UploadedDocument[]
@@ -62,6 +105,7 @@ interface EACertificateFormData extends Omit<CreateEACertificateData, 'documents
 
 export default function EACertificateSplitForm({ mode, certificateId, backHref }: EACertificateSplitFormProps) {
   const router = useRouter()
+  const { visibleOptionalFields, setVisibleOptionalFields } = useOptionalFields()
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [productionSources, setProductionSources] = useState<Array<{ id: string; name: string | null }>>([])
@@ -429,10 +473,30 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
     }
   }
 
-  const handleDocumentUpdate = (documentId: string, updates: Partial<UploadedDocument>) => {
-    setSharedDocuments(prev => prev.map(doc => (
-      doc.id === documentId ? { ...doc, ...updates } : doc
-    )))
+  const handleDocumentUpdate = (documentId: string, updates: Partial<DocumentEditData>) => {
+    setSharedDocuments(prev => prev.map(doc => {
+      if (doc.id !== documentId) return doc
+      
+      const updatedDoc: UploadedDocument = { ...doc }
+      
+      // Apply updates, converting metadata format if needed
+      if (updates.title !== undefined) updatedDoc.title = updates.title
+      if (updates.description !== undefined) updatedDoc.description = updates.description
+      if (updates.fileType !== undefined) updatedDoc.fileType = updates.fileType
+      if (updates.fileExtension !== undefined) updatedDoc.fileExtension = updates.fileExtension
+      if (updates.organizations !== undefined) updatedDoc.organizations = updates.organizations
+      
+      // Convert metadata format if needed
+      if (updates.metadata) {
+        updatedDoc.metadata = updates.metadata.map(item => ({
+          key: item.key,
+          label: item.label,
+          value: item.value || ''
+        }))
+      }
+      
+      return updatedDoc
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -897,26 +961,31 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                         <div key={index} className="border border-gray-200 rounded-lg p-4">
                           <div className="flex items-center justify-between mb-4">
                             <h4 className="text-md font-medium text-gray-700">Event {index + 1}</h4>
-                            {currentEvents.length > 1 && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  removeEvent(index)
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
+                            <div className="flex items-center gap-2">
+                              <OptionalFieldsManager
+                                fields={EVENT_OPTIONAL_FIELDS}
+                                visibleFields={visibleOptionalFields}
+                                onFieldsChange={setVisibleOptionalFields}
+                                buttonText="Optional fields"
+                              />
+                              {currentEvents.length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    removeEvent(index)
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Event Type *
-                              </label>
+                            <FormFieldWrapper label="Event Type" required>
                               <input
                                 type="text"
                                 value={event.type}
@@ -925,12 +994,12 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 required
                               />
-                            </div>
+                            </FormFieldWrapper>
 
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Description
-                              </label>
+                            <FormFieldWrapper 
+                              label="Description" 
+                              visible={visibleOptionalFields.includes('description')}
+                            >
                               <input
                                 type="text"
                                 value={event.description || ''}
@@ -938,57 +1007,66 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                                 placeholder="Brief description of the event"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
-                            </div>
+                            </FormFieldWrapper>
 
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Start Date *
-                              </label>
+                            <FormFieldWrapper label="Start Date" required>
                               <DatePicker
                                 value={event.dates.start ? new Date(event.dates.start) : undefined}
                                 onChange={(date) => updateEvent(index, 'dates', { ...event.dates, start: date ? format(date, 'yyyy-MM-dd') : '' })}
                                 placeholder="Select start date"
                               />
-                            </div>
+                            </FormFieldWrapper>
 
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                End Date
-                              </label>
+                            <FormFieldWrapper 
+                              label="End Date" 
+                              visible={visibleOptionalFields.includes('endDate')}
+                            >
                               <DatePicker
                                 value={event.dates.end ? new Date(event.dates.end) : undefined}
                                 onChange={(date) => updateEvent(index, 'dates', { ...event.dates, end: date ? format(date, 'yyyy-MM-dd') : '' })}
                                 placeholder="Select end date (optional)"
                               />
+                            </FormFieldWrapper>
+
+                            <div className="md:col-span-2">
+                              <FormFieldWrapper 
+                                label="Location" 
+                                visible={visibleOptionalFields.includes('location')}
+                              >
+                                <LocationField
+                                  value={event.location || {}}
+                                  onChange={(location) => updateEvent(index, 'location', location)}
+                                />
+                              </FormFieldWrapper>
                             </div>
 
                             <div className="md:col-span-2">
-                              <LocationField
-                                value={event.location || {}}
-                                onChange={(location) => updateEvent(index, 'location', location)}
-                              />
+                              <FormFieldWrapper 
+                                label="Notes" 
+                                visible={visibleOptionalFields.includes('notes')}
+                              >
+                                <textarea
+                                  value={event.notes || ''}
+                                  onChange={(e) => updateEvent(index, 'notes', e.target.value)}
+                                  placeholder="Additional notes about this event"
+                                  rows={3}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                              </FormFieldWrapper>
                             </div>
 
                             <div className="md:col-span-2">
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Notes
-                              </label>
-                              <textarea
-                                value={event.notes || ''}
-                                onChange={(e) => updateEvent(index, 'notes', e.target.value)}
-                                placeholder="Additional notes about this event"
-                                rows={3}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              />
-                            </div>
-
-                            <div className="md:col-span-2">
-                              <MetadataField
-                                value={event.metadata}
-                                onChange={(v) => updateEvent(index, 'metadata', v)}
-                                label="Metadata"
-                                description="Add custom metadata fields for this event"
-                              />
+                              <FormFieldWrapper 
+                                label="Metadata" 
+                                visible={visibleOptionalFields.includes('metadata')}
+                              >
+                                <MetadataField
+                                  value={event.metadata}
+                                  onChange={(v) => updateEvent(index, 'metadata', v)}
+                                  label="Metadata"
+                                  description="Add custom metadata fields for this event"
+                                />
+                              </FormFieldWrapper>
                             </div>
                           </div>
                         </div>
