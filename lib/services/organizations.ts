@@ -66,7 +66,7 @@ export async function listOrganizationsWithRole() {
   const supabase = getSupabase()
   const { data, error } = await supabase
     .from('organizations')
-    .select('id, name, created_at, location')
+    .select('id, name, created_at, location, external_ids')
   if (error) throw error
   return (data ?? []).map((row: any) => ({ organizations: row })) as any
 }
@@ -96,6 +96,34 @@ export async function acceptInvitation(token: string) {
 
 export async function rejectInvitation(token: string) {
   throw new Error('Invitations feature is disabled')
+}
+
+export async function updateOrganization(id: string, body: any) {
+  const supabase = getSupabase()
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
+  if (userError || !user) throw userError ?? new Error('No user')
+
+  const payload: any = {}
+  if (body.name !== undefined) payload.name = body.name
+  if (body.url !== undefined) payload.url = body.url
+  if (body.description !== undefined) payload.description = body.description
+  if (body.contact !== undefined) payload.contact = body.contact
+  if (body.location !== undefined) payload.location = body.location ? [body.location] : null
+  if (body.externalIDs !== undefined) payload.external_ids = body.externalIDs
+  if (body.documents !== undefined) payload.documents = body.documents && body.documents.length > 0 ? body.documents.map((doc: any) => doc.id).filter(Boolean) : null
+
+  const { data, error } = await supabase
+    .from('organizations')
+    .update(payload)
+    .eq('id', id)
+    .select('id, name, created_at')
+    .single()
+
+  if (error) throw error
+  return data as any
 }
 
 export async function deleteOrganization(id: string) {

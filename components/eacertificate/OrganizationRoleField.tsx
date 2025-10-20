@@ -9,6 +9,7 @@ import { OrganizationRole } from '@/lib/types/eacertificate'
 import { Plus, Trash2, Eye } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { listOrganizationsWithRole, getOrganization } from '@/lib/services/organizations'
+import { formatOrganizationLabel } from '@/lib/utils/production-source-utils'
 import { toast } from 'sonner'
 import OrganizationCollapsibleForm from './OrganizationCollapsibleForm'
 import OrganizationPreview from './OrganizationPreview'
@@ -34,7 +35,7 @@ export default function OrganizationRoleField({
   selectedDocumentId
 }: OrganizationRoleFieldProps) {
   const [isCreatingOrg, setIsCreatingOrg] = useState(false)
-  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null }>>([])
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null; external_ids?: any[] | null }>>([])
   const [isLoadingOrgs, setIsLoadingOrgs] = useState(true)
   const [creatingForIndex, setCreatingForIndex] = useState<number | null>(null)
   const [selectKey, setSelectKey] = useState(0)
@@ -58,7 +59,8 @@ export default function OrganizationRoleField({
         // Transform the data to match our expected format
         const transformedOrgs = orgs.map((item: any) => ({
           id: item.organizations.id,
-          name: item.organizations.name
+          name: item.organizations.name,
+          external_ids: item.organizations.external_ids
         }))
         setOrganizations(transformedOrgs)
       } catch (error) {
@@ -201,7 +203,7 @@ export default function OrganizationRoleField({
                   <SelectContent>
                     {organizations.map((org) => (
                       <SelectItem key={org.id} value={org.id}>
-                        {org.name || `Organization ${org.id.slice(0, 8)}...`}
+                        {formatOrganizationLabel(org)}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { BackButton } from '@/components/ui/back-button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { createProductionSource, updateProductionSource } from '@/lib/services/production-sources'
+import { createProductionSource, updateProductionSource, getProductionSource } from '@/lib/services/production-sources'
 import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { toast } from 'sonner'
 import LocationField from '@/components/ui/location-field'
@@ -82,6 +82,32 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
       setSelectedDocumentId(formData.documents[0].id)
     }
   }, [formData.documents, selectedDocumentId])
+
+  // Load production source data for edit mode
+  React.useEffect(() => {
+    const loadProductionSourceData = async () => {
+      if (mode !== 'edit' || !productionSourceId) return
+      try {
+        const productionSource = await getProductionSource(productionSourceId)
+        setFormData({
+          name: productionSource.name || '',
+          description: productionSource.description || '',
+          location: productionSource.location || { country: '', city: '', state: '', address: '', postalCode: '' },
+          links: productionSource.links || [],
+          technology: productionSource.technology || '',
+          documents: [],
+          externalIDs: productionSource.external_ids || [],
+          // @ts-ignore
+          relatedProductionSources: productionSource.related_production_sources || [],
+          metadata: productionSource.metadata || [],
+        })
+      } catch (error) {
+        console.error('Failed to load production source:', error)
+        toast.error('Failed to load production source data')
+      }
+    }
+    loadProductionSourceData()
+  }, [mode, productionSourceId])
 
   // Load attached documents in edit mode
   React.useEffect(() => {
@@ -211,8 +237,41 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
         toast.success('Production source created')
         router.push('/production-sources')
       } else if (mode === 'edit' && productionSourceId) {
-        // For edit mode, implement update logic here
-        // This would require implementing updateProductionSource with documents
+        // Update production source (excluding documents)
+        const { documents, ...updateData } = formData
+        await updateProductionSource(productionSourceId, updateData)
+        
+        // Upload new documents if any exist
+        if (formData.documents.length > 0) {
+          const supabase = createClientComponentClient()
+          const uploadedDocIds: string[] = []
+          
+          await Promise.all(
+            formData.documents.map(async (doc) => {
+              const uploadedDoc = await uploadAndCreateDocument({
+                file: doc.file,
+                fileName: doc.file.name,
+                fileType: doc.fileType,
+                title: doc.title,
+                description: doc.description,
+                metadata: doc.metadata,
+                organizations: [{ orgId: productionSourceId, role: 'owner', orgName: formData.name || 'Production Source' }],
+              })
+              uploadedDocIds.push(uploadedDoc.id)
+            })
+          )
+          
+          // Update production source with new document IDs
+          if (uploadedDocIds.length > 0) {
+            const existingDocIds = attachedDocumentIds || []
+            const allDocIds = [...existingDocIds, ...uploadedDocIds]
+            await supabase
+              .from('production_sources')
+              .update({ documents: allDocIds })
+              .eq('id', productionSourceId)
+          }
+        }
+        
         toast.success('Production source updated')
         router.push(`/production-sources/${productionSourceId}`)
       }

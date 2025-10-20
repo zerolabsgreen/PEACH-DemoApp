@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { BackButton } from '@/components/ui/back-button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { createOrganizationFull } from '@/lib/services/organizations'
+import { createOrganizationFull, getOrganization, updateOrganization } from '@/lib/services/organizations'
 import { uploadAndCreateDocument } from '@/lib/services/documents'
 import { toast } from 'sonner'
 import LocationField from '@/components/ui/location-field'
@@ -76,6 +76,31 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
       setSelectedDocumentId(formData.documents[0].id)
     }
   }, [formData.documents, selectedDocumentId])
+
+  // Load organization data for edit mode
+  React.useEffect(() => {
+    const loadOrganizationData = async () => {
+      if (mode !== 'edit' || !organizationId) return
+      try {
+        const organization = await getOrganization(organizationId)
+        setFormData({
+          name: organization.name || '',
+          url: organization.url || '',
+          description: organization.description || '',
+          contact: organization.contact || '',
+          location: organization.location && organization.location.length > 0 
+            ? organization.location[0] 
+            : { country: '', city: '', state: '', address: '', postalCode: '' },
+          documents: [],
+          externalIDs: organization.external_ids || [],
+        })
+      } catch (error) {
+        console.error('Failed to load organization:', error)
+        toast.error('Failed to load organization data')
+      }
+    }
+    loadOrganizationData()
+  }, [mode, organizationId])
 
   // Load attached documents for edit mode
   React.useEffect(() => {
@@ -197,8 +222,40 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
         toast.success('Organization created')
         router.push('/organizations')
       } else if (mode === 'edit' && organizationId) {
-        // For edit mode, implement update logic here
-        // This would require implementing updateOrganization with documents
+        // Update organization
+        await updateOrganization(organizationId, formData)
+        
+        // Upload new documents if any exist
+        if (formData.documents.length > 0) {
+          const supabase = createClientComponentClient()
+          const uploadedDocIds: string[] = []
+          
+          await Promise.all(
+            formData.documents.map(async (doc) => {
+              const uploadedDoc = await uploadAndCreateDocument({
+                file: doc.file,
+                fileName: doc.file.name,
+                fileType: doc.fileType,
+                title: doc.title,
+                description: doc.description,
+                metadata: doc.metadata,
+                organizations: [{ orgId: organizationId, role: 'owner', orgName: formData.name }],
+              })
+              uploadedDocIds.push(uploadedDoc.id)
+            })
+          )
+          
+          // Update organization with new document IDs
+          if (uploadedDocIds.length > 0) {
+            const existingDocIds = attachedDocumentIds || []
+            const allDocIds = [...existingDocIds, ...uploadedDocIds]
+            await supabase
+              .from('organizations')
+              .update({ documents: allDocIds })
+              .eq('id', organizationId)
+          }
+        }
+        
         toast.success('Organization updated')
         router.push(`/organizations/${organizationId}`)
       }

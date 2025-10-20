@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import type { ExternalID } from '@/lib/types/eacertificate'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { listOrganizationsWithRole } from '@/lib/services/organizations'
+import { formatOrganizationLabel } from '@/lib/utils/production-source-utils'
 
 export interface ExternalIdFieldProps {
   value: ExternalID[]
@@ -28,7 +29,7 @@ export default function ExternalIdField({
 }: ExternalIdFieldProps) {
   const items = value ?? []
 
-  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([])
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string; external_ids?: any[] | null }>>([])
 
   useEffect(() => {
     let mounted = true
@@ -36,7 +37,7 @@ export default function ExternalIdField({
       try {
         const rows = await listOrganizationsWithRole()
         // listOrganizationsWithRole returns { organizations: { id,name,... } }
-        const orgs = (rows || []).map((r: any) => ({ id: r.organizations.id, name: r.organizations.name }))
+        const orgs = (rows || []).map((r: any) => ({ id: r.organizations.id, name: r.organizations.name, external_ids: r.organizations.external_ids }))
         if (mounted) setOrganizations(orgs)
       } catch (e) {
         // ignore; selector will just be empty
@@ -125,7 +126,7 @@ export default function ExternalIdField({
                 <SelectContent>
                   {organizations.map((org) => (
                     <SelectItem key={org.id} value={org.id}>
-                      {org.name || org.id}
+                      {formatOrganizationLabel(org)}
                     </SelectItem>
                   ))}
                 </SelectContent>
