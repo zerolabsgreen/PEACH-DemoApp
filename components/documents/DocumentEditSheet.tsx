@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FileType, FILE_TYPE_NAMES } from "@/lib/types/eacertificate"
+import { FileType, FILE_TYPE_NAMES, MetadataItem } from "@/lib/types/eacertificate"
 import { FileExtension } from "@/components/documents/FileViewer"
 import FileViewer from "@/components/documents/FileViewer"
+import MetadataField from "@/components/ui/metadata-field"
 
 interface DocumentEditData {
   id: string
@@ -17,7 +18,7 @@ interface DocumentEditData {
   fileExtension: FileExtension
   title: string
   description: string
-  metadata: Array<{ key: string; label: string; value: string }>
+  metadata: MetadataItem[]
   organizations: Array<{ orgId: string; role: string }>
 }
 
@@ -37,7 +38,8 @@ export function DocumentEditSheet({
   const [formData, setFormData] = useState({
     title: document?.title || "",
     description: document?.description || "",
-    fileType: document?.fileType || "other" as FileType
+    fileType: document?.fileType || "other" as FileType,
+    metadata: document?.metadata || []
   })
 
   // Update form data when document changes
@@ -46,7 +48,8 @@ export function DocumentEditSheet({
       setFormData({
         title: document.title,
         description: document.description,
-        fileType: document.fileType
+        fileType: document.fileType,
+        metadata: document.metadata
       })
     }
   }, [document])
@@ -64,7 +67,8 @@ export function DocumentEditSheet({
       setFormData({
         title: document.title,
         description: document.description,
-        fileType: document.fileType
+        fileType: document.fileType,
+        metadata: document.metadata
       })
     }
     onClose()
@@ -74,7 +78,7 @@ export function DocumentEditSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="left" className="!w-[70vw] !max-w-[70vw]">
+      <SheetContent side="left" className="!w-[80vw] !max-w-[80vw]">
         <div className="flex h-full">
           {/* Left Side - Form */}
           <div className="w-1/3 border-r border-gray-200 flex flex-col">
@@ -130,6 +134,13 @@ export function DocumentEditSheet({
                     </SelectContent>
                   </Select>
                 </div>
+
+                <MetadataField
+                  value={formData.metadata}
+                  onChange={(value) => setFormData(prev => ({ ...prev, metadata: value }))}
+                  label="Metadata"
+                  description="Add custom metadata fields for this document"
+                />
               </div>
             </div>
 

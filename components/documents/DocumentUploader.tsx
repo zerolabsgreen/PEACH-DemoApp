@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FileType, FILE_TYPE_NAMES, MetadataItem, OrganizationRole } from '@/lib/types/eacertificate'
 import { uploadAndCreateDocument } from '@/lib/services/documents'
+import MetadataField from '@/components/ui/metadata-field'
 
 export interface DocumentFormItem {
   localId: string
@@ -164,46 +165,12 @@ export default function DocumentUploader(props: DocumentUploaderProps) {
                 <label className="block text-xs text-gray-500 mb-1">Description</label>
                 <Textarea value={item.description} onChange={e => updateItem(item.localId, { description: e.target.value })} rows={3} />
               </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Metadata (key/label/value)</label>
-                <div className="space-y-2">
-                  {(item.metadata ?? []).map((m, i) => (
-                    <div key={i} className="flex gap-2 items-end">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 flex-1">
-                        <Input placeholder="key" value={m.key} onChange={e => {
-                          const metadata = [...(item.metadata ?? [])]
-                          metadata[i] = { ...metadata[i], key: e.target.value }
-                          updateItem(item.localId, { metadata })
-                        }} />
-                        <Input placeholder="label" value={m.label} onChange={e => {
-                          const metadata = [...(item.metadata ?? [])]
-                          metadata[i] = { ...metadata[i], label: e.target.value }
-                          updateItem(item.localId, { metadata })
-                        }} />
-                        <Input placeholder="value" value={m.value ?? ''} onChange={e => {
-                          const metadata = [...(item.metadata ?? [])]
-                          metadata[i] = { ...metadata[i], value: e.target.value }
-                          updateItem(item.localId, { metadata })
-                        }} />
-                      </div>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => {
-                          const metadata = [...(item.metadata ?? [])]
-                          metadata.splice(i, 1)
-                          updateItem(item.localId, { metadata })
-                        }}
-                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  <Button type="button" variant="outline" onClick={() => updateItem(item.localId, { metadata: [...(item.metadata ?? []), { key: '', label: '', value: '' }] })}>Add metadata</Button>
-                </div>
-              </div>
+              <MetadataField
+                value={item.metadata ?? []}
+                onChange={(value) => updateItem(item.localId, { metadata: value })}
+                label="Metadata"
+                description="Add custom metadata fields for this document"
+              />
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Organizations</label>
                 <div className="space-y-2">
