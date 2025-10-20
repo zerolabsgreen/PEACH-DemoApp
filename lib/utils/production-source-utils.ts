@@ -17,10 +17,13 @@ export function formatProductionSourceLabel(productionSource: ProductionSourceDB
   // Handle full production source objects
   const fullPs = productionSource as ProductionSourceDB
   const name = fullPs.name || `Source ${fullPs.id.slice(0, 8)}...`
-  const country = fullPs.location?.country || 'Unknown Country'
-  const technology = fullPs.technology || 'Unknown Technology'
+  const country = '- ' + (fullPs.location?.country || '')
+  const technology = '- ' + (fullPs.technology || '')
+  const firstExternalId = fullPs.external_ids && fullPs.external_ids.length > 0 
+    ? '- ' + fullPs.external_ids[0].id 
+    : null
 
-  return `${name} - ${country} - ${technology}`
+  return `${name} ${country} ${technology} ${firstExternalId}`
 }
 
 /**
