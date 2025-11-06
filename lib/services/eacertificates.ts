@@ -31,6 +31,7 @@ export async function createEACertificate(body: CreateEACertificateData) {
       links: body.links || null,
       documents: body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null,
       production_source_id: body.productionSourceId || null,
+      production_tech: body.productionTech || null,
     }
 
     // Clean up amounts to remove any extra fields that might cause issues
@@ -138,6 +139,7 @@ export async function updateEACertificate(id: string, body: UpdateEACertificateD
   if (body.links !== undefined) payload.links = body.links
   if (body.documents !== undefined) payload.documents = body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null
   if (body.productionSourceId !== undefined) payload.production_source_id = body.productionSourceId
+  if (body.productionTech !== undefined) payload.production_tech = body.productionTech
 
   const { data, error } = await supabase
     .from('eacertificates')

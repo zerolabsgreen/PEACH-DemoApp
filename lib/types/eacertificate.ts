@@ -132,6 +132,7 @@ export interface EACertificate {
   links?: string[];
   documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
   productionSourceId?: string;
+  productionTech?: string; // Production technology used to generate this certificate
   created_at: string;
   updated_at: string;
 }
@@ -196,6 +197,7 @@ export interface EACertificateDB {
   links: string[] | null;
   documents: string[] | null; // Array of document UUIDs
   production_source_id: string | null;
+  production_tech: string | null; // Production technology used to generate this certificate
   created_at: string;
   updated_at: string;
 }
@@ -253,6 +255,7 @@ export interface CreateEACertificateData {
   links?: string[];
   documents?: Document[];
   productionSourceId?: string;
+  productionTech?: string; // Production technology used to generate this certificate
 }
 
 export interface CreateEventData {
@@ -296,6 +299,7 @@ export interface UpdateEACertificateData {
   links?: string[];
   documents?: Document[];
   productionSourceId?: string;
+  productionTech?: string; // Production technology used to generate this certificate
 }
 
 export interface UpdateEventData {

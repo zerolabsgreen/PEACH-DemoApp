@@ -46,6 +46,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
     links: [],
     documents: [],
     productionSourceId: undefined,
+    productionTech: '', // Production technology
   })
 
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
             links: certificate.links || [],
             documents: [], // We'll need to fetch documents separately
             productionSourceId: certificate.production_source_id || undefined,
+            productionTech: certificate.production_tech || '',
           })
           
         } catch (error) {
@@ -325,7 +327,21 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               </Select>
             </div>
 
-            {/* 6. Organizations */}
+            {/* 6. Production Technology */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Production Technology (Optional)
+              </label>
+              <input
+                type="text"
+                value={formData.productionTech || ''}
+                onChange={(e) => setFormData({ ...formData, productionTech: e.target.value })}
+                placeholder="e.g. Solar, Wind, Hydro, Biomass, etc."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* 7. Organizations */}
             <OrganizationRoleField
               value={formData.organizations || []}
               onChange={(value) => setFormData({ ...formData, organizations: value })}
@@ -334,7 +350,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               sharedDocuments={formData.documents}
             />
 
-            {/* 7. Events Section - only show in create mode */}
+            {/* 8. Events Section - only show in create mode */}
             {mode === 'create' && (
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-gray-900">Events</h3>
@@ -350,7 +366,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               </div>
             )}
 
-            {/* 8. External IDs */}
+            {/* 9. External IDs */}
             <div className="space-y-2">
               <div className="text-sm text-gray-600">
                 <span className="text-red-600">*</span> At least one external ID is required to create a certificate.
@@ -363,7 +379,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               />
             </div>
 
-            {/* 9. Links */}
+            {/* 10. Links */}
             <LinksField
               value={formData.links || []}
               onChange={(value: string[]) => setFormData({ ...formData, links: value })}

@@ -13,7 +13,7 @@ import { toast } from "sonner"
 
 export type EACertificateRow = Pick<
   EACertificate,
-  "id" | "type" | "type2" | "amounts" | "created_at" | "updated_at" | "productionSourceId"
+  "id" | "type" | "type2" | "amounts" | "created_at" | "updated_at" | "productionSourceId" | "productionTech"
 >
 
 function formatPrimaryAmount(amounts: EACertificateRow["amounts"]) {
@@ -44,6 +44,20 @@ export const createEACertificateColumns = (onDelete?: () => void): ColumnDef<EAC
       <div className="text-left">
         {row.original.type2 ? (
           <span className="text-sm text-gray-700">{row.original.type2}</span>
+        ) : (
+          <span className="text-sm text-gray-400">—</span>
+        )}
+      </div>
+    ),
+    enableSorting: false,
+  },
+  {
+    accessorKey: "productionTech",
+    header: () => <div className="text-left">Production Tech</div>,
+    cell: ({ row }) => (
+      <div className="text-left">
+        {row.original.productionTech ? (
+          <span className="text-sm text-gray-700">{row.original.productionTech}</span>
         ) : (
           <span className="text-sm text-gray-400">—</span>
         )}
