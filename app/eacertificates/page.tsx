@@ -46,6 +46,9 @@ export default function EACertificatesIndexPage() {
           <Button asChild>
             <Link href="/eacertificates/new">Create EACertificate</Link>
           </Button>
+          <Button asChild>
+            <Link href="/eacertificates/new-tcat">Create TCAT Certificate</Link>
+          </Button>
         </div>
       </div>
 

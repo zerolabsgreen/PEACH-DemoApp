@@ -374,6 +374,12 @@ export default function EACertificatePage({ params }: EACertificatePageProps) {
                       </dd>
                     </div>
                   )}
+                  {certificate.production_tech && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">Production Technology</dt>
+                      <dd className="text-sm text-gray-900">{certificate.production_tech}</dd>
+                    </div>
+                  )}
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Created</dt>
                     <dd className="text-sm text-gray-900">
