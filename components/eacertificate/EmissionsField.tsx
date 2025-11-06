@@ -77,7 +77,7 @@ export default function EmissionsField({
             buttonText="Optional fields"
           />
           <Button type="button" variant="outline" size="sm" onClick={addEmission} disabled={disabled}>
-            Add emission data
+            Add
           </Button>
         </div>
       </div>
@@ -191,7 +191,7 @@ export default function EmissionsField({
         
         {emissions.length === 0 && (
           <div className="text-sm text-gray-500 text-center py-4 border-2 border-dashed border-gray-300 rounded-md">
-            No emissions data added yet. Click "Add emission data" to get started.
+            No emissions data added yet. Click "Add" to get started.
           </div>
         )}
       </div>
