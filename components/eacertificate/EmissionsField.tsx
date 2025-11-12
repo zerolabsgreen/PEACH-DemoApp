@@ -22,12 +22,12 @@ const COMMON_EMISSIONS_UNITS: EmissionsUnit[] = ['gCO2e/kWh', 'gCO2e/MJ', 'gCO2e
 const OPTIONAL_FIELDS: OptionalField[] = [
   {
     key: 'ciNotes',
-    label: 'CI Notes',
+    label: 'Carbon Intensity Notes',
     description: 'Additional notes about carbon intensity',
   },
   {
     key: 'efNotes',
-    label: 'EF Notes',
+    label: 'Emissions Factor Notes',
     description: 'Additional notes about emissions factor',
   },
 ]
@@ -40,7 +40,7 @@ export default function EmissionsField({
   disabled = false,
 }: EmissionsFieldProps) {
   const emissions = value ?? []
-  const [visibleOptionalFields, setVisibleOptionalFields] = useState<string[]>([])
+  const [visibleOptionalFields, setVisibleOptionalFields] = useState<string[]>(['ciNotes', 'efNotes'])
 
   const addEmission = () => {
     onChange([
@@ -132,7 +132,7 @@ export default function EmissionsField({
             </div>
 
             <FormFieldWrapper 
-              label="CI Notes" 
+              label="Carbon Intensity Notes" 
               visible={visibleOptionalFields.includes('ciNotes')}
             >
               <Input
@@ -176,7 +176,7 @@ export default function EmissionsField({
             </div>
 
             <FormFieldWrapper 
-              label="EF Notes" 
+              label="Emissions Factor Notes" 
               visible={visibleOptionalFields.includes('efNotes')}
             >
               <Input

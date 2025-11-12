@@ -195,22 +195,37 @@ export default function ProductionSourceDetailPage() {
                 )}
                 {source.location.state && (
                   <div>
-                    <span className="font-medium">State/Region:</span> {source.location.state}
+                    <span className="font-medium">State:</span> {source.location.state}
                   </div>
                 )}
-                {source.location.city && (
+                {source.location.region && (
                   <div>
-                    <span className="font-medium">City:</span> {source.location.city}
+                    <span className="font-medium">Region:</span> {source.location.region}
                   </div>
                 )}
-                {source.location.postalCode && (
+                {source.location.zipCode && (
                   <div>
-                    <span className="font-medium">Postal Code:</span> {source.location.postalCode}
+                    <span className="font-medium">ZIP Code:</span> {source.location.zipCode}
                   </div>
                 )}
                 {source.location.address && (
                   <div className="md:col-span-2">
                     <span className="font-medium">Address:</span> {source.location.address}
+                  </div>
+                )}
+                {source.location.latitude !== undefined && (
+                  <div>
+                    <span className="font-medium">Latitude:</span> {source.location.latitude}
+                  </div>
+                )}
+                {source.location.longitude !== undefined && (
+                  <div>
+                    <span className="font-medium">Longitude:</span> {source.location.longitude}
+                  </div>
+                )}
+                {source.location.geoBounds && (
+                  <div className="md:col-span-2">
+                    <span className="font-medium">Geospatial Bounds:</span> {source.location.geoBounds}
                   </div>
                 )}
               </div>

@@ -54,13 +54,16 @@ export interface DocumentDB {
   updated_at: string;
 }
 
-// Location interface for organizations
+// Location interface
 export interface Location {
-  city?: string;
-  state?: string;
-  country?: string;
+  country?: string;     // ISO country code (optional per user's question)
+  state?: string;       // ISO states
+  region?: string;      // ISO regions
   address?: string;
-  postalCode?: string;
+  zipCode?: string;     // Renamed from postalCode (optional, some tools describe locations with postal codes)
+  latitude?: number;
+  longitude?: number;
+  geoBounds?: string;   // Geospatial data file describing spatial boundaries, e.g., Shapefile, KML, GeoJSON
 }
 
 // OrganizationRole interface for events

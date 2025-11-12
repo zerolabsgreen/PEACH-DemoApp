@@ -22,23 +22,38 @@ try {
 const OPTIONAL_FIELDS: OptionalField[] = [
   {
     key: 'state',
-    label: 'State/Region',
-    description: 'State or region information',
+    label: 'State',
+    description: 'ISO state information',
   },
   {
-    key: 'city',
-    label: 'City',
-    description: 'City information',
+    key: 'region',
+    label: 'Region',
+    description: 'ISO region information',
   },
   {
-    key: 'postalCode',
-    label: 'Postal Code',
+    key: 'zipCode',
+    label: 'ZIP Code',
     description: 'Postal or ZIP code',
   },
   {
     key: 'address',
     label: 'Address',
     description: 'Street address',
+  },
+  {
+    key: 'latitude',
+    label: 'Latitude',
+    description: 'Geographic latitude coordinate',
+  },
+  {
+    key: 'longitude',
+    label: 'Longitude',
+    description: 'Geographic longitude coordinate',
+  },
+  {
+    key: 'geoBounds',
+    label: 'Geospatial Bounds',
+    description: 'Geospatial data file (Shapefile, KML, GeoJSON)',
   },
 ]
 
@@ -59,7 +74,7 @@ export default function LocationField({
 }: LocationFieldProps) {
   const [visibleOptionalFields, setVisibleOptionalFields] = useState<string[]>([])
   
-  const updateLocation = (field: keyof Location, newValue: string) => {
+  const updateLocation = (field: keyof Location, newValue: string | number | undefined) => {
     onChange({ ...value, [field]: newValue })
   }
 
@@ -121,7 +136,7 @@ export default function LocationField({
         
         <div className="col-span-12 md:col-span-6">
           <FormFieldWrapper 
-            label="State/Region" 
+            label="State" 
             visible={visibleOptionalFields.includes('state')}
           >
             <Input 
@@ -133,15 +148,15 @@ export default function LocationField({
           </FormFieldWrapper>
         </div>
         
-        <div className="col-span-12 md:col-span-4">
+        <div className="col-span-12 md:col-span-6">
           <FormFieldWrapper 
-            label="City" 
-            visible={visibleOptionalFields.includes('city')}
+            label="Region" 
+            visible={visibleOptionalFields.includes('region')}
           >
             <Input 
-              placeholder="e.g., San Francisco, Munich, Toronto" 
-              value={value.city || ''} 
-              onChange={e => updateLocation('city', e.target.value)} 
+              placeholder="e.g., ISO region code" 
+              value={value.region || ''} 
+              onChange={e => updateLocation('region', e.target.value)} 
               disabled={disabled}
             />
           </FormFieldWrapper>
@@ -149,19 +164,19 @@ export default function LocationField({
         
         <div className="col-span-12 md:col-span-4">
           <FormFieldWrapper 
-            label="Postal Code" 
-            visible={visibleOptionalFields.includes('postalCode')}
+            label="ZIP Code" 
+            visible={visibleOptionalFields.includes('zipCode')}
           >
             <Input 
               placeholder="e.g., 94102, 80331, M5V 3A8" 
-              value={value.postalCode || ''} 
-              onChange={e => updateLocation('postalCode', e.target.value)} 
+              value={value.zipCode || ''} 
+              onChange={e => updateLocation('zipCode', e.target.value)} 
               disabled={disabled}
             />
           </FormFieldWrapper>
         </div>
         
-        <div className="col-span-12 md:col-span-4">
+        <div className="col-span-12 md:col-span-8">
           <FormFieldWrapper 
             label="Address" 
             visible={visibleOptionalFields.includes('address')}
@@ -170,6 +185,52 @@ export default function LocationField({
               placeholder="e.g., 123 Main St, Suite 100" 
               value={value.address || ''} 
               onChange={e => updateLocation('address', e.target.value)} 
+              disabled={disabled}
+            />
+          </FormFieldWrapper>
+        </div>
+        
+        <div className="col-span-12 md:col-span-6">
+          <FormFieldWrapper 
+            label="Latitude" 
+            visible={visibleOptionalFields.includes('latitude')}
+          >
+            <Input 
+              type="number"
+              step="any"
+              placeholder="e.g., 37.7749" 
+              value={value.latitude ?? ''} 
+              onChange={e => updateLocation('latitude', e.target.value ? parseFloat(e.target.value) : undefined)} 
+              disabled={disabled}
+            />
+          </FormFieldWrapper>
+        </div>
+        
+        <div className="col-span-12 md:col-span-6">
+          <FormFieldWrapper 
+            label="Longitude" 
+            visible={visibleOptionalFields.includes('longitude')}
+          >
+            <Input 
+              type="number"
+              step="any"
+              placeholder="e.g., -122.4194" 
+              value={value.longitude ?? ''} 
+              onChange={e => updateLocation('longitude', e.target.value ? parseFloat(e.target.value) : undefined)} 
+              disabled={disabled}
+            />
+          </FormFieldWrapper>
+        </div>
+        
+        <div className="col-span-12">
+          <FormFieldWrapper 
+            label="Geospatial Bounds" 
+            visible={visibleOptionalFields.includes('geoBounds')}
+          >
+            <Input 
+              placeholder="e.g., Shapefile, KML, GeoJSON file path or URL" 
+              value={value.geoBounds || ''} 
+              onChange={e => updateLocation('geoBounds', e.target.value)} 
               disabled={disabled}
             />
           </FormFieldWrapper>

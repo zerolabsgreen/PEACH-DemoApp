@@ -24,7 +24,9 @@ import FormFieldWrapper from '@/components/ui/form-field-wrapper'
 import AmountsField from '@/components/eacertificate/AmountsField'
 import EmissionsField from '@/components/eacertificate/EmissionsField'
 import OrganizationRoleField from '@/components/eacertificate/OrganizationRoleField'
+import OrganizationCollapsibleForm from '@/components/eacertificate/OrganizationCollapsibleForm'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Info, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
@@ -71,7 +73,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const [saving, setSaving] = useState(false)
   const [projectName, setProjectName] = useState('') // A -> ProductionSource.name
   const [projectDescription, setProjectDescription] = useState('') // E -> ProductionSource.description
-  const [location, setLocation] = useState<any>({ country: '', city: '', state: '', address: '', postalCode: '' }) // H
+  const [location, setLocation] = useState<any>({ country: '', state: '', region: '', address: '', zipCode: '' }) // H
   const [psExternalId, setPsExternalId] = useState<string>('') // B -> ProductionSource.ExternalID.id
   const [registryOrgId, setRegistryOrgId] = useState<string>('') // C -> ProductionSource.organizations with role=Registry
   const [links, setLinks] = useState<string[]>([]) // D -> external link to retirement doc (optional)
@@ -88,6 +90,9 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const [verificationBodyOrgId, setVerificationBodyOrgId] = useState<string>('') // Verification body -> EACertificate.events(type MRVERIFICATION).organizations
   const [availableOrgs, setAvailableOrgs] = useState<Array<{ id: string; name: string }>>([])
   const [isLoadingOrgs, setIsLoadingOrgs] = useState(false)
+  const [registryOrgs, setRegistryOrgs] = useState<Array<{ id: string; name: string }>>([])
+  const [isLoadingRegistryOrgs, setIsLoadingRegistryOrgs] = useState(false)
+  const [isCreatingRegistryOrg, setIsCreatingRegistryOrg] = useState(false)
 
   // Load organizations for verification body selector
   React.useEffect(() => {
@@ -108,6 +113,42 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
     }
     load()
   }, [])
+
+  // Load organizations for registry selector
+  React.useEffect(() => {
+    const load = async () => {
+      setIsLoadingRegistryOrgs(true)
+      try {
+        const supabase = createClientComponentClient()
+        const { data, error } = await supabase
+          .from('organizations')
+          .select('id, name')
+          .order('name', { ascending: true })
+        if (!error && data) {
+          setRegistryOrgs(data as any)
+        }
+      } catch (error) {
+        console.error('Failed to load registry organizations:', error)
+      } finally {
+        setIsLoadingRegistryOrgs(false)
+      }
+    }
+    load()
+  }, [])
+
+  // Handle organization creation for registry
+  const handleRegistryOrganizationCreated = (organization: { id: string; name: string }) => {
+    // Add to registry organizations list
+    setRegistryOrgs(prev => {
+      const exists = prev.some(org => org.id === organization.id)
+      return exists ? prev : [...prev, { id: organization.id, name: organization.name }]
+    })
+    
+    // Pre-select the newly created organization
+    setRegistryOrgId(organization.id)
+    
+    setIsCreatingRegistryOrg(false)
+  }
 
   // Note: Verification body is intentionally decoupled from organizations (Entity name)
   // to avoid unintended coupling between the two inputs.
@@ -588,24 +629,42 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                 {/* C. Registry (Organization with role Registry) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Registry</label>
-                  <Select value={registryOrgId || 'none'} onValueChange={v => setRegistryOrgId(v === 'none' ? '' : v)}>
+                  <Select 
+                    value={registryOrgId || 'none'} 
+                    onValueChange={v => setRegistryOrgId(v === 'none' ? '' : v)}
+                    disabled={isLoadingRegistryOrgs}
+                  >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select registry organization" />
+                      <SelectValue placeholder={isLoadingRegistryOrgs ? 'Loading organizations...' : 'Select registry organization'} />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* Minimal approach: use organizations table raw list */}
-                      <RegistryOptions />
+                      <SelectItem value="none">Select…</SelectItem>
+                      {registryOrgs.map(org => (
+                        <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  <div className="text-xs mt-2">
+                    <button
+                      type="button"
+                      className="text-blue-600 hover:text-blue-700"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setIsCreatingRegistryOrg(true)
+                      }}
+                    >
+                      Can't find it? Create a new organization
+                    </button>
+                  </div>
                 </div>
 
-                {/* D. Proof of retirement (links) */}
-                <LinksField
+                {/* D. Proof of retirement (links) REMOVED */}
+                {/* <LinksField
                   value={links}
                   onChange={setLinks}
                   label="Proof of retirement links"
                   description="Add links to retirement proof. To upload files, use the uploader on the left — they will be treated as proof of retirement."
-                />
+                /> */}
 
                 {/* E. Project / facility description */}
                 <FormFieldWrapper label="Project / facility description">
@@ -635,7 +694,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                 
 
                 {/* H. Location */}
-                <FormFieldWrapper label="Location">
+                <FormFieldWrapper>
                   <LocationField value={location} onChange={setLocation} />
                 </FormFieldWrapper>
 
@@ -1011,28 +1070,51 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
           onUpdate={handleDocumentUpdate as any}
         />
       )}
-    </div>
-  )
-}
 
-// Inline async registry options loader component
-function RegistryOptions() {
-  const [items, setItems] = React.useState<Array<{ id: string; name: string }>>([])
-  React.useEffect(() => {
-    const load = async () => {
-      const supabase = createClientComponentClient()
-      const { data, error } = await supabase.from('organizations').select('id, name').order('name', { ascending: true })
-      if (!error && data) setItems(data as any)
-    }
-    load()
-  }, [])
-  return (
-    <>
-      <SelectItem value="none">Select…</SelectItem>
-      {items.map(i => (
-        <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
-      ))}
-    </>
+      {/* Create Registry Organization Sheet */}
+      <Sheet open={isCreatingRegistryOrg} onOpenChange={(open) => {
+        setIsCreatingRegistryOrg(open)
+      }}>
+        <SheetContent side="right" className="w-[90vw] max-w-[90vw]">
+          <div className="flex h-full">
+            {/* Document Preview Section */}
+            <div className="w-1/2 border-r border-gray-200 p-4">
+              <div className="h-full flex flex-col">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Document Preview</h2>
+                <div className="flex-1 min-h-0">
+                  <FileViewer
+                    file={selectedDoc?.file}
+                    fileType={selectedDoc?.fileType}
+                    fileExtension={selectedDoc?.fileExtension}
+                    title={selectedDoc?.title}
+                    className="h-full"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Form Section */}
+            <div className="w-1/2 flex flex-col">
+              <SheetHeader className="p-4 pb-0">
+                <SheetTitle>Create Organization</SheetTitle>
+                <SheetDescription>
+                  We'll reuse the documents you uploaded for this certificate.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="p-4 pt-0 flex-1 overflow-y-auto">
+                <OrganizationCollapsibleForm
+                  onOrganizationCreated={handleRegistryOrganizationCreated}
+                  sharedDocuments={docs}
+                  defaultExpanded
+                  hideHeader
+                  plain
+                />
+              </div>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </div>
   )
 }
 

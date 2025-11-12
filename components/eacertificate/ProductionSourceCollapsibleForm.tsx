@@ -88,7 +88,7 @@ export default function ProductionSourceCollapsibleForm({
   const [formData, setFormData] = useState<ProductionSourceFormData>({
     name: '',
     description: '',
-    location: { country: '', city: '', state: '', address: '', postalCode: '' },
+    location: { country: '', state: '', region: '', address: '', zipCode: '' },
     links: [],
     technology: '',
     externalIDs: [],
@@ -151,7 +151,7 @@ export default function ProductionSourceCollapsibleForm({
       setFormData({
         name: '',
         description: '',
-        location: { country: '', city: '', state: '', address: '', postalCode: '' },
+        location: { country: '', state: '', region: '', address: '', zipCode: '' },
         links: [],
         technology: '',
         externalIDs: [],
