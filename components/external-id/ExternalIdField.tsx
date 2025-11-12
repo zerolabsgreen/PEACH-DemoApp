@@ -4,9 +4,7 @@ import React, { ReactNode, useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import type { ExternalID } from '@/lib/types/eacertificate'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { listOrganizationsWithRole } from '@/lib/services/organizations'
-import { formatOrganizationLabel } from '@/lib/utils/production-source-utils'
+import OrganizationSelector from '@/components/ui/organization-selector'
 import OptionalFieldsManager, { type OptionalField } from '@/components/ui/optional-fields-manager'
 import FormFieldWrapper from '@/components/ui/form-field-wrapper'
 
@@ -50,26 +48,6 @@ export default function ExternalIdField({
 }: ExternalIdFieldProps) {
   const items = value ?? []
   const [visibleOptionalFields, setVisibleOptionalFields] = useState<string[]>([])
-
-  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string; external_ids?: any[] | null }>>([])
-
-  useEffect(() => {
-    let mounted = true
-    const load = async () => {
-      try {
-        const rows = await listOrganizationsWithRole()
-        // listOrganizationsWithRole returns { organizations: { id,name,... } }
-        const orgs = (rows || []).map((r: any) => ({ id: r.organizations.id, name: r.organizations.name, external_ids: r.organizations.external_ids }))
-        if (mounted) setOrganizations(orgs)
-      } catch (e) {
-        // ignore; selector will just be empty
-      }
-    }
-    load()
-    return () => {
-      mounted = false
-    }
-  }, [])
 
   const addItem = () => {
     onChange([
@@ -144,25 +122,14 @@ export default function ExternalIdField({
               label="Owner Organization" 
               visible={visibleOptionalFields.includes('ownerOrgId')}
             >
-              <Select
+              <OrganizationSelector
                 value={item.ownerOrgId || ''}
-                onValueChange={(orgId) => {
-                  const org = organizations.find(o => o.id === orgId)
-                  updateItem(idx, { ownerOrgId: orgId, ownerOrgName: org?.name })
+                onChange={(orgId, orgName) => {
+                  updateItem(idx, { ownerOrgId: orgId, ownerOrgName: orgName })
                 }}
+                placeholder="Select organization"
                 disabled={disabled}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {formatOrganizationLabel(org)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </FormFieldWrapper>
 
             <FormFieldWrapper 

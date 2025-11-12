@@ -54,13 +54,16 @@ export interface DocumentDB {
   updated_at: string;
 }
 
-// Location interface for organizations
+// Location interface
 export interface Location {
-  city?: string;
-  state?: string;
-  country?: string;
+  country?: string;     // ISO country code (optional per user's question)
+  state?: string;       // ISO states
+  region?: string;      // ISO regions
   address?: string;
-  postalCode?: string;
+  zipCode?: string;     // Renamed from postalCode (optional, some tools describe locations with postal codes)
+  latitude?: number;
+  longitude?: number;
+  geoBounds?: string;   // Geospatial data file describing spatial boundaries, e.g., Shapefile, KML, GeoJSON
 }
 
 // OrganizationRole interface for events
@@ -143,6 +146,7 @@ export interface Event {
   target: EventTarget;
   targetId: string; // References other entity UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
   type: string;
+  value?: string; // Arbitrary string value associated with the event
   description?: string;
   dates: {
     start: Date;
@@ -212,6 +216,7 @@ export interface EventDB {
   target: EventTarget;
   target_id: string; // UUID reference to other entities
   type: string;
+  value: string | null;
   description: string | null;
   dates: {
     start: string;
@@ -262,6 +267,7 @@ export interface CreateEventData {
   target: EventTarget;
   targetId: string;
   type: string;
+  value?: string;
   description?: string;
   dates: {
     start: Date;
@@ -306,6 +312,7 @@ export interface UpdateEventData {
   target?: EventTarget;
   targetId?: string;
   type?: string;
+  value?: string;
   description?: string;
   dates?: {
     start?: Date;

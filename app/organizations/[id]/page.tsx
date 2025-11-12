@@ -167,7 +167,7 @@ export default function ViewOrganizationPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Location</label>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mt-1">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-1">
                 <Input 
                   value={location?.country ?? ''} 
                   placeholder={location?.country ? undefined : "Country"}
@@ -176,19 +176,19 @@ export default function ViewOrganizationPage() {
                 />
                 <Input 
                   value={location?.state ?? ''} 
-                  placeholder={location?.state ? undefined : "State/Region"}
+                  placeholder={location?.state ? undefined : "State"}
                   readOnly 
                   disabled 
                 />
                 <Input 
-                  value={location?.city ?? ''} 
-                  placeholder={location?.city ? undefined : "City"}
+                  value={location?.region ?? ''} 
+                  placeholder={location?.region ? undefined : "Region"}
                   readOnly 
                   disabled 
                 />
                 <Input 
-                  value={location?.postalCode ?? ''} 
-                  placeholder={location?.postalCode ? undefined : "Postal Code"}
+                  value={location?.zipCode ?? ''} 
+                  placeholder={location?.zipCode ? undefined : "ZIP Code"}
                   readOnly 
                   disabled 
                 />
@@ -198,6 +198,31 @@ export default function ViewOrganizationPage() {
                   readOnly 
                   disabled 
                 />
+                {location?.latitude !== undefined && (
+                  <Input 
+                    value={location.latitude.toString()} 
+                    placeholder="Latitude"
+                    readOnly 
+                    disabled 
+                  />
+                )}
+                {location?.longitude !== undefined && (
+                  <Input 
+                    value={location.longitude.toString()} 
+                    placeholder="Longitude"
+                    readOnly 
+                    disabled 
+                  />
+                )}
+                {location?.geoBounds && (
+                  <Input 
+                    value={location.geoBounds} 
+                    placeholder="Geospatial Bounds"
+                    readOnly 
+                    disabled 
+                    className="md:col-span-3"
+                  />
+                )}
               </div>
             </div>
             

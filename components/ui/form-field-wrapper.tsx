@@ -2,10 +2,11 @@
 
 import React from 'react'
 import { cn } from '@/lib/utils'
+import { Label } from './label'
 
 export interface FormFieldWrapperProps {
   children: React.ReactNode
-  label: string
+  label?: string
   required?: boolean
   description?: string
   className?: string
@@ -14,7 +15,7 @@ export interface FormFieldWrapperProps {
 
 export default function FormFieldWrapper({
   children,
-  label,
+  label = '',
   required = false,
   description,
   className = "",
@@ -26,10 +27,10 @@ export default function FormFieldWrapper({
 
   return (
     <div className={cn("space-y-1", className)}>
-      <label className="block text-xs text-gray-500 mb-1">
+      {label && <Label>
         {label}
         {required && <span className="text-red-600 ml-1">*</span>}
-      </label>
+      </Label>}
       {children}
       {description && (
         <p className="text-xs text-muted-foreground">{description}</p>

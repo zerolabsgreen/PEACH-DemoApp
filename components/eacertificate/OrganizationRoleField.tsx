@@ -4,9 +4,11 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { OrganizationRole } from '@/lib/types/eacertificate'
-import { Plus, Trash2, Eye } from 'lucide-react'
+import { Plus, Trash2, Eye, ChevronsUpDown, Check } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { listOrganizationsWithRole, getOrganization } from '@/lib/services/organizations'
 import { formatOrganizationLabel } from '@/lib/utils/production-source-utils'
@@ -23,6 +25,7 @@ export interface OrganizationRoleFieldProps {
   onCreateOrganization?: (orgId: string, orgName: string) => void
   sharedDocuments?: any[]
   selectedDocumentId?: string | null
+  addLabel?: string
 }
 
 export default function OrganizationRoleField({ 
@@ -32,7 +35,8 @@ export default function OrganizationRoleField({
   description,
   onCreateOrganization,
   sharedDocuments = [],
-  selectedDocumentId
+  selectedDocumentId,
+  addLabel = "Add role"
 }: OrganizationRoleFieldProps) {
   const [isCreatingOrg, setIsCreatingOrg] = useState(false)
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null; external_ids?: any[] | null }>>([])
@@ -42,6 +46,7 @@ export default function OrganizationRoleField({
   const [previewOrgId, setPreviewOrgId] = useState<string | null>(null)
   const [previewOrg, setPreviewOrg] = useState<any>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
+  const [orgSelectOpen, setOrgSelectOpen] = useState<Record<number, boolean>>({})
 
   // Get the selected document for preview
   const selectedDocument = React.useMemo(() => {
@@ -146,7 +151,7 @@ export default function OrganizationRoleField({
           {description ? <div className="text-xs text-muted-foreground">{description}</div> : null}
         </div>
         <Button type="button" variant="outline" size="sm" onClick={handleAddRole}>
-          Add role
+          {addLabel}
         </Button>
       </div>
 
@@ -182,32 +187,56 @@ export default function OrganizationRoleField({
                     </button>
                   )}
                 </div>
-                <Select
-                  key={`org-select-${index}-${orgRole.orgId}-${selectKey}`}
-                  value={orgRole.orgId || ''}
-                  onValueChange={(selectedValue) => {
-                    const selectedOrg = organizations.find(org => org.id === selectedValue)
-                    const updatedRoles = [...value]
-                    updatedRoles[index] = {
-                      ...orgRole,
-                      orgId: selectedValue,
-                      orgName: selectedOrg?.name || undefined
-                    }
-                    onChange(updatedRoles)
-                  }}
-                  disabled={isLoadingOrgs}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={isLoadingOrgs ? 'Loading organizations...' : 'Select an organization'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizations.map((org) => (
-                      <SelectItem key={org.id} value={org.id}>
-                        {formatOrganizationLabel(org)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={orgSelectOpen[index] || false} onOpenChange={(open) => setOrgSelectOpen(prev => ({ ...prev, [index]: open }))}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={orgSelectOpen[index] || false}
+                      className="w-full justify-between"
+                      disabled={isLoadingOrgs}
+                    >
+                      {orgRole.orgId
+                        ? formatOrganizationLabel(organizations.find(org => org.id === orgRole.orgId) || { id: orgRole.orgId, name: orgRole.orgName || null })
+                        : isLoadingOrgs ? 'Loading organizations...' : 'Select an organization'}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search organization..." className="h-9" />
+                      <CommandList>
+                        <CommandEmpty>No organization found.</CommandEmpty>
+                        <CommandGroup>
+                          {organizations.map((org) => (
+                            <CommandItem
+                              key={org.id}
+                              value={formatOrganizationLabel(org)}
+                              onSelect={() => {
+                                const updatedRoles = [...value]
+                                updatedRoles[index] = {
+                                  ...orgRole,
+                                  orgId: org.id,
+                                  orgName: org.name || undefined
+                                }
+                                onChange(updatedRoles)
+                                setOrgSelectOpen(prev => ({ ...prev, [index]: false }))
+                              }}
+                            >
+                              {formatOrganizationLabel(org)}
+                              <Check
+                                className={cn(
+                                  "ml-auto h-4 w-4",
+                                  orgRole.orgId === org.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <div className="text-xs mt-2">
                   <button
                     type="button"

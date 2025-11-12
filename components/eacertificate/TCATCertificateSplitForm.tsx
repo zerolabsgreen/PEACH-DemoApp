@@ -18,14 +18,22 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import LocationField from '@/components/ui/location-field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { ChevronsUpDown, Check } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import DatePicker from '@/components/ui/date-picker'
 import LinksField from '@/components/ui/links-field'
 import FormFieldWrapper from '@/components/ui/form-field-wrapper'
 import AmountsField from '@/components/eacertificate/AmountsField'
 import EmissionsField from '@/components/eacertificate/EmissionsField'
 import OrganizationRoleField from '@/components/eacertificate/OrganizationRoleField'
+import OrganizationCollapsibleForm from '@/components/eacertificate/OrganizationCollapsibleForm'
+import ChipMultiSelect from '@/components/ui/chip-multi-select'
+import OrganizationSelector from '@/components/ui/organization-selector'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Info, Trash2 } from 'lucide-react'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
+import { Info, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import type { FileType, MetadataItem, EACType, Amount, EmissionsData, OrganizationRole } from '@/lib/types/eacertificate'
@@ -55,23 +63,47 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const [verificationReportDoc, setVerificationReportDoc] = useState<UploadedDocument | null>(null)
   
   // Other relevant information (point P)
-  type OtherInfoType = 'label' | 'rating' | 'other' | ''
-  const [otherInfoType, setOtherInfoType] = useState<OtherInfoType>('')
   const [labels, setLabels] = useState<string[]>([]) // Array of label values
+  // Common label options - can be expanded or loaded from API
+  const labelOptions = React.useMemo(() => {
+    // Get unique labels from existing labels to show as options
+    const existingLabels = labels.map(label => ({
+      value: label,
+      label: label
+    }))
+    // Add some common labels
+    const commonLabels = [
+      { value: 'Green-E', label: 'Green-E' },
+      { value: 'REC', label: 'REC' },
+      { value: 'I-REC', label: 'I-REC' },
+      { value: 'APX', label: 'APX' },
+      { value: 'M-RETS', label: 'M-RETS' },
+      { value: 'WREGIS', label: 'WREGIS' },
+    ]
+    // Combine and deduplicate
+    const allLabels = [...commonLabels, ...existingLabels]
+    const uniqueLabels = Array.from(
+      new Map(allLabels.map(item => [item.value, item])).values()
+    )
+    return uniqueLabels
+  }, [labels])
   const [rating, setRating] = useState<{
     orgId: string
     orgName?: string
     value: string
     date?: Date
     externalID?: string
-  } | null>(null)
+  }>({
+    orgId: '',
+    value: '',
+  })
   const [otherMetadata, setOtherMetadata] = useState<Array<{ key: string; label: string; value: string }>>([]) // Array of metadata items
 
   // Right side form state
   const [saving, setSaving] = useState(false)
   const [projectName, setProjectName] = useState('') // A -> ProductionSource.name
   const [projectDescription, setProjectDescription] = useState('') // E -> ProductionSource.description
-  const [location, setLocation] = useState<any>({ country: '', city: '', state: '', address: '', postalCode: '' }) // H
+  const [location, setLocation] = useState<any>({ country: '', state: '', region: '', address: '', zipCode: '' }) // H
   const [psExternalId, setPsExternalId] = useState<string>('') // B -> ProductionSource.ExternalID.id
   const [registryOrgId, setRegistryOrgId] = useState<string>('') // C -> ProductionSource.organizations with role=Registry
   const [links, setLinks] = useState<string[]>([]) // D -> external link to retirement doc (optional)
@@ -80,7 +112,10 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const [emissions, setEmissions] = useState<EmissionsData[]>([]) // I -> Emissions Mitigation Data
   const [vintageStart, setVintageStart] = useState<Date | undefined>() // G -> Event(type Production).dates
   const [vintageEnd, setVintageEnd] = useState<Date | undefined>()
-  const [commercialOperationYear, setCommercialOperationYear] = useState<string>('') // J -> ProductionSource.Events(type ACTIVATION)
+  const [commercialOperationYear, setCommercialOperationYear] = useState<string>('') // J -> ProductionSource.Events(type ACTIVATION) - DEPRECATED, use date fields below
+  const [commercialOperationDateYear, setCommercialOperationDateYear] = useState<string>('') // Year (YYYY)
+  const [commercialOperationDateMonth, setCommercialOperationDateMonth] = useState<string>('') // Month (MM)
+  const [commercialOperationDateDay, setCommercialOperationDateDay] = useState<string>('') // Day (DD)
   const [fuelTechnology, setFuelTechnology] = useState<string>('') // Fuel and technology types -> ProductionSource.technology + EACertificate.productionTech
   const [organizations, setOrganizations] = useState<OrganizationRole[]>([
     { orgId: '', role: 'SELLER', orgName: undefined } // Default: one organization with SELLER role
@@ -88,6 +123,8 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const [verificationBodyOrgId, setVerificationBodyOrgId] = useState<string>('') // Verification body -> EACertificate.events(type MRVERIFICATION).organizations
   const [availableOrgs, setAvailableOrgs] = useState<Array<{ id: string; name: string }>>([])
   const [isLoadingOrgs, setIsLoadingOrgs] = useState(false)
+  const [registryOrgs, setRegistryOrgs] = useState<Array<{ id: string; name: string }>>([])
+  const [isLoadingRegistryOrgs, setIsLoadingRegistryOrgs] = useState(false)
 
   // Load organizations for verification body selector
   React.useEffect(() => {
@@ -108,6 +145,29 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
     }
     load()
   }, [])
+
+  // Load organizations for registry selector
+  React.useEffect(() => {
+    const load = async () => {
+      setIsLoadingRegistryOrgs(true)
+      try {
+        const supabase = createClientComponentClient()
+        const { data, error } = await supabase
+          .from('organizations')
+          .select('id, name')
+          .order('name', { ascending: true })
+        if (!error && data) {
+          setRegistryOrgs(data as any)
+        }
+      } catch (error) {
+        console.error('Failed to load registry organizations:', error)
+      } finally {
+        setIsLoadingRegistryOrgs(false)
+      }
+    }
+    load()
+  }, [])
+
 
   // Note: Verification body is intentionally decoupled from organizations (Entity name)
   // to avoid unintended coupling between the two inputs.
@@ -311,15 +371,28 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
         location,
       })
 
-      // 5) Create ACTIVATION Event for Production Source (Commercial Operation Year)
-      const yearStr = commercialOperationYear.trim()
-      const yearNum = yearStr ? parseInt(yearStr, 10) : null
-      const isValidYear = yearNum && yearNum >= 1900 && yearNum <= new Date().getFullYear() + 10
+      // 5) Create ACTIVATION Event for Production Source (Commercial Operation Date)
+      // Support both new date fields (year, month, day) and legacy year field for backward compatibility
+      const yearStr = commercialOperationDateYear.trim() || commercialOperationYear.trim()
+      const monthStr = commercialOperationDateMonth.trim()
+      const dayStr = commercialOperationDateDay.trim()
       
-      const activationYear = isValidYear ? yearStr : 'N/A'
-      const activationDate = isValidYear 
-        ? new Date(yearNum, 0, 1) // January 1st of the year
-        : new Date(2000, 0, 1) // Placeholder date when N/A (year 2000 as safe default)
+      let activationYear = 'N/A'
+      let activationDate = new Date(2000, 0, 1) // Placeholder date when N/A
+      
+      if (yearStr) {
+        const yearNum = parseInt(yearStr, 10)
+        const isValidYear = yearNum >= 1900 && yearNum <= new Date().getFullYear() + 10
+        
+        if (isValidYear) {
+          activationYear = yearStr
+          // If month is provided, use it (0-indexed in Date constructor), otherwise default to 0 (January)
+          const month = monthStr ? parseInt(monthStr, 10) - 1 : 0
+          // If day is provided, use it, otherwise default to 1
+          const day = dayStr ? parseInt(dayStr, 10) : 1
+          activationDate = new Date(yearNum, month, day)
+        }
+      }
       
       await createEvent({
         target: EventTarget.PSOURCE,
@@ -406,17 +479,19 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
       }
 
       // 9) Create MRVRATING Event for Rating (only one per certificate)
-      if (rating && rating.orgId && rating.value) {
+      if (rating.orgId && rating.value) {
         await createEvent({
           target: EventTarget.EAC,
           targetId: cert.id,
           type: 'MRVRATING',
-          organizations: [{ orgId: rating.orgId, role: 'RATINGAGENCY', orgName: rating.orgName }],
+          organizations: [
+            { orgId: rating.orgId, role: 'RATINGAGENCY', orgName: rating.orgName },
+            ...(rating.externalID ? [{ orgId: rating.externalID, role: 'EXTERNALID' }] : []),
+          ],
           notes: rating.value, // Using notes field for rating value
           dates: {
             start: rating.date || new Date(),
           },
-          metadata: rating.externalID ? [{ key: 'externalID', label: 'External ID', value: rating.externalID }] : undefined,
         })
       }
 
@@ -586,29 +661,27 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                 {/* C. Registry (Organization with role Registry) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Registry</label>
-                  <Select value={registryOrgId || 'none'} onValueChange={v => setRegistryOrgId(v === 'none' ? '' : v)}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select registry organization" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {/* Minimal approach: use organizations table raw list */}
-                      <RegistryOptions />
-                    </SelectContent>
-                  </Select>
+                  <OrganizationSelector
+                    value={registryOrgId}
+                    onChange={(orgId) => setRegistryOrgId(orgId)}
+                    placeholder="Select registry organization"
+                    organizations={registryOrgs.map(org => ({ id: org.id, name: org.name }))}
+                    onOrganizationsChange={(orgs) => {
+                      setRegistryOrgs(orgs.map(org => ({ id: org.id, name: org.name || '' })))
+                    }}
+                    isLoading={isLoadingRegistryOrgs}
+                    sharedDocuments={docs}
+                    selectedDocumentId={selectedDocId}
+                  />
                 </div>
 
-                {/* D. Proof of retirement (links) */}
-                <LinksField
+                {/* D. Proof of retirement (links) REMOVED */}
+                {/* <LinksField
                   value={links}
                   onChange={setLinks}
                   label="Proof of retirement links"
                   description="Add links to retirement proof. To upload files, use the uploader on the left — they will be treated as proof of retirement."
-                />
-
-                {/* E. Project / facility description */}
-                <FormFieldWrapper label="Project / facility description">
-                  <Textarea value={projectDescription} onChange={e => setProjectDescription(e.target.value)} rows={3} placeholder="Short description" />
-                </FormFieldWrapper>
+                /> */}
 
                 {/* F1. Quantity */}
                 <div>
@@ -633,7 +706,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                 
 
                 {/* H. Location */}
-                <FormFieldWrapper label="Location">
+                <FormFieldWrapper>
                   <LocationField value={location} onChange={setLocation} />
                 </FormFieldWrapper>
 
@@ -647,24 +720,65 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                   />
                 )}
 
-                {/* J. Project or facility commercial operation year */}
-                <FormFieldWrapper label="Project or facility commercial operation year">
-                  <Input
-                    type="number"
-                    min="1900"
-                    max={new Date().getFullYear() + 10}
-                    placeholder="e.g. 2020"
-                    value={commercialOperationYear}
-                    onChange={(e) => {
-                      const year = e.target.value
-                      // Only allow valid year format (4 digits)
-                      if (year === '' || /^\d{0,4}$/.test(year)) {
-                        setCommercialOperationYear(year)
-                      }
-                    }}
-                  />
+                {/* E. Project / facility description */}
+                <FormFieldWrapper label="Project / facility description">
+                  <Textarea value={projectDescription} onChange={e => setProjectDescription(e.target.value)} rows={3} placeholder="Short description" />
+                </FormFieldWrapper>
+
+                {/* J. Project or facility commercial operation date */}
+                <FormFieldWrapper label="Project or facility commercial operation date">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <Input
+                        type="number"
+                        min="1900"
+                        max={new Date().getFullYear() + 10}
+                        placeholder="YYYY"
+                        value={commercialOperationDateYear}
+                        onChange={(e) => {
+                          const year = e.target.value
+                          // Only allow valid year format (4 digits)
+                          if (year === '' || /^\d{0,4}$/.test(year)) {
+                            setCommercialOperationDateYear(year)
+                          }
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="12"
+                        placeholder="MM"
+                        value={commercialOperationDateMonth}
+                        onChange={(e) => {
+                          const month = e.target.value
+                          // Only allow valid month format (1-12)
+                          if (month === '' || /^([1-9]|1[0-2])?$/.test(month)) {
+                            setCommercialOperationDateMonth(month)
+                          }
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="31"
+                        placeholder="DD"
+                        value={commercialOperationDateDay}
+                        onChange={(e) => {
+                          const day = e.target.value
+                          // Only allow valid day format (1-31)
+                          if (day === '' || /^([1-9]|[12][0-9]|3[01])?$/.test(day)) {
+                            setCommercialOperationDateDay(day)
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Leave empty to use "N/A" if not available
+                    Leave empty to use "N/A" if not available. All fields are optional.
                   </p>
                 </FormFieldWrapper>
 
@@ -686,31 +800,29 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                   <OrganizationRoleField
                     value={organizations}
                     onChange={setOrganizations}
-                    label="Entity name"
-                    description="Information about the seller and other organizations associated with this certificate. Organizations will be stored in an ISSUANCE event."
+                    label="Organizations"
+                    description="Information about the EAC seller and other organizations associated with this certificate. Organizations will be stored in an ISSUANCE event."
                     sharedDocuments={docs}
                     selectedDocumentId={selectedDocId}
+                    addLabel='Add organization'
                   />
                 </div>
 
                 {/* Verification body */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Verification body</label>
-                  <Select 
-                    value={verificationBodyOrgId || 'none'} 
-                    onValueChange={(v) => setVerificationBodyOrgId(v === 'none' ? '' : v)}
-                    disabled={isLoadingOrgs}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={isLoadingOrgs ? 'Loading organizations...' : 'Select verification body'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {availableOrgs.map(org => (
-                        <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <OrganizationSelector
+                    value={verificationBodyOrgId}
+                    onChange={(orgId) => setVerificationBodyOrgId(orgId)}
+                    placeholder="Select verification body"
+                    organizations={availableOrgs.map(org => ({ id: org.id, name: org.name }))}
+                    onOrganizationsChange={(orgs) => {
+                      setAvailableOrgs(orgs.map(org => ({ id: org.id, name: org.name || '' })))
+                    }}
+                    isLoading={isLoadingOrgs}
+                    sharedDocuments={docs}
+                    selectedDocumentId={selectedDocId}
+                  />
                   <p className="text-xs text-gray-500 mt-1">
                     The selected organization will be automatically added to the Entity name list with "Verifier" role. An MRVERIFICATION event will be created behind the scenes.
                   </p>
@@ -763,232 +875,162 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
 
                 {/* P. Other relevant information */}
                 <div className="space-y-4 border-t pt-4">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-700">Other relevant information</label>
-                    <Select value={otherInfoType} onValueChange={(v) => setOtherInfoType(v as OtherInfoType)}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Add information..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="label">Label</SelectItem>
-                        <SelectItem value="rating" disabled={rating !== null}>Rating</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <label className="block text-sm font-medium text-gray-700">Other relevant information</label>
+
+                  {/* Labels - Always visible */}
+                  <div className="p-4 border rounded">
+                    <ChipMultiSelect
+                      value={labels}
+                      onChange={setLabels}
+                      options={labelOptions}
+                      label="Labels"
+                      description="Select or create labels for this certificate"
+                      placeholder="Type to search or create a label..."
+                      allowCreate={true}
+                      onCreateNew={(value) => value}
+                      emptyMessage="No labels found. Type to create a new one."
+                    />
                   </div>
 
-                  {/* Labels */}
-                  {labels.length > 0 && (
-                    <div className="space-y-2">
-                      {labels.map((label, idx) => (
-                        <div key={idx} className="flex items-center gap-2 p-2 border rounded">
-                          <Input
-                            value={label}
-                            onChange={(e) => {
-                              const updated = [...labels]
-                              updated[idx] = e.target.value
-                              setLabels(updated)
-                            }}
-                            placeholder="Label value (e.g., Green-E)"
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setLabels(labels.filter((_, i) => i !== idx))}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Add Label UI */}
-                  {otherInfoType === 'label' && (
-                    <div className="p-4 border rounded space-y-2">
-                      <Input
-                        placeholder="Enter label value (e.g., Green-E)"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                            setLabels([...labels, e.currentTarget.value.trim()])
-                            e.currentTarget.value = ''
-                            setOtherInfoType('')
-                          }
-                        }}
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => {
-                            const input = document.querySelector('input[placeholder*="label value"]') as HTMLInputElement
-                            if (input?.value.trim()) {
-                              setLabels([...labels, input.value.trim()])
-                              input.value = ''
-                              setOtherInfoType('')
-                            }
+                  {/* Rating - Always visible */}
+                  <div className="p-4 border rounded space-y-3">
+                    <div className="text-sm font-medium">Rating</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <FormFieldWrapper label="Rating agency" required>
+                        <OrganizationSelector
+                          value={rating.orgId}
+                          onChange={(orgId, orgName) => {
+                            setRating(prev => ({ ...prev, orgId, orgName }))
                           }}
-                        >
-                          Add Label
-                        </Button>
-                        <Button type="button" variant="outline" size="sm" onClick={() => setOtherInfoType('')}>
-                          Cancel
-                        </Button>
-                      </div>
+                          placeholder="Select organization"
+                          organizations={availableOrgs.map(org => ({ id: org.id, name: org.name }))}
+                          onOrganizationsChange={(orgs) => {
+                            setAvailableOrgs(orgs.map(org => ({ id: org.id, name: org.name || '' })))
+                          }}
+                          isLoading={isLoadingOrgs}
+                          sharedDocuments={docs}
+                          selectedDocumentId={selectedDocId}
+                        />
+                      </FormFieldWrapper>
+                      <FormFieldWrapper label="Rating value" required>
+                        <Input
+                          value={rating.value}
+                          onChange={(e) => setRating(prev => ({ ...prev, value: e.target.value }))}
+                          placeholder="e.g., A+, AAA"
+                        />
+                      </FormFieldWrapper>
+                      <FormFieldWrapper label="Rating date">
+                        <DatePicker
+                          value={rating.date}
+                          onChange={(date) => setRating(prev => ({ ...prev, date }))}
+                          placeholder="Select date"
+                        />
+                      </FormFieldWrapper>
+                      <FormFieldWrapper label="External ID (optional)">
+                        <Input
+                          value={rating.externalID || ''}
+                          onChange={(e) => setRating(prev => ({ ...prev, externalID: e.target.value }))}
+                          placeholder="Organization external ID"
+                        />
+                      </FormFieldWrapper>
                     </div>
-                  )}
+                  </div>
 
-                  {/* Rating */}
-                  {rating && (
-                    <div className="p-4 border rounded space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Rating</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setRating(null)}
-                        >
-                          Remove
-                        </Button>
+                  {/* Other Metadata - Always visible */}
+                  <div className="p-4 border rounded space-y-2">
+                    <div className="text-sm font-medium mb-2">Other Metadata</div>
+                    {otherMetadata.length > 0 && (
+                      <div className="space-y-2">
+                        {otherMetadata.map((item, idx) => (
+                          <div key={idx} className="p-2 border rounded space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">{item.label}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setOtherMetadata(otherMetadata.filter((_, i) => i !== idx))}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                value={item.label}
+                                onChange={(e) => {
+                                  const updated = [...otherMetadata]
+                                  updated[idx] = { ...updated[idx], label: e.target.value, key: e.target.value }
+                                  setOtherMetadata(updated)
+                                }}
+                                placeholder="Field name"
+                              />
+                              <Input
+                                value={item.value}
+                                onChange={(e) => {
+                                  const updated = [...otherMetadata]
+                                  updated[idx] = { ...updated[idx], value: e.target.value }
+                                  setOtherMetadata(updated)
+                                }}
+                                placeholder="Value"
+                              />
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <FormFieldWrapper label="Rating agency" required>
-                          <Select
-                            value={rating.orgId || 'none'}
-                            onValueChange={(v) => {
-                              const org = availableOrgs.find(o => o.id === v)
-                              setRating(prev => prev ? { ...prev, orgId: v, orgName: org?.name } : null)
-                            }}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select organization" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableOrgs.map(org => (
-                                <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormFieldWrapper>
-                        <FormFieldWrapper label="Rating value" required>
-                          <Input
-                            value={rating.value}
-                            onChange={(e) => setRating(prev => prev ? { ...prev, value: e.target.value } : null)}
-                            placeholder="e.g., A+, AAA"
-                          />
-                        </FormFieldWrapper>
-                        <FormFieldWrapper label="Rating date">
-                          <DatePicker
-                            value={rating.date}
-                            onChange={(date) => setRating(prev => prev ? { ...prev, date } : null)}
-                            placeholder="Select date"
-                          />
-                        </FormFieldWrapper>
-                        <FormFieldWrapper label="External ID (optional)">
-                          <Input
-                            value={rating.externalID || ''}
-                            onChange={(e) => setRating(prev => prev ? { ...prev, externalID: e.target.value } : null)}
-                            placeholder="Organization external ID"
-                          />
-                        </FormFieldWrapper>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Add Rating UI */}
-                  {otherInfoType === 'rating' && !rating && (
-                    <div className="p-4 border rounded">
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => setRating({ orgId: '', value: '' })}
-                      >
-                        Add Rating
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Other Metadata */}
-                  {otherMetadata.length > 0 && (
+                    )}
                     <div className="space-y-2">
-                      {otherMetadata.map((item, idx) => (
-                        <div key={idx} className="p-2 border rounded space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">{item.label}</span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setOtherMetadata(otherMetadata.filter((_, i) => i !== idx))}
-                            >
-                              Remove
-                            </Button>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <Input
-                              value={item.label}
-                              onChange={(e) => {
-                                const updated = [...otherMetadata]
-                                updated[idx] = { ...updated[idx], label: e.target.value, key: e.target.value }
-                                setOtherMetadata(updated)
-                              }}
-                              placeholder="Label/Key"
-                            />
-                            <Input
-                              value={item.value}
-                              onChange={(e) => {
-                                const updated = [...otherMetadata]
-                                updated[idx] = { ...updated[idx], value: e.target.value }
-                                setOtherMetadata(updated)
-                              }}
-                              placeholder="Value"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Add Other UI */}
-                  {otherInfoType === 'other' && (
-                    <div className="p-4 border rounded space-y-2">
                       <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="Label/Key" id="other-label" />
-                        <Input placeholder="Value" id="other-value" />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => {
-                            const labelInput = document.getElementById('other-label') as HTMLInputElement
-                            const valueInput = document.getElementById('other-value') as HTMLInputElement
-                            if (labelInput?.value.trim() && valueInput?.value.trim()) {
-                              setOtherMetadata([
-                                ...otherMetadata,
-                                {
-                                  key: labelInput.value.trim(),
-                                  label: labelInput.value.trim(),
-                                  value: valueInput.value.trim(),
-                                }
-                              ])
-                              labelInput.value = ''
-                              valueInput.value = ''
-                              setOtherInfoType('')
+                        <Input 
+                          placeholder="Field name" 
+                          id="other-label"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              const labelInput = document.getElementById('other-label') as HTMLInputElement
+                              const valueInput = document.getElementById('other-value') as HTMLInputElement
+                              if (labelInput?.value.trim() && valueInput?.value.trim()) {
+                                setOtherMetadata([
+                                  ...otherMetadata,
+                                  {
+                                    key: labelInput.value.trim(),
+                                    label: labelInput.value.trim(),
+                                    value: valueInput.value.trim(),
+                                  }
+                                ])
+                                labelInput.value = ''
+                                valueInput.value = ''
+                                labelInput.focus()
+                              }
                             }
                           }}
-                        >
-                          Add
-                        </Button>
-                        <Button type="button" variant="outline" size="sm" onClick={() => setOtherInfoType('')}>
-                          Cancel
-                        </Button>
+                        />
+                        <Input 
+                          placeholder="Value" 
+                          id="other-value"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              const labelInput = document.getElementById('other-label') as HTMLInputElement
+                              const valueInput = document.getElementById('other-value') as HTMLInputElement
+                              if (labelInput?.value.trim() && valueInput?.value.trim()) {
+                                setOtherMetadata([
+                                  ...otherMetadata,
+                                  {
+                                    key: labelInput.value.trim(),
+                                    label: labelInput.value.trim(),
+                                    value: valueInput.value.trim(),
+                                  }
+                                ])
+                                labelInput.value = ''
+                                valueInput.value = ''
+                                labelInput.focus()
+                              }
+                            }
+                          }}
+                        />
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-6 border-t">
@@ -1009,28 +1051,8 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
           onUpdate={handleDocumentUpdate as any}
         />
       )}
-    </div>
-  )
-}
 
-// Inline async registry options loader component
-function RegistryOptions() {
-  const [items, setItems] = React.useState<Array<{ id: string; name: string }>>([])
-  React.useEffect(() => {
-    const load = async () => {
-      const supabase = createClientComponentClient()
-      const { data, error } = await supabase.from('organizations').select('id, name').order('name', { ascending: true })
-      if (!error && data) setItems(data as any)
-    }
-    load()
-  }, [])
-  return (
-    <>
-      <SelectItem value="none">Select…</SelectItem>
-      {items.map(i => (
-        <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
-      ))}
-    </>
+    </div>
   )
 }
 

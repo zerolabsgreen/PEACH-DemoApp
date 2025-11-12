@@ -61,7 +61,7 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
   const [formData, setFormData] = useState<ProductionSourceFormData>({
     name: '',
     description: '',
-    location: { country: '', city: '', state: '', address: '', postalCode: '' },
+    location: { country: '', state: '', region: '', address: '', zipCode: '' },
     links: [],
     technology: '',
     documents: [],
@@ -92,7 +92,7 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
         setFormData({
           name: productionSource.name || '',
           description: productionSource.description || '',
-          location: productionSource.location || { country: '', city: '', state: '', address: '', postalCode: '' },
+          location: productionSource.location || { country: '', state: '', region: '', address: '', zipCode: '' },
           links: productionSource.links || [],
           technology: productionSource.technology || '',
           documents: [],

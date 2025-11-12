@@ -59,7 +59,7 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
     url: '',
     description: '',
     contact: '',
-    location: { country: '', city: '', state: '', address: '', postalCode: '' },
+    location: { country: '', state: '', region: '', address: '', zipCode: '' },
     documents: [],
     externalIDs: [],
   })
@@ -90,7 +90,7 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
           contact: organization.contact || '',
           location: organization.location && organization.location.length > 0 
             ? organization.location[0] 
-            : { country: '', city: '', state: '', address: '', postalCode: '' },
+            : { country: '', state: '', region: '', address: '', zipCode: '' },
           documents: [],
           externalIDs: organization.external_ids || [],
         })

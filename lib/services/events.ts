@@ -22,6 +22,7 @@ export async function createEvent(body: CreateEventData) {
     target: body.target as EventTarget,
     target_id: body.targetId,
     type: body.type,
+    value: body.value ?? null,
     description: body.description ?? null,
     dates: body.dates ? { start: body.dates.start?.toISOString?.() ?? body.dates.start as any, end: body.dates.end ? (body.dates.end as Date).toISOString?.() ?? body.dates.end as any : undefined } : null,
     location: body.location ?? null,
@@ -89,6 +90,7 @@ export async function updateEvent(id: string, body: UpdateEventData) {
   if (body.target !== undefined) payload.target = body.target
   if (body.targetId !== undefined) payload.target_id = body.targetId
   if (body.type !== undefined) payload.type = body.type
+  if (body.value !== undefined) payload.value = body.value
   if (body.description !== undefined) payload.description = body.description
   if (body.dates !== undefined) {
     payload.dates = body.dates
