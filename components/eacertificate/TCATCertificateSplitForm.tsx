@@ -411,12 +411,14 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
           target: EventTarget.EAC,
           targetId: cert.id,
           type: 'MRVRATING',
-          organizations: [{ orgId: rating.orgId, role: 'RATINGAGENCY', orgName: rating.orgName }],
+          organizations: [
+            { orgId: rating.orgId, role: 'RATINGAGENCY', orgName: rating.orgName },
+            ...(rating.externalID ? [{ orgId: rating.externalID, role: 'EXTERNALID' }] : []),
+          ],
           notes: rating.value, // Using notes field for rating value
           dates: {
             start: rating.date || new Date(),
           },
-          metadata: rating.externalID ? [{ key: 'externalID', label: 'External ID', value: rating.externalID }] : undefined,
         })
       }
 
