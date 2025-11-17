@@ -9,16 +9,17 @@ import DatePicker from '@/components/ui/date-picker'
 import LinksField from '@/components/ui/links-field'
 import LocationField from '@/components/ui/location-field'
 import MetadataField from '@/components/ui/metadata-field'
-import DocumentUploader, { type DocumentFormItem } from '@/components/documents/DocumentUploader'
+import { type DocumentFormItem } from '@/components/documents/DocumentUploader'
 import { BackButton } from '@/components/ui/back-button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import OptionalFormSection, { useOptionalFields } from '@/components/ui/optional-form-section'
 import FormFieldWrapper from '@/components/ui/form-field-wrapper'
+import OrganizationRoleField from '@/components/eacertificate/OrganizationRoleField'
+import type { OrganizationRole } from '@/lib/types/eacertificate'
 import { createEvent, getEvent, updateEvent } from '@/lib/services/events'
 import { listEACertificates } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
 import { formatProductionSourceLabel } from '@/lib/utils/production-source-utils'
-import { createClientComponentClient } from '@/lib/supabase'
 import { EventTarget, type CreateEventData, type UpdateEventData, type MetadataItem } from '@/lib/types/eacertificate'
 import { toDateInputValue, parseDateInput } from '@/lib/date-utils'
 import { format } from 'date-fns'
@@ -56,6 +57,11 @@ const OPTIONAL_FIELDS: OptionalField[] = [
     label: 'Metadata',
     description: 'Custom metadata fields',
   },
+  {
+    key: 'organizations',
+    label: 'Organizations',
+    description: 'Organizations and their roles for this event',
+  },
 ]
 
 export interface EventFormProps {
@@ -77,7 +83,7 @@ interface EventFormData {
   description?: string
   dates: { start?: string; end?: string }
   location?: any
-  organizations?: any[]
+  organizations: OrganizationRole[]
   notes?: string
   links?: string[]
   documents: DocumentFormItem[]
@@ -339,6 +345,18 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
                   onChange={(v) => set('metadata', v)}
                   label="Metadata"
                   description="Add custom metadata fields for this event"
+                />
+              </FormFieldWrapper>
+
+              <FormFieldWrapper 
+                label="Organizations" 
+                visible={visibleOptionalFields.includes('organizations')}
+              >
+                <OrganizationRoleField
+                  value={form.organizations}
+                  onChange={(orgs) => set('organizations', orgs)}
+                  label="Organizations"
+                  description="Assign roles to organizations for this event"
                 />
               </FormFieldWrapper>
             </div>

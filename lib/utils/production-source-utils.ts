@@ -1,4 +1,5 @@
 import type { ProductionSourceDB, OrganizationDB } from '@/lib/types/eacertificate'
+import { formatOrganizationRole, type OrganizationRole } from '@/lib/types/eacertificate'
 
 /**
  * Formats a production source object into a display label
@@ -41,27 +42,28 @@ export function formatProductionSourceShortLabel(productionSource: ProductionSou
 /**
  * Formats an organization object into a display label
  * Format: "Name" or "Name - ExternalID" if external ID exists
+ * If mainRole is provided, it will be displayed: "Name (Role)" or "Name - ExternalID (Role)"
  */
-export function formatOrganizationLabel(organization: OrganizationDB | { id: string; name: string | null } | null): string {
+export function formatOrganizationLabel(organization: OrganizationDB | { id: string; name: string | null; mainRole?: string | null; external_ids?: any[] | null } | null): string {
   if (!organization) {
     return 'Unknown Organization'
   }
 
-  // Handle minimal organization objects (from selectors)
-  if ('name' in organization && !('external_ids' in organization)) {
-    return organization.name || `Organization ${organization.id.slice(0, 8)}...`
-  }
-
-  // Handle full organization objects
-  const fullOrg = organization as OrganizationDB
-  const name = fullOrg.name || `Organization ${fullOrg.id.slice(0, 8)}...`
+  const name = organization.name || `Organization ${organization.id.slice(0, 8)}...`
   
   // Add first external ID if it exists
-  const firstExternalId = fullOrg.external_ids && fullOrg.external_ids.length > 0 
-    ? '- ' + fullOrg.external_ids[0].id 
+  const hasExternalIds = 'external_ids' in organization && organization.external_ids && organization.external_ids.length > 0
+  const firstExternalId = hasExternalIds 
+    ? '- ' + organization.external_ids[0].id 
     : null
 
-  return firstExternalId ? `${name} ${firstExternalId}` : name
+  // Add main role if it exists
+  const mainRole = 'mainRole' in organization && organization.mainRole 
+    ? formatOrganizationRole({ orgId: organization.id, role: organization.mainRole } as OrganizationRole)
+    : null
+
+  const baseLabel = firstExternalId ? `${name} ${firstExternalId}` : name
+  return mainRole ? `${baseLabel} (${mainRole})` : baseLabel
 }
 
 /**

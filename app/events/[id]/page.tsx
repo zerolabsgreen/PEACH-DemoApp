@@ -21,6 +21,9 @@ import { getEvent, deleteEvent } from '@/lib/services/events'
 import { getDocumentsByIds } from '@/lib/services/documents'
 import { useAuth } from '@/lib/auth-context'
 import { formatDate } from '@/lib/date-utils'
+import { formatOrganizationRole, type OrganizationRole } from '@/lib/types/eacertificate'
+import { formatOrganizationLabel } from '@/lib/utils/production-source-utils'
+import { listOrganizationsWithRole } from '@/lib/services/organizations'
 
 interface EventPageProps { params: Promise<{ id: string }> }
 
@@ -30,6 +33,7 @@ export default function EventPage({ params }: EventPageProps) {
   const { loading: authLoading } = useAuth()
   const [ev, setEv] = useState<any | null>(null)
   const [docs, setDocs] = useState<any[]>([])
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null }>>([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
@@ -44,6 +48,13 @@ export default function EventPage({ params }: EventPageProps) {
           const d = await getDocumentsByIds(ids)
           setDocs(d)
         }
+        // Load organizations for display
+        const orgs = await listOrganizationsWithRole()
+        const transformedOrgs = orgs.map((item: any) => ({
+          id: item.organizations.id,
+          name: item.organizations.name
+        }))
+        setOrganizations(transformedOrgs)
       } finally {
         setLoading(false)
       }
@@ -274,6 +285,29 @@ export default function EventPage({ params }: EventPageProps) {
               <section>
                 <h2 className="text-lg font-medium mb-2">Notes</h2>
                 <p className="text-gray-700 whitespace-pre-wrap">{ev.notes}</p>
+              </section>
+            )}
+
+            {ev.organizations && ev.organizations.length > 0 && (
+              <section>
+                <h2 className="text-lg font-medium mb-2">Organizations</h2>
+                <div className="space-y-2">
+                  {ev.organizations.map((orgRole: OrganizationRole, i: number) => {
+                    const org = organizations.find(o => o.id === orgRole.orgId)
+                    return (
+                      <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <div>
+                          <div className="font-medium">
+                            {org ? formatOrganizationLabel(org) : orgRole.orgName || orgRole.orgId}
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            Role: {formatOrganizationRole(orgRole)}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </section>
             )}
 

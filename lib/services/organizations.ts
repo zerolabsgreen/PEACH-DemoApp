@@ -62,13 +62,128 @@ export async function listMyOrganizations() {
   return data as any
 }
 
+/**
+ * Computes the most common role for each organization by querying all tables
+ * that contain organization roles (eacertificates, events, documents, production_sources)
+ */
+async function computeOrganizationMainRoles(): Promise<Record<string, string>> {
+  const supabase = getSupabase()
+  const roleCounts: Record<string, Record<string, number>> = {}
+
+  // Query all tables that have organizations field
+  const [certificates, events, documents, productionSources] = await Promise.all([
+    supabase.from('eacertificates').select('organizations'),
+    supabase.from('events').select('organizations'),
+    supabase.from('documents').select('organizations'),
+    supabase.from('production_sources').select('organizations'),
+  ])
+
+  // Count roles from certificates
+  if (certificates.data) {
+    certificates.data.forEach((cert: any) => {
+      if (Array.isArray(cert.organizations)) {
+        cert.organizations.forEach((org: any) => {
+          if (org?.orgId && org?.role) {
+            const orgId = org.orgId
+            if (!roleCounts[orgId]) {
+              roleCounts[orgId] = {}
+            }
+            roleCounts[orgId][org.role] = (roleCounts[orgId][org.role] || 0) + 1
+          }
+        })
+      }
+    })
+  }
+
+  // Count roles from events
+  if (events.data) {
+    events.data.forEach((event: any) => {
+      if (Array.isArray(event.organizations)) {
+        event.organizations.forEach((org: any) => {
+          if (org?.orgId && org?.role) {
+            const orgId = org.orgId
+            if (!roleCounts[orgId]) {
+              roleCounts[orgId] = {}
+            }
+            roleCounts[orgId][org.role] = (roleCounts[orgId][org.role] || 0) + 1
+          }
+        })
+      }
+    })
+  }
+
+  // Count roles from documents
+  if (documents.data) {
+    documents.data.forEach((doc: any) => {
+      if (Array.isArray(doc.organizations)) {
+        doc.organizations.forEach((org: any) => {
+          if (org?.orgId && org?.role) {
+            const orgId = org.orgId
+            if (!roleCounts[orgId]) {
+              roleCounts[orgId] = {}
+            }
+            roleCounts[orgId][org.role] = (roleCounts[orgId][org.role] || 0) + 1
+          }
+        })
+      }
+    })
+  }
+
+  // Count roles from production sources
+  if (productionSources.data) {
+    productionSources.data.forEach((ps: any) => {
+      if (Array.isArray(ps.organizations)) {
+        ps.organizations.forEach((org: any) => {
+          if (org?.orgId && org?.role) {
+            const orgId = org.orgId
+            if (!roleCounts[orgId]) {
+              roleCounts[orgId] = {}
+            }
+            roleCounts[orgId][org.role] = (roleCounts[orgId][org.role] || 0) + 1
+          }
+        })
+      }
+    })
+  }
+
+  // Find the most common role for each organization
+  const mainRoles: Record<string, string> = {}
+  Object.keys(roleCounts).forEach((orgId) => {
+    const counts = roleCounts[orgId]
+    let maxCount = 0
+    let mostCommonRole = ''
+    
+    Object.keys(counts).forEach((role) => {
+      if (counts[role] > maxCount) {
+        maxCount = counts[role]
+        mostCommonRole = role
+      }
+    })
+    
+    if (mostCommonRole) {
+      mainRoles[orgId] = mostCommonRole
+    }
+  })
+
+  return mainRoles
+}
+
 export async function listOrganizationsWithRole() {
   const supabase = getSupabase()
   const { data, error } = await supabase
     .from('organizations')
     .select('id, name, created_at, location, external_ids')
   if (error) throw error
-  return (data ?? []).map((row: any) => ({ organizations: row })) as any
+  
+  // Compute main roles for all organizations
+  const mainRoles = await computeOrganizationMainRoles()
+  
+  return (data ?? []).map((row: any) => ({ 
+    organizations: {
+      ...row,
+      mainRole: mainRoles[row.id] || null
+    }
+  })) as any
 }
 
 export async function getOrganization(id: string) {

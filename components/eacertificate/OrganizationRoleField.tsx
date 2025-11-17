@@ -40,7 +40,7 @@ export default function OrganizationRoleField({
   addLabel = "Add role"
 }: OrganizationRoleFieldProps) {
   const [isCreatingOrg, setIsCreatingOrg] = useState(false)
-  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null; external_ids?: any[] | null }>>([])
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null; external_ids?: any[] | null; mainRole?: string | null }>>([])
   const [isLoadingOrgs, setIsLoadingOrgs] = useState(true)
   const [creatingForIndex, setCreatingForIndex] = useState<number | null>(null)
   const [selectKey, setSelectKey] = useState(0)
@@ -66,7 +66,8 @@ export default function OrganizationRoleField({
         const transformedOrgs = orgs.map((item: any) => ({
           id: item.organizations.id,
           name: item.organizations.name,
-          external_ids: item.organizations.external_ids
+          external_ids: item.organizations.external_ids,
+          mainRole: item.organizations.mainRole || null
         }))
         setOrganizations(transformedOrgs)
       } catch (error) {
@@ -215,10 +216,15 @@ export default function OrganizationRoleField({
                               value={formatOrganizationLabel(org)}
                               onSelect={() => {
                                 const updatedRoles = [...value]
+                                // If organization has a mainRole, use it; otherwise keep existing role or empty
+                                const newRole = org.mainRole || orgRole.role || ''
                                 updatedRoles[index] = {
                                   ...orgRole,
                                   orgId: org.id,
-                                  orgName: org.name || undefined
+                                  orgName: org.name || undefined,
+                                  role: newRole,
+                                  // Clear roleCustom if the new role is not "Other"
+                                  roleCustom: newRole === OrgRoleTypes.OTHER ? orgRole.roleCustom : undefined
                                 }
                                 onChange(updatedRoles)
                                 setOrgSelectOpen(prev => ({ ...prev, [index]: false }))
