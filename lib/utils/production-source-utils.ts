@@ -52,8 +52,7 @@ export function formatOrganizationLabel(organization: OrganizationDB | { id: str
   const name = organization.name || `Organization ${organization.id.slice(0, 8)}...`
   
   // Add first external ID if it exists
-  const hasExternalIds = 'external_ids' in organization && organization.external_ids && organization.external_ids.length > 0
-  const firstExternalId = hasExternalIds 
+  const firstExternalId = 'external_ids' in organization && organization.external_ids && organization.external_ids.length > 0
     ? '- ' + organization.external_ids[0].id 
     : null
 
