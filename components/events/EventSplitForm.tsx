@@ -15,8 +15,9 @@ import Dropzone from '@/components/documents/Dropzone'
 import FileViewer from '@/components/documents/FileViewer'
 import DocumentCard from '@/components/documents/DocumentCard'
 import AttachedDocumentsPanel from '@/components/documents/AttachedDocumentsPanel'
-import { createClientComponentClient } from '@/lib/supabase'
 import { createEvent, getEvent, updateEvent } from '@/lib/services/events'
+import OrganizationRoleField from '@/components/eacertificate/OrganizationRoleField'
+import type { OrganizationRole } from '@/lib/types/eacertificate'
 import { listEACertificates } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
 import { formatProductionSourceLabel } from '@/lib/utils/production-source-utils'
@@ -56,7 +57,7 @@ interface EventFormData {
   description?: string
   dates: { start?: string; end?: string }
   location?: any
-  organizations?: any[]
+  organizations: OrganizationRole[]
   notes?: string
   links?: string[]
   documents: UploadedDocument[]
@@ -433,6 +434,26 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
                   label="Metadata"
                   description="Add custom metadata fields for this event"
                 />
+
+                <div>
+                  <OrganizationRoleField
+                    value={formData.organizations}
+                    onChange={(orgs) => setFormData(prev => ({ ...prev, organizations: orgs }))}
+                    label="Organizations"
+                    description="Assign roles to organizations for this event"
+                    sharedDocuments={formData.documents.map(doc => ({
+                      id: doc.id,
+                      file: doc.file,
+                      fileType: doc.fileType,
+                      fileExtension: doc.fileExtension,
+                      title: doc.title,
+                      description: doc.description,
+                      metadata: doc.metadata,
+                      organizations: doc.organizations
+                    }))}
+                    selectedDocumentId={selectedDocumentId}
+                  />
+                </div>
 
                 {/* Document Management */}
                 {formData.documents.length > 0 && (

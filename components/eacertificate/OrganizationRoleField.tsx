@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
-import { OrganizationRole } from '@/lib/types/eacertificate'
+import { OrganizationRole, OrgRoleTypes, ORG_ROLE_NAMES } from '@/lib/types/eacertificate'
 import { Plus, Trash2, Eye, ChevronsUpDown, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { listOrganizationsWithRole, getOrganization } from '@/lib/services/organizations'
 import { formatOrganizationLabel } from '@/lib/utils/production-source-utils'
 import { toast } from 'sonner'
@@ -39,7 +40,7 @@ export default function OrganizationRoleField({
   addLabel = "Add role"
 }: OrganizationRoleFieldProps) {
   const [isCreatingOrg, setIsCreatingOrg] = useState(false)
-  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null; external_ids?: any[] | null }>>([])
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null; external_ids?: any[] | null; mainRole?: string | null }>>([])
   const [isLoadingOrgs, setIsLoadingOrgs] = useState(true)
   const [creatingForIndex, setCreatingForIndex] = useState<number | null>(null)
   const [selectKey, setSelectKey] = useState(0)
@@ -65,7 +66,8 @@ export default function OrganizationRoleField({
         const transformedOrgs = orgs.map((item: any) => ({
           id: item.organizations.id,
           name: item.organizations.name,
-          external_ids: item.organizations.external_ids
+          external_ids: item.organizations.external_ids,
+          mainRole: item.organizations.mainRole || null
         }))
         setOrganizations(transformedOrgs)
       } catch (error) {
@@ -214,10 +216,15 @@ export default function OrganizationRoleField({
                               value={formatOrganizationLabel(org)}
                               onSelect={() => {
                                 const updatedRoles = [...value]
+                                // If organization has a mainRole, use it; otherwise keep existing role or empty
+                                const newRole = org.mainRole || orgRole.role || ''
                                 updatedRoles[index] = {
                                   ...orgRole,
                                   orgId: org.id,
-                                  orgName: org.name || undefined
+                                  orgName: org.name || undefined,
+                                  role: newRole,
+                                  // Clear roleCustom if the new role is not "Other"
+                                  roleCustom: newRole === OrgRoleTypes.OTHER ? orgRole.roleCustom : undefined
                                 }
                                 onChange(updatedRoles)
                                 setOrgSelectOpen(prev => ({ ...prev, [index]: false }))
@@ -254,15 +261,44 @@ export default function OrganizationRoleField({
               
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Role</label>
-                <Input
-                  value={orgRole.role}
-                  onChange={(e) => {
+                <Select
+                  value={orgRole.role || ''}
+                  onValueChange={(newRole) => {
                     const updatedRoles = [...value]
-                    updatedRoles[index] = { ...orgRole, role: e.target.value }
+                    updatedRoles[index] = { 
+                      ...orgRole, 
+                      role: newRole,
+                      // Clear roleCustom if not "Other"
+                      roleCustom: newRole === OrgRoleTypes.OTHER ? orgRole.roleCustom : undefined
+                    }
                     onChange(updatedRoles)
                   }}
-                  placeholder="e.g. Issuer, Verifier, Buyer, etc."
-                />
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a role..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(OrgRoleTypes).map((roleType) => (
+                      <SelectItem key={roleType} value={roleType}>
+                        {ORG_ROLE_NAMES[roleType]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {orgRole.role === OrgRoleTypes.OTHER && (
+                  <div className="mt-2">
+                    <label className="block text-xs text-gray-500 mb-1">Custom Role</label>
+                    <Input
+                      value={orgRole.roleCustom || ''}
+                      onChange={(e) => {
+                        const updatedRoles = [...value]
+                        updatedRoles[index] = { ...orgRole, roleCustom: e.target.value }
+                        onChange(updatedRoles)
+                      }}
+                      placeholder="Enter custom role name"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

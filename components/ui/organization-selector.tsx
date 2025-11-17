@@ -18,8 +18,8 @@ export interface OrganizationSelectorProps {
   placeholder?: string
   disabled?: boolean
   isLoading?: boolean
-  organizations?: Array<{ id: string; name: string | null; external_ids?: any[] | null }>
-  onOrganizationsChange?: (organizations: Array<{ id: string; name: string | null; external_ids?: any[] | null }>) => void
+  organizations?: Array<{ id: string; name: string | null; external_ids?: any[] | null; mainRole?: string | null }>
+  onOrganizationsChange?: (organizations: Array<{ id: string; name: string | null; external_ids?: any[] | null; mainRole?: string | null }>) => void
   sharedDocuments?: any[]
   selectedDocumentId?: string | null
   allowCreate?: boolean
@@ -42,7 +42,7 @@ export default function OrganizationSelector({
   className,
 }: OrganizationSelectorProps) {
   const [open, setOpen] = useState(false)
-  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null; external_ids?: any[] | null }>>([])
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string | null; external_ids?: any[] | null; mainRole?: string | null }>>([])
   const [isLoadingOrgs, setIsLoadingOrgs] = useState(true)
   const [isCreatingOrg, setIsCreatingOrg] = useState(false)
 
@@ -61,7 +61,8 @@ export default function OrganizationSelector({
         const transformedOrgs = orgs.map((item: any) => ({
           id: item.organizations.id,
           name: item.organizations.name,
-          external_ids: item.organizations.external_ids
+          external_ids: item.organizations.external_ids,
+          mainRole: item.organizations.mainRole || null
         }))
         setOrganizations(transformedOrgs)
       } catch (error) {

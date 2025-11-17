@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
@@ -13,31 +13,27 @@ import { createProductionSource } from '@/lib/services/production-sources'
 import { createEACertificate } from '@/lib/services/eacertificates'
 import { createEvent } from '@/lib/services/events'
 import { createClientComponentClient } from '@/lib/supabase'
-import { listOrganizationsWithRole, getOrganization } from '@/lib/services/organizations'
+import { listOrganizationsWithRole } from '@/lib/services/organizations'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import LocationField from '@/components/ui/location-field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
-import { ChevronsUpDown, Check } from 'lucide-react'
+import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command'
+import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import DatePicker from '@/components/ui/date-picker'
-import LinksField from '@/components/ui/links-field'
 import FormFieldWrapper from '@/components/ui/form-field-wrapper'
 import AmountsField from '@/components/eacertificate/AmountsField'
 import EmissionsField from '@/components/eacertificate/EmissionsField'
 import OrganizationRoleField from '@/components/eacertificate/OrganizationRoleField'
-import OrganizationCollapsibleForm from '@/components/eacertificate/OrganizationCollapsibleForm'
 import ChipMultiSelect from '@/components/ui/chip-multi-select'
 import OrganizationSelector from '@/components/ui/organization-selector'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
-import { Info, Trash2, X } from 'lucide-react'
+import ProductionSourceSelector from '@/components/ui/production-source-selector'
+import { getProductionSource } from '@/lib/services/production-sources'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
-import type { FileType, MetadataItem, EACType, Amount, EmissionsData, OrganizationRole } from '@/lib/types/eacertificate'
-import { EAC_TYPE_NAMES, EventTarget, EACType as EACTypeEnum } from '@/lib/types/eacertificate'
+import type { FileType, MetadataItem, EACType, Amount, EmissionsData, OrganizationRole, ProductionSourceDB } from '@/lib/types/eacertificate'
+import { EAC_TYPE_NAMES, EventTarget, EACType as EACTypeEnum, OrgRoleTypes } from '@/lib/types/eacertificate'
+import { listProductionSources } from '@/lib/services/production-sources'
 
 type UploadedDocument = {
   id: string
@@ -102,11 +98,19 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   // Right side form state
   const [saving, setSaving] = useState(false)
   const [projectName, setProjectName] = useState('') // A -> ProductionSource.name
+  const [projectNameOpen, setProjectNameOpen] = useState(false) // Open state for project name dropdown
+  const [selectedProductionSourceForName, setSelectedProductionSourceForName] = useState<ProductionSourceDB | null>(null) // Selected production source from name search
+  const [isFormDisabled, setIsFormDisabled] = useState(false) // Whether form fields should be disabled
+  const projectNameInputRef = useRef<HTMLDivElement>(null)
   const [projectDescription, setProjectDescription] = useState('') // E -> ProductionSource.description
   const [location, setLocation] = useState<any>({ country: '', state: '', region: '', address: '', zipCode: '' }) // H
   const [psExternalId, setPsExternalId] = useState<string>('') // B -> ProductionSource.ExternalID.id
+  const [selectedProductionSourceId, setSelectedProductionSourceId] = useState<string>('') // Selected production source from Registry field
   const [registryOrgId, setRegistryOrgId] = useState<string>('') // C -> ProductionSource.organizations with role=Registry
   const [links, setLinks] = useState<string[]>([]) // D -> external link to retirement doc (optional)
+  const [productionSources, setProductionSources] = useState<Array<{ id: string; name: string | null; technology?: string; location?: any; external_ids?: any[] | null }>>([])
+  const [isLoadingProductionSources, setIsLoadingProductionSources] = useState(false)
+  const [productionSourcesForSearch, setProductionSourcesForSearch] = useState<ProductionSourceDB[]>([]) // All production sources for name search
   const [certType, setCertType] = useState<EACType>('REC' as EACType)
   const [amounts, setAmounts] = useState<Amount[]>([]) // F1 -> Amounts
   const [emissions, setEmissions] = useState<EmissionsData[]>([]) // I -> Emissions Mitigation Data
@@ -118,13 +122,11 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const [commercialOperationDateDay, setCommercialOperationDateDay] = useState<string>('') // Day (DD)
   const [fuelTechnology, setFuelTechnology] = useState<string>('') // Fuel and technology types -> ProductionSource.technology + EACertificate.productionTech
   const [organizations, setOrganizations] = useState<OrganizationRole[]>([
-    { orgId: '', role: 'SELLER', orgName: undefined } // Default: one organization with SELLER role
+    { orgId: '', role: OrgRoleTypes.SELLER, orgName: undefined } // Default: one organization with SELLER role
   ]) // Entity name -> EACertificate.events(type ISSUANCE or REDEMPTION).organizations
   const [verificationBodyOrgId, setVerificationBodyOrgId] = useState<string>('') // Verification body -> EACertificate.events(type MRVERIFICATION).organizations
   const [availableOrgs, setAvailableOrgs] = useState<Array<{ id: string; name: string }>>([])
   const [isLoadingOrgs, setIsLoadingOrgs] = useState(false)
-  const [registryOrgs, setRegistryOrgs] = useState<Array<{ id: string; name: string }>>([])
-  const [isLoadingRegistryOrgs, setIsLoadingRegistryOrgs] = useState(false)
 
   // Load organizations for verification body selector
   React.useEffect(() => {
@@ -146,27 +148,134 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
     load()
   }, [])
 
-  // Load organizations for registry selector
+  // Load production sources for registry selector and name search
   React.useEffect(() => {
     const load = async () => {
-      setIsLoadingRegistryOrgs(true)
+      setIsLoadingProductionSources(true)
       try {
+        const sources = await listProductionSources()
+        const transformedSources = sources.map((source: any) => ({
+          id: source.id,
+          name: source.name,
+          technology: source.technology,
+          location: source.location,
+          external_ids: source.external_ids || null
+        }))
+        setProductionSources(transformedSources)
+        
+        // Also load full production sources for name search
         const supabase = createClientComponentClient()
-        const { data, error } = await supabase
-          .from('organizations')
-          .select('id, name')
-          .order('name', { ascending: true })
-        if (!error && data) {
-          setRegistryOrgs(data as any)
+        const { data: fullSources, error } = await supabase
+          .from('production_sources')
+          .select('*')
+          .order('created_at', { ascending: false })
+        if (!error && fullSources) {
+          setProductionSourcesForSearch(fullSources as ProductionSourceDB[])
         }
       } catch (error) {
-        console.error('Failed to load registry organizations:', error)
+        console.error('Failed to load production sources:', error)
       } finally {
-        setIsLoadingRegistryOrgs(false)
+        setIsLoadingProductionSources(false)
       }
     }
     load()
   }, [])
+
+  // When a production source is selected, extract the registry organization from it
+  React.useEffect(() => {
+    const extractRegistryOrg = async () => {
+      if (selectedProductionSourceId) {
+        try {
+          const ps = await getProductionSource(selectedProductionSourceId)
+          // Find the registry organization in the production source's organizations
+          const registryOrg = ps.organizations?.find((org: any) => org.role === OrgRoleTypes.REGISTRY)
+          if (registryOrg) {
+            setRegistryOrgId(registryOrg.orgId)
+          } else {
+            setRegistryOrgId('')
+          }
+        } catch (error) {
+          console.error('Failed to load production source:', error)
+          setRegistryOrgId('')
+        }
+      } else {
+        setRegistryOrgId('')
+      }
+    }
+    extractRegistryOrg()
+  }, [selectedProductionSourceId])
+
+  // Filter production sources by name for search
+  const filteredProductionSourcesForName = useMemo(() => {
+    if (!projectName.trim()) return []
+    const searchLower = projectName.toLowerCase()
+    return productionSourcesForSearch.filter(ps => 
+      ps.name?.toLowerCase().includes(searchLower)
+    )
+  }, [projectName, productionSourcesForSearch])
+
+  // When a production source is selected from name search, prefill all fields
+  const handleProductionSourceSelected = (ps: ProductionSourceDB) => {
+    setSelectedProductionSourceForName(ps)
+    setProjectName(ps.name || '')
+    setProjectDescription(ps.description || '')
+    setLocation(ps.location || { country: '', state: '', region: '', address: '', zipCode: '' })
+    setPsExternalId(ps.external_ids && ps.external_ids.length > 0 ? ps.external_ids[0].id : '')
+    setFuelTechnology(ps.technology || '')
+    setLinks(ps.links || [])
+    // Extract registry organization
+    const registryOrg = ps.organizations?.find((org: any) => org.role === 'Registry')
+    if (registryOrg) {
+      setRegistryOrgId(registryOrg.orgId)
+      // Also set the selected production source for registry field
+      setSelectedProductionSourceId(ps.id)
+    } else {
+      setRegistryOrgId('')
+      setSelectedProductionSourceId('')
+    }
+    setIsFormDisabled(true)
+    setProjectNameOpen(false)
+  }
+
+  // When user types in project name after selection, reset to create-new mode
+  const handleProjectNameChange = (value: string) => {
+    setProjectName(value)
+    if (selectedProductionSourceForName) {
+      // Reset all fields to initial state
+      setSelectedProductionSourceForName(null)
+      setIsFormDisabled(false)
+      setProjectDescription('')
+      setLocation({ country: '', state: '', region: '', address: '', zipCode: '' })
+      setPsExternalId('')
+      setFuelTechnology('')
+      setLinks([])
+      setRegistryOrgId('')
+      setSelectedProductionSourceId('')
+    }
+    // Show dropdown if there's text and matches exist
+    if (value.trim()) {
+      setProjectNameOpen(true)
+    } else {
+      setProjectNameOpen(false)
+    }
+  }
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (projectNameInputRef.current && !projectNameInputRef.current.contains(event.target as Node)) {
+        setProjectNameOpen(false)
+      }
+    }
+
+    if (projectNameOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [projectNameOpen])
 
 
   // Note: Verification body is intentionally decoupled from organizations (Entity name)
@@ -303,17 +412,24 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
 
     setSaving(true)
     try {
-      // 1) Create Production Source
-      const ps = await createProductionSource({
-        name: projectName,
-        description: projectDescription || undefined,
-        location,
-        technology: fuelTechnology.trim() || 'TCAT', // Use provided technology or default to TCAT
-        links: links.length ? links : undefined,
-        documents: [],
-        externalIDs: [{ id: psExternalId.trim() }],
-        organizations: registryOrgId ? [{ orgId: registryOrgId, role: 'Registry' }] : undefined,
-      })
+      // 1) Use existing Production Source if selected, otherwise create new one
+      let ps
+      if (selectedProductionSourceForName) {
+        // Use existing production source
+        ps = selectedProductionSourceForName
+      } else {
+        // Create new Production Source
+        ps = await createProductionSource({
+          name: projectName,
+          description: projectDescription || undefined,
+          location,
+          technology: fuelTechnology.trim() || 'TCAT', // Use provided technology or default to TCAT
+          links: links.length ? links : undefined,
+          documents: [],
+          externalIDs: [{ id: psExternalId.trim() }],
+          organizations: registryOrgId ? [{ orgId: registryOrgId, role: OrgRoleTypes.REGISTRY }] : undefined,
+        })
+      }
 
       // 2) Upload proof documents (if any) and attach to certificate later
       const uploadedDocIds: string[] = []
@@ -434,7 +550,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
               title: verificationReportDoc.title,
               description: verificationReportDoc.description,
               metadata: verificationReportDoc.metadata,
-              organizations: [{ orgId: verificationBodyOrgId, role: 'Verifier', orgName: verificationOrg.name }],
+              organizations: [{ orgId: verificationBodyOrgId, role: OrgRoleTypes.MRV_VERIFIER, orgName: verificationOrg.name }],
             })
             verificationDocIds.push(uploadedDoc.id)
           }
@@ -451,7 +567,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
               title: verificationReportDoc!.title,
               description: verificationReportDoc!.description,
               metadata: verificationReportDoc!.metadata,
-              organizations: [{ orgId: verificationBodyOrgId, role: 'Verifier', orgName: verificationOrg.name }],
+              organizations: [{ orgId: verificationBodyOrgId, role: OrgRoleTypes.MRV_VERIFIER, orgName: verificationOrg.name }],
             })) : undefined,
             dates: {
               start: new Date(), // Use current date for verification
@@ -643,9 +759,50 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                   </Select>
                 </div>
 
-                {/* A. Project name */}
+                {/* A. Project name - Searchable autocomplete */}
                 <FormFieldWrapper label="Project name" required>
-                  <Input value={projectName} onChange={e => setProjectName(e.target.value)} placeholder="Project name" required />
+                  <div className="relative" ref={projectNameInputRef}>
+                    <Input 
+                      value={projectName} 
+                      onChange={e => handleProjectNameChange(e.target.value)} 
+                      onFocus={() => {
+                        if (projectName.trim() && filteredProductionSourcesForName.length > 0) {
+                          setProjectNameOpen(true)
+                        }
+                      }}
+                      placeholder="Project name" 
+                      required 
+                    />
+                    {projectNameOpen && filteredProductionSourcesForName.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-popover text-popover-foreground rounded-md border shadow-md">
+                        <Command shouldFilter={false}>
+                          <CommandList className="max-h-[300px] overflow-y-auto">
+                            <CommandEmpty>No production source found. Type to create a new one.</CommandEmpty>
+                            <CommandGroup>
+                              {filteredProductionSourcesForName.map((ps) => {
+                                const isSelected = selectedProductionSourceForName?.id === ps.id
+                                return (
+                                  <CommandItem
+                                    key={ps.id}
+                                    value={ps.name || ''}
+                                    onSelect={() => handleProductionSourceSelected(ps)}
+                                  >
+                                    {ps.name || `Source ${ps.id.slice(0, 8)}...`}
+                                    <Check
+                                      className={cn(
+                                        "ml-auto h-4 w-4",
+                                        isSelected ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                  </CommandItem>
+                                )
+                              })}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </div>
+                    )}
+                  </div>
                 </FormFieldWrapper>
 
                 {/* B. Project / unit ID */}
@@ -655,75 +812,41 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                     onChange={e => setPsExternalId(e.target.value)}
                     placeholder="e.g., UNIT-12345"
                     required
+                    disabled={isFormDisabled}
                   />
                 </FormFieldWrapper>
 
-                {/* C. Registry (Organization with role Registry) */}
+                {/* Project or facility fuel and technology types */}
+                <FormFieldWrapper label="Project or facility fuel and technology types">
+                  <Input
+                    value={fuelTechnology}
+                    onChange={(e) => setFuelTechnology(e.target.value)}
+                    placeholder="e.g. Solar, Wind, Hydro, Biomass, Natural Gas, etc."
+                    disabled={isFormDisabled}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Used for both Production Source technology and Certificate production technology
+                  </p>
+                </FormFieldWrapper>
+
+                {/* C. Registry (Production Source selector) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Registry</label>
-                  <OrganizationSelector
-                    value={registryOrgId}
-                    onChange={(orgId) => setRegistryOrgId(orgId)}
+                  <ProductionSourceSelector
+                    value={selectedProductionSourceId}
+                    onChange={(psId) => setSelectedProductionSourceId(psId)}
                     placeholder="Select registry organization"
-                    organizations={registryOrgs.map(org => ({ id: org.id, name: org.name }))}
-                    onOrganizationsChange={(orgs) => {
-                      setRegistryOrgs(orgs.map(org => ({ id: org.id, name: org.name || '' })))
+                    productionSources={productionSources}
+                    onProductionSourcesChange={(sources) => {
+                      setProductionSources(sources)
                     }}
-                    isLoading={isLoadingRegistryOrgs}
+                    isLoading={isLoadingProductionSources}
                     sharedDocuments={docs}
                     selectedDocumentId={selectedDocId}
+                    createButtonText="Can't find it? Create a new organization"
+                    disabled={isFormDisabled}
                   />
                 </div>
-
-                {/* D. Proof of retirement (links) REMOVED */}
-                {/* <LinksField
-                  value={links}
-                  onChange={setLinks}
-                  label="Proof of retirement links"
-                  description="Add links to retirement proof. To upload files, use the uploader on the left — they will be treated as proof of retirement."
-                /> */}
-
-                {/* F1. Quantity */}
-                <div>
-                  <AmountsField
-                    value={amounts}
-                    onChange={setAmounts}
-                    label="Quantity"
-                    description="Primary quantity for this certificate"
-                  />
-                </div>
-
-                {/* G. Vintage */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <FormFieldWrapper label="Vintage start" required>
-                    <DatePicker value={vintageStart} onChange={setVintageStart} placeholder="Select start date" />
-                  </FormFieldWrapper>
-                  <FormFieldWrapper label="Vintage end (optional)">
-                    <DatePicker value={vintageEnd} onChange={setVintageEnd} placeholder="Select end date" />
-                  </FormFieldWrapper>
-                </div>
-
-                
-
-                {/* H. Location */}
-                <FormFieldWrapper>
-                  <LocationField value={location} onChange={setLocation} />
-                </FormFieldWrapper>
-
-                {/* I. Emissions Mitigation Data - Hide for Carbon Credits */}
-                {(certType !== EACTypeEnum.CC && certType !== EACTypeEnum.CR) && (
-                  <EmissionsField
-                    value={emissions}
-                    onChange={handleEmissionsChange}
-                    label="Emissions Mitigation Data"
-                    description={emissionsExplainerByType[certType]}
-                  />
-                )}
-
-                {/* E. Project / facility description */}
-                <FormFieldWrapper label="Project / facility description">
-                  <Textarea value={projectDescription} onChange={e => setProjectDescription(e.target.value)} rows={3} placeholder="Short description" />
-                </FormFieldWrapper>
 
                 {/* J. Project or facility commercial operation date */}
                 <FormFieldWrapper label="Project or facility commercial operation date">
@@ -742,6 +865,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                             setCommercialOperationDateYear(year)
                           }
                         }}
+                        disabled={isFormDisabled}
                       />
                     </div>
                     <div>
@@ -758,6 +882,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                             setCommercialOperationDateMonth(month)
                           }
                         }}
+                        disabled={isFormDisabled}
                       />
                     </div>
                     <div>
@@ -774,6 +899,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                             setCommercialOperationDateDay(day)
                           }
                         }}
+                        disabled={isFormDisabled}
                       />
                     </div>
                   </div>
@@ -782,17 +908,63 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                   </p>
                 </FormFieldWrapper>
 
-                {/* Fuel and Technology Types */}
-                <FormFieldWrapper label="Project or facility fuel and technology types">
-                  <Input
-                    value={fuelTechnology}
-                    onChange={(e) => setFuelTechnology(e.target.value)}
-                    placeholder="e.g. Solar, Wind, Hydro, Biomass, Natural Gas, etc."
+                {/* E. Project / facility description */}
+                <FormFieldWrapper label="Project / facility description">
+                  <Textarea 
+                    value={projectDescription} 
+                    onChange={e => setProjectDescription(e.target.value)} 
+                    rows={3} 
+                    placeholder="Short description"
+                    disabled={isFormDisabled}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Used for both Production Source technology and Certificate production technology
-                  </p>
                 </FormFieldWrapper>
+
+                {/* H. Location */}
+                <FormFieldWrapper>
+                  <LocationField value={location} onChange={setLocation} disabled={isFormDisabled} />
+                </FormFieldWrapper>
+
+                {/* D. Proof of retirement (links) REMOVED */}
+                {/* <LinksField
+                  value={links}
+                  onChange={setLinks}
+                  label="Proof of retirement links"
+                  description="Add links to retirement proof. To upload files, use the uploader on the left — they will be treated as proof of retirement."
+                /> */}
+
+                {/* F1. Quantity */}
+                <div>
+                  <AmountsField
+                    value={amounts}
+                    onChange={setAmounts}
+                    label="Quantity"
+                    description="Primary quantity for this certificate"
+                    disabled={isFormDisabled}
+                  />
+                </div>
+
+                {/* G. Vintage */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <FormFieldWrapper label="Vintage start" required>
+                    <DatePicker value={vintageStart} onChange={setVintageStart} placeholder="Select start date" disabled={isFormDisabled} />
+                  </FormFieldWrapper>
+                  <FormFieldWrapper label="Vintage end (optional)">
+                    <DatePicker value={vintageEnd} onChange={setVintageEnd} placeholder="Select end date" disabled={isFormDisabled} />
+                  </FormFieldWrapper>
+                </div>
+
+                
+
+                {/* I. Emissions Mitigation Data - Hide for Carbon Credits */}
+                {(certType !== EACTypeEnum.CC && certType !== EACTypeEnum.CR) && (
+                  <EmissionsField
+                    value={emissions}
+                    onChange={handleEmissionsChange}
+                    label="Emissions Mitigation Data"
+                    description={emissionsExplainerByType[certType]}
+                    disabled={isFormDisabled}
+                  />
+                )}
 
 
                 {/* Entity name - Organizations */}
@@ -1055,5 +1227,6 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
     </div>
   )
 }
+
 
 
