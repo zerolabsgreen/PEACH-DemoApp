@@ -29,6 +29,27 @@ export enum EventTarget {
   PSOURCE = "PSOURCE"
 }
 
+// Default Roles that an organization could have
+export enum OrgRoleTypes {
+  REGISTRY = "Registry",
+  ISSUER = "Issuer", // usually the issuer is the registry, but there could be some times where the document has been issued by someone else
+  PRODUCER = "Producer",
+  SELLER = "Seller",
+  BROKER = "Broker",
+  EACBUYER = "Buyer", // should we use this? in case the buyer is different from the beneficiary eg for Scope3 (eg PL = BUYER, Supplier = BENEFICIARY)
+  EACBENEFICIARY = "Beneficiary",
+  FUEL_USER = "Fuel User", // for book & claim accounting where one org buys the EAC and another the fuel
+  TRANSPORT = "Transport",
+  GRID_OPERATOR = "Grid Operator", // different from registry, might be useful for other grids (thermal / gas)? but the registry is usually also a GRID_Operator, so this RoleType is used only if the org is not also a Registry
+  MRV_AUDITOR = "Auditor",
+  MRV_RATING_AGENCY = "Rating Agency",
+  MRV_LABEL = "Label",
+  MRV_VERIFIER = "Verifier",
+  MRV_VALIDATOR = "Validator", // Validator != Verifier so we need 2 different role types, ⚠️ but the user could be confused as to which to select. like in the EACEventType(Validator vs Verification)
+  MRV_LAB = "Lab",
+  OTHER = "Other" // if the user sets it to Other, then they need to fill the organization.roleCustom or OrganizationRole.roleCustom
+}
+
 // Document interface
 export interface Document {
   id: string;
@@ -71,6 +92,7 @@ export interface OrganizationRole {
   orgId: string;
   role: string;
   orgName?: string;
+  roleCustom?: string; // Custom role name when role === "Other"
 }
 
 // MetadataItem interface
@@ -534,6 +556,26 @@ export const EVENT_TARGET_NAMES: Record<EventTarget, string> = {
   [EventTarget.PSOURCE]: 'Production Source'
 };
 
+export const ORG_ROLE_NAMES: Record<OrgRoleTypes, string> = {
+  [OrgRoleTypes.REGISTRY]: 'Registry',
+  [OrgRoleTypes.ISSUER]: 'Issuer',
+  [OrgRoleTypes.PRODUCER]: 'Producer',
+  [OrgRoleTypes.SELLER]: 'Seller',
+  [OrgRoleTypes.BROKER]: 'Broker',
+  [OrgRoleTypes.EACBUYER]: 'Buyer',
+  [OrgRoleTypes.EACBENEFICIARY]: 'Beneficiary',
+  [OrgRoleTypes.FUEL_USER]: 'Fuel User',
+  [OrgRoleTypes.TRANSPORT]: 'Transport',
+  [OrgRoleTypes.GRID_OPERATOR]: 'Grid Operator',
+  [OrgRoleTypes.MRV_AUDITOR]: 'Auditor',
+  [OrgRoleTypes.MRV_RATING_AGENCY]: 'Rating Agency',
+  [OrgRoleTypes.MRV_LABEL]: 'Label',
+  [OrgRoleTypes.MRV_VERIFIER]: 'Verifier',
+  [OrgRoleTypes.MRV_VALIDATOR]: 'Validator',
+  [OrgRoleTypes.MRV_LAB]: 'Lab',
+  [OrgRoleTypes.OTHER]: 'Other'
+};
+
 export const COMMON_AMOUNT_UNITS: AmountUnit[] = [
   'MWh', 'kWh', 'MMBtu', 'MJ', 'gallons', 'tCO2e'
 ];
@@ -561,6 +603,24 @@ export function getFileTypeName(code: FileType): string {
 
 export function getEventTargetName(code: EventTarget): string {
   return EVENT_TARGET_NAMES[code];
+}
+
+/**
+ * Formats an organization role for display.
+ * If the role is "Other" and roleCustom is provided, returns the custom role.
+ * Otherwise, returns the role name from the enum or the role string itself.
+ */
+export function formatOrganizationRole(orgRole: OrganizationRole): string {
+  if (orgRole.role === OrgRoleTypes.OTHER && orgRole.roleCustom) {
+    return orgRole.roleCustom;
+  }
+  // Check if the role matches an enum value
+  const enumValue = Object.values(OrgRoleTypes).find(val => val === orgRole.role);
+  if (enumValue) {
+    return ORG_ROLE_NAMES[enumValue as OrgRoleTypes];
+  }
+  // Fallback to the role string itself
+  return orgRole.role;
 }
 
 export function isPrimaryAmount(amount: Amount): boolean {

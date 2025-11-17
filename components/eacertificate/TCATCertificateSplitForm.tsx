@@ -32,7 +32,7 @@ import ProductionSourceSelector from '@/components/ui/production-source-selector
 import { getProductionSource } from '@/lib/services/production-sources'
 import { toast } from 'sonner'
 import type { FileType, MetadataItem, EACType, Amount, EmissionsData, OrganizationRole, ProductionSourceDB } from '@/lib/types/eacertificate'
-import { EAC_TYPE_NAMES, EventTarget, EACType as EACTypeEnum } from '@/lib/types/eacertificate'
+import { EAC_TYPE_NAMES, EventTarget, EACType as EACTypeEnum, OrgRoleTypes } from '@/lib/types/eacertificate'
 import { listProductionSources } from '@/lib/services/production-sources'
 
 type UploadedDocument = {
@@ -122,7 +122,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const [commercialOperationDateDay, setCommercialOperationDateDay] = useState<string>('') // Day (DD)
   const [fuelTechnology, setFuelTechnology] = useState<string>('') // Fuel and technology types -> ProductionSource.technology + EACertificate.productionTech
   const [organizations, setOrganizations] = useState<OrganizationRole[]>([
-    { orgId: '', role: 'SELLER', orgName: undefined } // Default: one organization with SELLER role
+    { orgId: '', role: OrgRoleTypes.SELLER, orgName: undefined } // Default: one organization with SELLER role
   ]) // Entity name -> EACertificate.events(type ISSUANCE or REDEMPTION).organizations
   const [verificationBodyOrgId, setVerificationBodyOrgId] = useState<string>('') // Verification body -> EACertificate.events(type MRVERIFICATION).organizations
   const [availableOrgs, setAvailableOrgs] = useState<Array<{ id: string; name: string }>>([])
@@ -188,7 +188,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
         try {
           const ps = await getProductionSource(selectedProductionSourceId)
           // Find the registry organization in the production source's organizations
-          const registryOrg = ps.organizations?.find((org: any) => org.role === 'Registry')
+          const registryOrg = ps.organizations?.find((org: any) => org.role === OrgRoleTypes.REGISTRY)
           if (registryOrg) {
             setRegistryOrgId(registryOrg.orgId)
           } else {
@@ -427,7 +427,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
           links: links.length ? links : undefined,
           documents: [],
           externalIDs: [{ id: psExternalId.trim() }],
-          organizations: registryOrgId ? [{ orgId: registryOrgId, role: 'Registry' }] : undefined,
+          organizations: registryOrgId ? [{ orgId: registryOrgId, role: OrgRoleTypes.REGISTRY }] : undefined,
         })
       }
 
@@ -550,7 +550,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
               title: verificationReportDoc.title,
               description: verificationReportDoc.description,
               metadata: verificationReportDoc.metadata,
-              organizations: [{ orgId: verificationBodyOrgId, role: 'Verifier', orgName: verificationOrg.name }],
+              organizations: [{ orgId: verificationBodyOrgId, role: OrgRoleTypes.MRV_VERIFIER, orgName: verificationOrg.name }],
             })
             verificationDocIds.push(uploadedDoc.id)
           }
@@ -567,7 +567,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
               title: verificationReportDoc!.title,
               description: verificationReportDoc!.description,
               metadata: verificationReportDoc!.metadata,
-              organizations: [{ orgId: verificationBodyOrgId, role: 'Verifier', orgName: verificationOrg.name }],
+              organizations: [{ orgId: verificationBodyOrgId, role: OrgRoleTypes.MRV_VERIFIER, orgName: verificationOrg.name }],
             })) : undefined,
             dates: {
               start: new Date(), // Use current date for verification
