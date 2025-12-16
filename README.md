@@ -1,3 +1,21 @@
+# PEACH-Demo App
+
+
+[PEACH](https://github.com/zerolabsgreen/PEACH-DataModel) is a Protocol for Environmental Attribute Certificate Harmonization, an open-source, universal data model for Environmental Attribute Certificates (EACs) that brings order to the complexity of sustainability claims across renewable energy, low-carbon fuels, carbon credits and more. 
+
+This repository is the companion app demo to the **PEACH Data Model**: https://github.com/zerolabsgreen/PEACH-DataModel
+
+---
+
+### Status 🚧 - in Active development.
+
+The application is usable but still in active development.
+you can test the app on https://peach-app-labs.vercel.app/ 
+
+
+
+--- 
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
@@ -35,3 +53,31 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+
+
+
+## License
+
+### Demo Application: AGPL-3.0
+
+This demo is licensed under [AGPL-3.0](LICENSE).
+
+**Why AGPL right now:**
+- Demo is incomplete and in active development
+- Not yet updated to latest PEACH data model (released Dec 16, 2025)
+- May ease licence once stable 
+
+### Data Model: MPL 2.0 (Separate)
+
+The [PEACH data model](https://github.com/zerolabs/PEACH-DataModel) is under MPL 2.0.
+
+**You can freely:**
+- ✅ Build commercial products using PEACH format
+- ✅ Implement PEACH in proprietary applications
+- ✅ Create your own implementations
+
+**AGPL applies only to this demo code:**
+- ❌ Can't fork demo as proprietary SaaS
+- ❌ Can't copy demo code into proprietary products
+
+**Questions?** Open an issue or contact inquiries@zerolabs.green
