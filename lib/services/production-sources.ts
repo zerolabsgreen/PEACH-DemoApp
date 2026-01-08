@@ -5,7 +5,10 @@ export type ProductionSource = {
   id: string
   name: string | null
   description: string | null
-  technology: string
+  technology: string[]
+  eac_types: string[] | null
+  labels: string[] | null
+  operation_start_date: string | null
   location: any | null
   created_at: string
 }
@@ -26,7 +29,10 @@ export async function createProductionSource(body: CreateProductionSourceData) {
     name: body.name || null,
     description: body.description || null,
     location: body.location,
-    technology: body.technology,
+    technology: Array.isArray(body.technology) ? body.technology : [body.technology].filter(Boolean),
+    eac_types: body.eacTypes || null,
+    labels: body.labels || null,
+    operation_start_date: body.operationStartDate || null,
     links: body.links || null,
     documents: body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null,
     external_ids: body.externalIDs || null,
@@ -50,7 +56,7 @@ export async function listProductionSources() {
   const supabase = getSupabase()
   const { data, error } = await supabase
     .from('production_sources')
-    .select('id, name, description, technology, location, created_at')
+    .select('id, name, description, technology, eac_types, labels, operation_start_date, location, created_at')
     .order('created_at', { ascending: false })
 
   if (error) throw error
@@ -81,7 +87,10 @@ export async function updateProductionSource(id: string, body: UpdateProductionS
   if (body.name !== undefined) payload.name = body.name
   if (body.description !== undefined) payload.description = body.description
   if (body.location !== undefined) payload.location = body.location
-  if (body.technology !== undefined) payload.technology = body.technology
+  if (body.technology !== undefined) payload.technology = Array.isArray(body.technology) ? body.technology : [body.technology].filter(Boolean)
+  if (body.eacTypes !== undefined) payload.eac_types = body.eacTypes
+  if (body.labels !== undefined) payload.labels = body.labels
+  if (body.operationStartDate !== undefined) payload.operation_start_date = body.operationStartDate
   if (body.links !== undefined) payload.links = body.links
   if (body.documents !== undefined) payload.documents = body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null
   if (body.externalIDs !== undefined) payload.external_ids = body.externalIDs

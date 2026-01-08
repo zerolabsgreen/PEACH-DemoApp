@@ -17,9 +17,10 @@ import FileViewer from '@/components/documents/FileViewer'
 import DocumentCard from '@/components/documents/DocumentCard'
 import AttachedDocumentsPanel from '@/components/documents/AttachedDocumentsPanel'
 import { createClientComponentClient } from '@/lib/supabase'
-import { FileType, FILE_TYPE_NAMES } from '@/lib/types/eacertificate'
+import { FileType, FILE_TYPE_NAMES, OrgRoleTypes } from '@/lib/types/eacertificate'
 import { FileExtension } from '@/components/documents/FileViewer'
-import type { Location, ExternalID } from '@/lib/types/eacertificate'
+import type { Location, ExternalID, Contact } from '@/lib/types/eacertificate'
+import ContactsField from '@/components/ui/contacts-field'
 
 export interface OrganizationSplitFormProps {
   mode: 'create' | 'edit'
@@ -40,9 +41,10 @@ interface UploadedDocument {
 
 interface OrganizationFormData {
   name: string
+  nameExpanded: string
   url: string
   description: string
-  contact: string
+  contacts: Contact[]
   location: Location
   documents: UploadedDocument[]
   externalIDs: ExternalID[]
@@ -56,10 +58,11 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
   
   const [formData, setFormData] = useState<OrganizationFormData>({
     name: '',
+    nameExpanded: '',
     url: '',
     description: '',
-    contact: '',
-    location: { country: '', state: '', region: '', address: '', zipCode: '' },
+    contacts: [],
+    location: { country: '', subdivision: '', region: '', address: '', zipCode: '' },
     documents: [],
     externalIDs: [],
   })
@@ -85,12 +88,13 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
         const organization = await getOrganization(organizationId)
         setFormData({
           name: organization.name || '',
+          nameExpanded: organization.name_expanded || '',
           url: organization.url || '',
           description: organization.description || '',
-          contact: organization.contact || '',
-          location: organization.location && organization.location.length > 0 
-            ? organization.location[0] 
-            : { country: '', state: '', region: '', address: '', zipCode: '' },
+          contacts: organization.contacts || [],
+          location: organization.location && organization.location.length > 0
+            ? organization.location[0]
+            : { country: '', subdivision: '', region: '', address: '', zipCode: '' },
           documents: [],
           externalIDs: organization.external_ids || [],
         })
@@ -204,7 +208,7 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
                 title: doc.title,
                 description: doc.description,
                 metadata: doc.metadata,
-                organizations: [{ orgId: org.id, role: 'owner', orgName: org.name }],
+                organizations: [{ orgId: org.id, role: OrgRoleTypes.OTHER, orgName: org.name, roleCustom: 'Owner' }],
               })
               uploadedDocIds.push(uploadedDoc.id)
             })
@@ -239,7 +243,7 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
                 title: doc.title,
                 description: doc.description,
                 metadata: doc.metadata,
-                organizations: [{ orgId: organizationId, role: 'owner', orgName: formData.name }],
+                organizations: [{ orgId: organizationId, role: OrgRoleTypes.OTHER, orgName: formData.name, roleCustom: 'Owner' }],
               })
               uploadedDocIds.push(uploadedDoc.id)
             })
@@ -330,14 +334,21 @@ export default function OrganizationSplitForm({ mode, organizationId, backHref }
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Contact</label>
-                    <Input 
-                      value={formData.contact} 
-                      onChange={e => setFormData(prev => ({ ...prev, contact: e.target.value }))} 
-                      placeholder="contact@example.com, +1 555 555 5555" 
+                    <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                    <Input
+                      value={formData.nameExpanded}
+                      onChange={e => setFormData(prev => ({ ...prev, nameExpanded: e.target.value }))}
+                      placeholder="Full organization name (if different from short name)"
                     />
                   </div>
                 </div>
+
+                <ContactsField
+                  value={formData.contacts}
+                  onChange={(v) => setFormData(prev => ({ ...prev, contacts: v }))}
+                  label="Contacts"
+                  description="Email addresses, phone numbers, or other contact information"
+                />
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Description</label>

@@ -103,7 +103,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const [isFormDisabled, setIsFormDisabled] = useState(false) // Whether form fields should be disabled
   const projectNameInputRef = useRef<HTMLDivElement>(null)
   const [projectDescription, setProjectDescription] = useState('') // E -> ProductionSource.description
-  const [location, setLocation] = useState<any>({ country: '', state: '', region: '', address: '', zipCode: '' }) // H
+  const [location, setLocation] = useState<any>({ country: '', subdivision: '', region: '', address: '', zipCode: '' }) // H
   const [psExternalId, setPsExternalId] = useState<string>('') // B -> ProductionSource.ExternalID.id
   const [selectedProductionSourceId, setSelectedProductionSourceId] = useState<string>('') // Selected production source from Registry field
   const [registryOrgId, setRegistryOrgId] = useState<string>('') // C -> ProductionSource.organizations with role=Registry
@@ -122,7 +122,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const [commercialOperationDateDay, setCommercialOperationDateDay] = useState<string>('') // Day (DD)
   const [fuelTechnology, setFuelTechnology] = useState<string>('') // Fuel and technology types -> ProductionSource.technology + EACertificate.productionTech
   const [organizations, setOrganizations] = useState<OrganizationRole[]>([
-    { orgId: '', role: OrgRoleTypes.SELLER, orgName: undefined } // Default: one organization with SELLER role
+    { orgId: '', role: OrgRoleTypes.SELLER, orgName: '' } // Default: one organization with SELLER role
   ]) // Entity name -> EACertificate.events(type ISSUANCE or REDEMPTION).organizations
   const [verificationBodyOrgId, setVerificationBodyOrgId] = useState<string>('') // Verification body -> EACertificate.events(type MRVERIFICATION).organizations
   const [availableOrgs, setAvailableOrgs] = useState<Array<{ id: string; name: string }>>([])
@@ -219,9 +219,9 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
     setSelectedProductionSourceForName(ps)
     setProjectName(ps.name || '')
     setProjectDescription(ps.description || '')
-    setLocation(ps.location || { country: '', state: '', region: '', address: '', zipCode: '' })
+    setLocation(ps.location || { country: '', subdivision: '', region: '', address: '', zipCode: '' })
     setPsExternalId(ps.external_ids && ps.external_ids.length > 0 ? ps.external_ids[0].id : '')
-    setFuelTechnology(ps.technology || '')
+    setFuelTechnology(Array.isArray(ps.technology) ? ps.technology.join(', ') : (ps.technology || ''))
     setLinks(ps.links || [])
     // Extract registry organization
     const registryOrg = ps.organizations?.find((org: any) => org.role === 'Registry')
@@ -245,7 +245,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
       setSelectedProductionSourceForName(null)
       setIsFormDisabled(false)
       setProjectDescription('')
-      setLocation({ country: '', state: '', region: '', address: '', zipCode: '' })
+      setLocation({ country: '', subdivision: '', region: '', address: '', zipCode: '' })
       setPsExternalId('')
       setFuelTechnology('')
       setLinks([])
@@ -419,15 +419,19 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
         ps = selectedProductionSourceForName
       } else {
         // Create new Production Source
+        // Convert comma-separated technology to array
+        const technologyArray = fuelTechnology.trim()
+          ? fuelTechnology.split(',').map(t => t.trim()).filter(Boolean)
+          : ['TCAT']
         ps = await createProductionSource({
           name: projectName,
           description: projectDescription || undefined,
           location,
-          technology: fuelTechnology.trim() || 'TCAT', // Use provided technology or default to TCAT
+          technology: technologyArray,
           links: links.length ? links : undefined,
           documents: [],
           externalIDs: [{ id: psExternalId.trim() }],
-          organizations: registryOrgId ? [{ orgId: registryOrgId, role: OrgRoleTypes.REGISTRY }] : undefined,
+          organizations: registryOrgId ? [{ orgId: registryOrgId, role: OrgRoleTypes.REGISTRY, orgName: availableOrgs.find(o => o.id === registryOrgId)?.name || '' }] : undefined,
         })
       }
 
@@ -443,7 +447,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
             title: doc.title,
             description: doc.description,
             metadata: doc.metadata,
-            organizations: [{ orgId: ps.id, role: 'owner', orgName: projectName }],
+            organizations: [{ orgId: ps.id, role: OrgRoleTypes.OTHER, orgName: projectName, roleCustom: 'Owner' }],
           })
           uploadedDocIds.push(uploadedDoc.id)
         }
@@ -559,7 +563,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
             target: EventTarget.EAC,
             targetId: cert.id,
             type: 'MRVERIFICATION',
-            organizations: [{ orgId: verificationBodyOrgId, role: 'Verifier', orgName: verificationOrg.name }],
+            organizations: [{ orgId: verificationBodyOrgId, role: OrgRoleTypes.MRV_VERIFIER, orgName: verificationOrg.name }],
             documents: verificationDocIds.length > 0 ? verificationDocIds.map(id => ({
               id,
               url: '',
@@ -601,8 +605,8 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
           targetId: cert.id,
           type: 'MRVRATING',
           organizations: [
-            { orgId: rating.orgId, role: 'RATINGAGENCY', orgName: rating.orgName },
-            ...(rating.externalID ? [{ orgId: rating.externalID, role: 'EXTERNALID' }] : []),
+            { orgId: rating.orgId, role: OrgRoleTypes.MRV_RATING_AGENCY, orgName: rating.orgName || '' },
+            ...(rating.externalID ? [{ orgId: rating.externalID, role: OrgRoleTypes.OTHER, orgName: '', roleCustom: 'External ID' }] : []),
           ],
           notes: rating.value, // Using notes field for rating value
           dates: {
@@ -956,7 +960,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                 
 
                 {/* I. Emissions Mitigation Data - Hide for Carbon Credits */}
-                {(certType !== EACTypeEnum.CC && certType !== EACTypeEnum.CR) && (
+                {certType !== EACTypeEnum.CC && (
                   <EmissionsField
                     value={emissions}
                     onChange={handleEmissionsChange}

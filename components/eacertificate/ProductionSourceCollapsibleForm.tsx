@@ -12,7 +12,7 @@ import ExternalIdField from '@/components/external-id/ExternalIdField'
 import MetadataField from '@/components/ui/metadata-field'
 import OptionalFormSection, { useOptionalFields } from '@/components/ui/optional-form-section'
 import FormFieldWrapper from '@/components/ui/form-field-wrapper'
-import { FileType } from '@/lib/types/eacertificate'
+import { FileType, OrgRoleTypes } from '@/lib/types/eacertificate'
 import type { Location, ExternalID, MetadataItem } from '@/lib/types/eacertificate'
 import { type OptionalField } from '@/components/ui/optional-fields-manager'
 
@@ -88,7 +88,7 @@ export default function ProductionSourceCollapsibleForm({
   const [formData, setFormData] = useState<ProductionSourceFormData>({
     name: '',
     description: '',
-    location: { country: '', state: '', region: '', address: '', zipCode: '' },
+    location: { country: '', subdivision: '', region: '', address: '', zipCode: '' },
     links: [],
     technology: '',
     externalIDs: [],
@@ -101,12 +101,18 @@ export default function ProductionSourceCollapsibleForm({
 
     try {
       // First, create the production source without documents
+      // Convert comma-separated technology string to array
+      const technologyArray = formData.technology
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean)
+
       const source = await createProductionSource({
         name: formData.name,
         description: formData.description,
         location: formData.location,
         links: formData.links,
-        technology: formData.technology,
+        technology: technologyArray.length > 0 ? technologyArray : ['Unknown'],
         documents: [], // Don't pass documents initially
         externalIDs: formData.externalIDs,
         relatedProductionSourcesIds: formData.relatedProductionSources.map(eid => eid.id).filter(Boolean),
@@ -128,7 +134,7 @@ export default function ProductionSourceCollapsibleForm({
             title: doc.title,
             description: doc.description,
             metadata: doc.metadata,
-            organizations: [{ orgId: source.id, role: 'owner', orgName: source.name || 'Production Source' }],
+            organizations: [{ orgId: source.id, role: OrgRoleTypes.OTHER, orgName: source.name || 'Production Source', roleCustom: 'Owner' }],
           })
           
           uploadedDocIds.push(uploadedDoc.id)
@@ -151,7 +157,7 @@ export default function ProductionSourceCollapsibleForm({
       setFormData({
         name: '',
         description: '',
-        location: { country: '', state: '', region: '', address: '', zipCode: '' },
+        location: { country: '', subdivision: '', region: '', address: '', zipCode: '' },
         links: [],
         technology: '',
         externalIDs: [],
@@ -193,7 +199,7 @@ export default function ProductionSourceCollapsibleForm({
               <Input 
                 value={formData.technology} 
                 onChange={e => setFormData(prev => ({ ...prev, technology: e.target.value }))} 
-                placeholder="Solar, Biogas, etc." 
+                placeholder="Solar, Biogas, etc. (comma-separated)" 
                 required 
               />
             </FormFieldWrapper>

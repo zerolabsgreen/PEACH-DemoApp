@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { BackButton } from '@/components/ui/back-button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { EACType, EAC_TYPE_NAMES, type CreateEACertificateData, type UpdateEACertificateData, FileType, FILE_TYPE_NAMES, EventTarget, type CreateEventData, type MetadataItem } from '@/lib/types/eacertificate'
+import { EACType, EAC_TYPE_NAMES, type CreateEACertificateData, type UpdateEACertificateData, FileType, FILE_TYPE_NAMES, EventTarget, type CreateEventData, type MetadataItem, type OrganizationRole } from '@/lib/types/eacertificate'
 import { FileExtension } from '@/components/documents/FileViewer'
 import { createEACertificate, updateEACertificate, getEACertificate } from '@/lib/services/eacertificates'
 import { listProductionSources, getProductionSource } from '@/lib/services/production-sources'
@@ -84,7 +84,7 @@ interface UploadedDocument {
   title: string
   description: string
   metadata: Array<{ key: string; label: string; value: string }>
-  organizations: Array<{ orgId: string; role: string }>
+  organizations: OrganizationRole[]
 }
 
 interface DocumentEditData {
@@ -95,7 +95,7 @@ interface DocumentEditData {
   title: string
   description: string
   metadata: MetadataItem[]
-  organizations: Array<{ orgId: string; role: string }>
+  organizations: OrganizationRole[]
 }
 
 // Form data interface

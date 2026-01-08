@@ -83,8 +83,8 @@ export default function OrganizationRoleField({
   const handleAddRole = () => {
     const newOrganizationRole: OrganizationRole = {
       orgId: '',
-      role: '',
-      orgName: undefined
+      role: OrgRoleTypes.OTHER,
+      orgName: ''
     }
 
     onChange([...value, newOrganizationRole])
@@ -216,12 +216,12 @@ export default function OrganizationRoleField({
                               value={formatOrganizationLabel(org)}
                               onSelect={() => {
                                 const updatedRoles = [...value]
-                                // If organization has a mainRole, use it; otherwise keep existing role or empty
-                                const newRole = org.mainRole || orgRole.role || ''
+                                // If organization has a mainRole, use it; otherwise keep existing role or default to OTHER
+                                const newRole = (org.mainRole || orgRole.role || OrgRoleTypes.OTHER) as OrgRoleTypes
                                 updatedRoles[index] = {
                                   ...orgRole,
                                   orgId: org.id,
-                                  orgName: org.name || undefined,
+                                  orgName: org.name || '',
                                   role: newRole,
                                   // Clear roleCustom if the new role is not "Other"
                                   roleCustom: newRole === OrgRoleTypes.OTHER ? orgRole.roleCustom : undefined
@@ -265,9 +265,9 @@ export default function OrganizationRoleField({
                   value={orgRole.role || ''}
                   onValueChange={(newRole) => {
                     const updatedRoles = [...value]
-                    updatedRoles[index] = { 
-                      ...orgRole, 
-                      role: newRole,
+                    updatedRoles[index] = {
+                      ...orgRole,
+                      role: newRole as OrgRoleTypes,
                       // Clear roleCustom if not "Other"
                       roleCustom: newRole === OrgRoleTypes.OTHER ? orgRole.roleCustom : undefined
                     }

@@ -33,9 +33,11 @@ export default function ProductionSourcesIndexPage() {
     const technologyCounts: Record<string, number> = {}
     
     sources.forEach((source) => {
-      // Count technologies
-      if (source.technology) {
-        technologyCounts[source.technology] = (technologyCounts[source.technology] || 0) + 1
+      // Count technologies (now an array)
+      if (source.technology && Array.isArray(source.technology)) {
+        source.technology.forEach(tech => {
+          technologyCounts[tech] = (technologyCounts[tech] || 0) + 1
+        })
       }
       
       // Count countries from location data

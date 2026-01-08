@@ -95,7 +95,7 @@ function formatEventData(data: EventDB[]): Record<string, string>[] {
     if (event.location) {
       const locationParts = [];
       if (event.location.address) locationParts.push(event.location.address);
-      if (event.location.state) locationParts.push(event.location.state);
+      if (event.location.subdivision) locationParts.push(event.location.subdivision);
       if (event.location.region) locationParts.push(event.location.region);
       if (event.location.country) locationParts.push(event.location.country);
       flattened.location_summary = locationParts.join(', ');
@@ -114,7 +114,7 @@ function formatOrganizationData(data: OrganizationDB[]): Record<string, string>[
       flattened.locations_summary = org.location.map(loc => {
         const locationParts = [];
         if (loc.address) locationParts.push(loc.address);
-        if (loc.state) locationParts.push(loc.state);
+        if (loc.subdivision) locationParts.push(loc.subdivision);
         if (loc.region) locationParts.push(loc.region);
         if (loc.country) locationParts.push(loc.country);
         return locationParts.join(', ');
@@ -140,7 +140,7 @@ function formatProductionSourceData(data: any[]): Record<string, string>[] {
     if (source.location) {
       const locationParts = [];
       if (source.location.address) locationParts.push(source.location.address);
-      if (source.location.state) locationParts.push(source.location.state);
+      if (source.location.subdivision) locationParts.push(source.location.subdivision);
       if (source.location.region) locationParts.push(source.location.region);
       if (source.location.country) locationParts.push(source.location.country);
       flattened.location_summary = locationParts.join(', ');

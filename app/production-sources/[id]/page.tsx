@@ -193,9 +193,9 @@ export default function ProductionSourceDetailPage() {
                     <span className="font-medium">Country:</span> {source.location.country}
                   </div>
                 )}
-                {source.location.state && (
+                {source.location.subdivision && (
                   <div>
-                    <span className="font-medium">State:</span> {source.location.state}
+                    <span className="font-medium">State/Province:</span> {source.location.subdivision}
                   </div>
                 )}
                 {source.location.region && (

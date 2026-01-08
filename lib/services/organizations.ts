@@ -38,9 +38,10 @@ export async function createOrganizationFull(body: any) {
   if (userError || !user) throw userError ?? new Error('No user')
   const payload = {
     name: body.name,
+    name_expanded: body.nameExpanded || null,
     url: body.url || null,
     description: body.description || null,
-    contact: body.contact ?? body.contact ?? null,
+    contacts: body.contacts || null,
     location: body.location ? [body.location] : null,
     external_ids: Array.isArray(body.externalIDs) ? body.externalIDs : null,
   }
@@ -172,13 +173,13 @@ export async function listOrganizationsWithRole() {
   const supabase = getSupabase()
   const { data, error } = await supabase
     .from('organizations')
-    .select('id, name, created_at, location, external_ids')
+    .select('id, name, name_expanded, created_at, location, external_ids, contacts')
   if (error) throw error
-  
+
   // Compute main roles for all organizations
   const mainRoles = await computeOrganizationMainRoles()
-  
-  return (data ?? []).map((row: any) => ({ 
+
+  return (data ?? []).map((row: any) => ({
     organizations: {
       ...row,
       mainRole: mainRoles[row.id] || null
@@ -223,9 +224,10 @@ export async function updateOrganization(id: string, body: any) {
 
   const payload: any = {}
   if (body.name !== undefined) payload.name = body.name
+  if (body.nameExpanded !== undefined) payload.name_expanded = body.nameExpanded
   if (body.url !== undefined) payload.url = body.url
   if (body.description !== undefined) payload.description = body.description
-  if (body.contact !== undefined) payload.contact = body.contact
+  if (body.contacts !== undefined) payload.contacts = body.contacts
   if (body.location !== undefined) payload.location = body.location ? [body.location] : null
   if (body.externalIDs !== undefined) payload.external_ids = body.externalIDs
   if (body.documents !== undefined) payload.documents = body.documents && body.documents.length > 0 ? body.documents.map((doc: any) => doc.id).filter(Boolean) : null

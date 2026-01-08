@@ -30,6 +30,8 @@ export async function createEACertificate(body: CreateEACertificateData) {
       organizations: body.organizations || null,
       links: body.links || null,
       documents: body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null,
+      related_certificates: body.relatedCertificates || null,
+      metadata: body.metadata || null,
       production_source_id: body.productionSourceId || null,
       production_tech: body.productionTech || null,
     }
@@ -138,6 +140,8 @@ export async function updateEACertificate(id: string, body: UpdateEACertificateD
   if (body.organizations !== undefined) payload.organizations = body.organizations
   if (body.links !== undefined) payload.links = body.links
   if (body.documents !== undefined) payload.documents = body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null
+  if (body.relatedCertificates !== undefined) payload.related_certificates = body.relatedCertificates
+  if (body.metadata !== undefined) payload.metadata = body.metadata
   if (body.productionSourceId !== undefined) payload.production_source_id = body.productionSourceId
   if (body.productionTech !== undefined) payload.production_tech = body.productionTech
 

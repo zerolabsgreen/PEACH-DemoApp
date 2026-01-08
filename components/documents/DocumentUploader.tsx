@@ -188,9 +188,9 @@ export default function DocumentUploader(props: DocumentUploaderProps) {
                               value={org.role || ''}
                               onValueChange={(newRole) => {
                                 const organizations = [...(item.organizations ?? [])]
-                                organizations[i] = { 
-                                  ...organizations[i], 
-                                  role: newRole,
+                                organizations[i] = {
+                                  ...organizations[i],
+                                  role: newRole as OrgRoleTypes,
                                   // Clear roleCustom if not "Other"
                                   roleCustom: newRole === OrgRoleTypes.OTHER ? organizations[i].roleCustom : undefined
                                 }
@@ -240,7 +240,7 @@ export default function DocumentUploader(props: DocumentUploaderProps) {
                       )}
                     </div>
                   ))}
-                  <Button type="button" variant="outline" onClick={() => updateItem(item.localId, { organizations: [...(item.organizations ?? []), { orgId: '', role: '' }] })}>Add organization</Button>
+                  <Button type="button" variant="outline" onClick={() => updateItem(item.localId, { organizations: [...(item.organizations ?? []), { orgId: '', role: OrgRoleTypes.OTHER, orgName: '' }] })}>Add organization</Button>
                 </div>
               </div>
               {/* Success messaging is handled globally via toasts in the parent flow */}

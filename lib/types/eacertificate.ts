@@ -1,25 +1,25 @@
 // EACertificate System Type Definitions (Simplified Structure)
 
 // EAC Type enum (matches database enum)
+// Note: CR (Carbon Removal) is now a subtype of CC with type2='Carbon Removal'
 export enum EACType {
   REC = "REC",
   RTC = "RTC",
   RNG = "RNG",
   SAF = "SAF",
-  CC = "CC",
-  CR = "CR"
+  CC = "CC"
 }
 
 // File Type enum for documents (matches database enum)
 export enum FileType {
-  CERTIFICATE = "Certificate",
-  POS = "Proof of Sustainability",
-  CONTRACT = "Contract",
-  AUDIT = "Audit",
-  LABTEST = "Lab Test",
-  CONSIGNMENT = "Consignment receipt",
-  IMAGE = "Image",
-  ORGANIZATION_DOCUMENT = "Organization Document"
+  CERTIFICATE = "CERTIFICATE",
+  POS = "POS",
+  CONTRACT = "CONTRACT",
+  AUDIT = "AUDIT",
+  LABTEST = "LABTEST",
+  CONSIGNMENT = "CONSIGNMENT",
+  IMAGE = "IMAGE",
+  ORGANIZATION_DOCUMENT = "ORGANIZATION_DOCUMENT"
 }
 
 // EventTarget enum (matches database enum)
@@ -77,11 +77,11 @@ export interface DocumentDB {
 
 // Location interface
 export interface Location {
-  country?: string;     // ISO country code (optional per user's question)
-  state?: string;       // ISO states
-  region?: string;      // ISO regions
+  country: string;      // ISO 3166-1 alpha-2 country code (required)
+  subdivision?: string; // ISO 3166-2 subdivision code (state/province)
+  region?: string;      // Market/grid/admin region
   address?: string;
-  zipCode?: string;     // Renamed from postalCode (optional, some tools describe locations with postal codes)
+  zipCode?: string;     // Postal code
   latitude?: number;
   longitude?: number;
   geoBounds?: string;   // Geospatial data file describing spatial boundaries, e.g., Shapefile, KML, GeoJSON
@@ -90,9 +90,10 @@ export interface Location {
 // OrganizationRole interface for events
 export interface OrganizationRole {
   orgId: string;
-  role: string;
-  orgName?: string;
-  roleCustom?: string; // Custom role name when role === "Other"
+  role: OrgRoleTypes;    // Role type (required, typed as enum)
+  orgName: string;       // Organization name (required for display)
+  roleCustom?: string;   // Custom role name when role === "Other"
+  externalIDs?: ExternalID[]; // Context-specific external IDs
 }
 
 // MetadataItem interface
@@ -100,7 +101,8 @@ export interface MetadataItem {
   key: string;
   label: string;
   value?: string;
-  type?: string;
+  type?: string; // Type hint: string, number, boolean, date, enum
+  options?: string[]; // Valid options when type is 'enum'
   required?: boolean;
   description?: string;
 }
@@ -119,6 +121,7 @@ export interface Amount {
   amount: number;
   unit: string;
   conversionFactor?: number;
+  conversionFactorUnits?: string; // Description of conversion ratio (e.g., "kWh/MWh")
   conversionNotes?: string;
   isPrimary?: boolean;
 }
@@ -133,29 +136,38 @@ export interface EmissionsData {
   efNotes?: string;
 }
 
-// Organization interface (exact match to your requirements)
+// Contact interface for organization contacts
+export interface Contact {
+  value: string;
+  label?: string;
+}
+
+// Organization interface
 export interface Organization {
   id: string;
   name: string;
+  nameExpanded?: string; // Full/expanded organization name
   externalIDs?: ExternalID[];
   url?: string;
   description?: string;
-  contact?: string;
+  contacts?: Contact[]; // Array of contact objects
   location?: Location[];
-  documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
+  documents?: string[]; // Array of document UUIDs
 }
 
-// Main EACertificate interface (exact match to your requirements)
+// Main EACertificate interface
 export interface EACertificate {
   id: string;
   type: EACType;
-  type2?: string; // Additional certificate type information (free text)
+  type2?: string; // Additional certificate type/subtype (e.g., "Carbon Removal" for CC)
   externalIDs?: ExternalID[];
   amounts: Amount[];
   emissions?: EmissionsData[];
   organizations?: OrganizationRole[];
   links?: string[];
-  documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
+  documents?: string[]; // Array of document UUIDs
+  relatedCertificates?: string[]; // Array of related certificate IDs
+  metadata?: MetadataItem[]; // Custom metadata
   productionSourceId?: string;
   productionTech?: string; // Production technology used to generate this certificate
   created_at: string;
@@ -182,7 +194,7 @@ export interface Event {
   metadata?: MetadataItem[];
 }
 
-// Main ProductionSource interface (exact match to your requirements)
+// Main ProductionSource interface
 export interface ProductionSource {
   id: string;
   externalIDs?: ExternalID[];
@@ -192,8 +204,11 @@ export interface ProductionSource {
   location: Location;
   organizations?: OrganizationRole[];
   links?: string[];
-  documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
-  technology: string;
+  documents?: string[]; // Array of document UUIDs
+  technology: string[]; // Array of technology types (e.g., ["Solar", "Wind"])
+  eacTypes?: EACType[]; // Array of EAC types this source can generate
+  labels?: string[]; // Array of certification labels (e.g., ["Green-e", "ISCC"])
+  operationStartDate?: string; // ISO date when source started operating
   events?: Event[];
   metadata?: MetadataItem[];
 }
@@ -202,10 +217,11 @@ export interface ProductionSource {
 export interface OrganizationDB {
   id: string;
   name: string;
+  name_expanded: string | null; // Full/expanded organization name
   external_ids: ExternalID[] | null;
   url: string | null;
   description: string | null;
-  contact: string | null;
+  contacts: Contact[] | null; // Array of contact objects
   location: Location[] | null;
   documents: string[] | null; // Array of document UUIDs
   created_at: string;
@@ -215,15 +231,17 @@ export interface OrganizationDB {
 export interface EACertificateDB {
   id: string;
   type: EACType;
-  type2: string | null; // Additional certificate type information (free text)
+  type2: string | null; // Additional certificate type/subtype
   external_ids: ExternalID[] | null;
   amounts: Amount[];
   emissions: EmissionsData[] | null;
   organizations: OrganizationRole[] | null;
   links: string[] | null;
   documents: string[] | null; // Array of document UUIDs
+  related_certificates: string[] | null; // Array of related certificate IDs
+  metadata: MetadataItem[] | null; // Custom metadata
   production_source_id: string | null;
-  production_tech: string | null; // Production technology used to generate this certificate
+  production_tech: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -264,7 +282,10 @@ export interface ProductionSourceDB {
   organizations: OrganizationRole[] | null;
   links: string[] | null;
   documents: string[] | null; // Array of document UUIDs
-  technology: string;
+  technology: string[]; // Array of technology types
+  eac_types: EACType[] | null; // Array of EAC types this source can generate
+  labels: string[] | null; // Array of certification labels
+  operation_start_date: string | null; // ISO date
   events: Event[] | null;
   metadata: MetadataItem[] | null;
   created_at: string;
@@ -274,15 +295,17 @@ export interface ProductionSourceDB {
 // Create/Update interfaces
 export interface CreateEACertificateData {
   type: EACType;
-  type2?: string; // Additional certificate type information (free text)
+  type2?: string; // Additional certificate type/subtype
   externalIDs?: ExternalID[];
   amounts: Amount[];
   emissions?: EmissionsData[];
   organizations?: OrganizationRole[];
   links?: string[];
   documents?: Document[];
+  relatedCertificates?: string[];
+  metadata?: MetadataItem[];
   productionSourceId?: string;
-  productionTech?: string; // Production technology used to generate this certificate
+  productionTech?: string;
 }
 
 export interface CreateEventData {
@@ -312,22 +335,27 @@ export interface CreateProductionSourceData {
   organizations?: OrganizationRole[];
   links?: string[];
   documents?: Document[];
-  technology: string;
+  technology: string[]; // Array of technology types
+  eacTypes?: EACType[];
+  labels?: string[];
+  operationStartDate?: string;
   events?: Event[];
   metadata?: MetadataItem[];
 }
 
 export interface UpdateEACertificateData {
   type?: EACType;
-  type2?: string; // Additional certificate type information (free text)
+  type2?: string; // Additional certificate type/subtype
   externalIDs?: ExternalID[];
   amounts?: Amount[];
   emissions?: EmissionsData[];
   organizations?: OrganizationRole[];
   links?: string[];
   documents?: Document[];
+  relatedCertificates?: string[];
+  metadata?: MetadataItem[];
   productionSourceId?: string;
-  productionTech?: string; // Production technology used to generate this certificate
+  productionTech?: string;
 }
 
 export interface UpdateEventData {
@@ -357,26 +385,31 @@ export interface UpdateProductionSourceData {
   organizations?: OrganizationRole[];
   links?: string[];
   documents?: Document[];
-  technology?: string;
+  technology?: string[]; // Array of technology types
+  eacTypes?: EACType[];
+  labels?: string[];
+  operationStartDate?: string;
   events?: Event[];
   metadata?: MetadataItem[];
 }
 
 export interface CreateOrganizationData {
   name: string;
+  nameExpanded?: string;
   externalIDs?: ExternalID[];
   url?: string;
   description?: string;
-  contact?: string;
+  contacts?: Contact[];
   location?: Location[];
 }
 
 export interface UpdateOrganizationData {
   name?: string;
+  nameExpanded?: string;
   externalIDs?: ExternalID[];
   url?: string;
   description?: string;
-  contact?: string;
+  contacts?: Contact[];
   location?: Location[];
 }
 
@@ -535,8 +568,7 @@ export const EAC_TYPE_NAMES: Record<EACType, string> = {
   [EACType.RTC]: 'Renewable Thermal Certificate',
   [EACType.RNG]: 'Renewable Natural Gas',
   [EACType.SAF]: 'Sustainable Aviation Fuel',
-  [EACType.CC]: 'Carbon Credit',
-  [EACType.CR]: 'Carbon Removal'
+  [EACType.CC]: 'Carbon Credit'
 };
 
 export const FILE_TYPE_NAMES: Record<FileType, string> = {

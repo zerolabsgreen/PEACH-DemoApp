@@ -48,12 +48,15 @@ export function ProductionSourcesTable({ data, sourcesWithLocation = [], onDelet
     const selectedCountryName = country ? ((countries as any)[country]?.name ?? country) : ""
     
     return data.filter((source: any) => {
-      const matchesQuery = q ? 
-        [source.name, source.technology, source.description].some((s) => (s ?? "").toLowerCase().includes(q)) : 
+      // Handle technology as array for search
+      const technologyText = Array.isArray(source.technology) ? source.technology.join(' ') : (source.technology ?? '')
+      const matchesQuery = q ?
+        [source.name, technologyText, source.description].some((s) => (s ?? "").toLowerCase().includes(q)) :
         true
-      
-      const matchesTechnology = technologyFilter ? 
-        source.technology === technologyFilter : 
+
+      // Handle technology as array for filter
+      const matchesTechnology = technologyFilter ?
+        (Array.isArray(source.technology) ? source.technology.includes(technologyFilter) : source.technology === technologyFilter) :
         true
       
       // Country filtering using location data
@@ -97,9 +100,11 @@ export function ProductionSourcesTable({ data, sourcesWithLocation = [], onDelet
     }
   };
 
-  // Get unique technologies for filter dropdown
+  // Get unique technologies for filter dropdown (technology is now an array)
   const technologies = useMemo(() => {
-    const techs = new Set(data.map(s => s.technology).filter(Boolean))
+    const techs = new Set(
+      data.flatMap(s => Array.isArray(s.technology) ? s.technology : [s.technology]).filter(Boolean)
+    )
     return Array.from(techs).sort()
   }, [data])
 

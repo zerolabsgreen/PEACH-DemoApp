@@ -12,7 +12,7 @@ import ExternalIdField from '@/components/external-id/ExternalIdField'
 import MetadataField from '@/components/ui/metadata-field'
 import OptionalFormSection, { useOptionalFields } from '@/components/ui/optional-form-section'
 import FormFieldWrapper from '@/components/ui/form-field-wrapper'
-import type { Location, ExternalID, MetadataItem } from '@/lib/types/eacertificate'
+import { OrgRoleTypes, type Location, type ExternalID, type MetadataItem } from '@/lib/types/eacertificate'
 import { type OptionalField } from '@/components/ui/optional-fields-manager'
 
 // Define optional fields configuration
@@ -89,7 +89,7 @@ export default function OrganizationCollapsibleForm({
     url: '',
     description: '',
     contact: '',
-    location: { country: '', state: '', region: '', address: '', zipCode: '' },
+    location: { country: '', subdivision: '', region: '', address: '', zipCode: '' },
     links: [],
     externalIDs: [],
     metadata: [],
@@ -127,7 +127,7 @@ export default function OrganizationCollapsibleForm({
             title: doc.title,
             description: doc.description,
             metadata: doc.metadata,
-            organizations: [{ orgId: org.id, role: 'owner', orgName: org.name || 'Organization' }],
+            organizations: [{ orgId: org.id, role: OrgRoleTypes.OTHER, orgName: org.name || 'Organization', roleCustom: 'Owner' }],
           })
           
           uploadedDocIds.push(uploadedDoc.id)
@@ -152,7 +152,7 @@ export default function OrganizationCollapsibleForm({
         url: '',
         description: '',
         contact: '',
-        location: { country: '', state: '', region: '', address: '', zipCode: '' },
+        location: { country: '', subdivision: '', region: '', address: '', zipCode: '' },
         links: [],
         externalIDs: [],
         metadata: [],
