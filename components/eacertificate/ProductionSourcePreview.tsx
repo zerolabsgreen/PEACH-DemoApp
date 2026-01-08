@@ -55,7 +55,7 @@ export default function ProductionSourcePreview({ productionSource }: Production
       </div>
 
       <LocationField 
-        value={productionSource.location || { country: '', state: '', region: '', address: '', zipCode: '' }} 
+        value={productionSource.location || { country: '', subdivision: '', region: '', address: '', zipCode: '' }} 
         onChange={() => {}} 
         disabled
       />

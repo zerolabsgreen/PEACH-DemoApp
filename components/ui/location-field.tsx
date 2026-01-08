@@ -21,14 +21,14 @@ try {
 // Define optional fields configuration
 const OPTIONAL_FIELDS: OptionalField[] = [
   {
-    key: 'state',
-    label: 'State',
-    description: 'ISO state information',
+    key: 'subdivision',
+    label: 'State/Province',
+    description: 'ISO 3166-2 subdivision (state/province)',
   },
   {
     key: 'region',
     label: 'Region',
-    description: 'ISO region information',
+    description: 'Market/grid/admin region',
   },
   {
     key: 'zipCode',
@@ -135,14 +135,14 @@ export default function LocationField({
         </div>
         
         <div className="col-span-12 md:col-span-6">
-          <FormFieldWrapper 
-            label="State" 
-            visible={visibleOptionalFields.includes('state')}
+          <FormFieldWrapper
+            label="State/Province"
+            visible={visibleOptionalFields.includes('subdivision')}
           >
-            <Input 
-              placeholder="e.g., California, Bavaria, Ontario" 
-              value={value.state || ''} 
-              onChange={e => updateLocation('state', e.target.value)} 
+            <Input
+              placeholder="e.g., CA, BY, ON (ISO 3166-2)"
+              value={value.subdivision || ''}
+              onChange={e => updateLocation('subdivision', e.target.value)}
               disabled={disabled}
             />
           </FormFieldWrapper>

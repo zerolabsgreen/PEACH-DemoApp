@@ -19,7 +19,7 @@ import FileViewer from '@/components/documents/FileViewer'
 import DocumentCard from '@/components/documents/DocumentCard'
 import AttachedDocumentsPanel from '@/components/documents/AttachedDocumentsPanel'
 import { createClientComponentClient } from '@/lib/supabase'
-import { FileType, FILE_TYPE_NAMES } from '@/lib/types/eacertificate'
+import { FileType, FILE_TYPE_NAMES, EACType, OrgRoleTypes } from '@/lib/types/eacertificate'
 import { FileExtension } from '@/components/documents/FileViewer'
 import type { Location, ExternalID, MetadataItem, OrganizationRole } from '@/lib/types/eacertificate'
 
@@ -45,7 +45,10 @@ interface ProductionSourceFormData {
   description: string
   location: Location
   links: string[]
-  technology: string
+  technology: string[] // Array of technology types
+  eacTypes: EACType[] // Array of EAC types
+  labels: string[] // Array of certification labels
+  operationStartDate: string // ISO date string
   documents: UploadedDocument[]
   externalIDs: ExternalID[]
   relatedProductionSources: ExternalID[]
@@ -61,9 +64,12 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
   const [formData, setFormData] = useState<ProductionSourceFormData>({
     name: '',
     description: '',
-    location: { country: '', state: '', region: '', address: '', zipCode: '' },
+    location: { country: '', subdivision: '', region: '', address: '', zipCode: '' },
     links: [],
-    technology: '',
+    technology: [],
+    eacTypes: [],
+    labels: [],
+    operationStartDate: '',
     documents: [],
     externalIDs: [],
     relatedProductionSources: [],
@@ -92,9 +98,12 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
         setFormData({
           name: productionSource.name || '',
           description: productionSource.description || '',
-          location: productionSource.location || { country: '', state: '', region: '', address: '', zipCode: '' },
+          location: productionSource.location || { country: '', subdivision: '', region: '', address: '', zipCode: '' },
           links: productionSource.links || [],
-          technology: productionSource.technology || '',
+          technology: Array.isArray(productionSource.technology) ? productionSource.technology : (productionSource.technology ? [productionSource.technology] : []),
+          eacTypes: productionSource.eac_types || [],
+          labels: productionSource.labels || [],
+          operationStartDate: productionSource.operation_start_date || '',
           documents: [],
           externalIDs: productionSource.external_ids || [],
           // @ts-ignore
@@ -202,6 +211,9 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
           location: formData.location,
           links: formData.links,
           technology: formData.technology,
+          eacTypes: formData.eacTypes as any,
+          labels: formData.labels,
+          operationStartDate: formData.operationStartDate || undefined,
           documents: [], // Don't pass documents initially
           externalIDs: formData.externalIDs,
           relatedProductionSourcesIds: formData.relatedProductionSources.map(eid => eid.id).filter(Boolean),
@@ -220,7 +232,7 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
               title: doc.title,
               description: doc.description,
               metadata: doc.metadata,
-              organizations: [{ orgId: source.id, role: 'owner', orgName: source.name || 'Production Source' }],
+              organizations: [{ orgId: source.id, role: OrgRoleTypes.OTHER, orgName: source.name || 'Production Source', roleCustom: 'Owner' }],
             })
             
             uploadedDocIds.push(uploadedDoc.id)
@@ -255,7 +267,7 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
                 title: doc.title,
                 description: doc.description,
                 metadata: doc.metadata,
-                organizations: [{ orgId: productionSourceId, role: 'owner', orgName: formData.name || 'Production Source' }],
+                organizations: [{ orgId: productionSourceId, role: OrgRoleTypes.OTHER, orgName: formData.name || 'Production Source', roleCustom: 'Owner' }],
               })
               uploadedDocIds.push(uploadedDoc.id)
             })
@@ -346,12 +358,43 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Technology<span className="text-red-600"> *</span></label>
-                  <Input 
-                    value={formData.technology} 
-                    onChange={e => setFormData(prev => ({ ...prev, technology: e.target.value }))} 
-                    placeholder="Solar, Biogas, etc." 
-                    required 
+                  <Input
+                    value={formData.technology.join(', ')}
+                    onChange={e => setFormData(prev => ({ ...prev, technology: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
+                    placeholder="Solar, Wind, Hydro (comma-separated)"
+                    required
                   />
+                  <p className="text-xs text-gray-500 mt-1">Enter multiple technologies separated by commas</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">EAC Types</label>
+                  <Input
+                    value={formData.eacTypes.join(', ')}
+                    onChange={e => setFormData(prev => ({ ...prev, eacTypes: e.target.value.split(',').map(s => s.trim()).filter(Boolean) as EACType[] }))}
+                    placeholder="REC, RNG, CC (comma-separated)"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Types of certificates this source can generate</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Labels/Certifications</label>
+                  <Input
+                    value={formData.labels.join(', ')}
+                    onChange={e => setFormData(prev => ({ ...prev, labels: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
+                    placeholder="Green-e, ISCC, RSB (comma-separated)"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Certification standards and labels</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Operation Start Date</label>
+                  <Input
+                    type="date"
+                    value={formData.operationStartDate}
+                    onChange={e => setFormData(prev => ({ ...prev, operationStartDate: e.target.value }))}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">When the production source started operating</p>
                 </div>
 
                 <LocationField
@@ -496,7 +539,7 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
                   </Button>
                   <Button
                     type="submit"
-                    disabled={saving || !formData.technology}
+                    disabled={saving || formData.technology.length === 0}
                   >
                     {saving ? 'Saving...' : mode === 'create' ? 'Create Production Source' : 'Update Production Source'}
                   </Button>

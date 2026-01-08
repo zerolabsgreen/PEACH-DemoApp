@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FileType, FILE_TYPE_NAMES, MetadataItem } from "@/lib/types/eacertificate"
+import { FileType, FILE_TYPE_NAMES, MetadataItem, OrganizationRole } from "@/lib/types/eacertificate"
 import { FileExtension } from "@/components/documents/FileViewer"
 import FileViewer from "@/components/documents/FileViewer"
 import MetadataField from "@/components/ui/metadata-field"
@@ -19,7 +19,7 @@ interface DocumentEditData {
   title: string
   description: string
   metadata: MetadataItem[]
-  organizations: Array<{ orgId: string; role: string }>
+  organizations: OrganizationRole[]
 }
 
 interface DocumentEditSheetProps {

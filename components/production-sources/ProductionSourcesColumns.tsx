@@ -37,7 +37,7 @@ export const createProductionSourceColumns = (onDelete?: () => void): ColumnDef<
     ),
     cell: ({ row }) => (
       <div className="text-sm text-gray-600">
-        {row.original.technology}
+        {Array.isArray(row.original.technology) ? row.original.technology.join(', ') : row.original.technology}
       </div>
     ),
   },
