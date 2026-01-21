@@ -16,6 +16,7 @@ import OptionalFormSection, { useOptionalFields } from '@/components/ui/optional
 import FormFieldWrapper from '@/components/ui/form-field-wrapper'
 import OrganizationRoleField from '@/components/eacertificate/OrganizationRoleField'
 import type { OrganizationRole } from '@/lib/types/eacertificate'
+import { EACEventType, EAC_EVENT_TYPE_NAMES } from '@/lib/types/eacertificate'
 import { createEvent, getEvent, updateEvent } from '@/lib/services/events'
 import { listEACertificates } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
@@ -28,14 +29,14 @@ import { type OptionalField } from '@/components/ui/optional-fields-manager'
 // Define optional fields configuration
 const OPTIONAL_FIELDS: OptionalField[] = [
   {
-    key: 'description',
-    label: 'Description',
-    description: 'Detailed description of the event',
-  },
-  {
     key: 'endDate',
     label: 'End Date',
     description: 'Optional end date for the event',
+  },
+  {
+    key: 'value',
+    label: 'Value',
+    description: 'Arbitrary value associated with the event',
   },
   {
     key: 'location',
@@ -80,11 +81,11 @@ interface EventFormData {
   target: EventTarget
   targetId: string
   type: string
-  description?: string
   dates: { start?: string; end?: string }
+  value?: string
   location?: any
   organizations: OrganizationRole[]
-  notes?: string
+  notes?: string // Optional notes or description of the event
   links?: string[]
   documents: DocumentFormItem[]
   metadata: MetadataItem[]
@@ -102,8 +103,8 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
     target: EventTarget.PSOURCE,
     targetId: '',
     type: '',
-    description: '',
     dates: {},
+    value: '',
     location: {} as any,
     organizations: [],
     notes: '',
@@ -165,8 +166,8 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
             target: ev.target,
             targetId: ev.target_id,
             type: ev.type,
-            description: ev.description ?? '',
             dates: { start: toDateInputValue(ev.dates?.start), end: toDateInputValue(ev.dates?.end) },
+            value: ev.value ?? '',
             location: (ev.location ?? {}) as any,
             organizations: ev.organizations ?? [],
             notes: ev.notes ?? '',
@@ -199,11 +200,11 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
           target: form.target,
           targetId: form.targetId,
           type: form.type,
-          description: form.description,
           dates: {
             start: parseDateInput(form.dates.start as string) || new Date(),
             ...(form.dates.end ? { end: parseDateInput(form.dates.end) || new Date() } : {}),
           },
+          value: form.value,
           location: form.location,
           organizations: form.organizations,
           notes: form.notes,
@@ -217,13 +218,13 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
           target: form.target,
           targetId: form.targetId,
           type: form.type,
-          description: form.description,
           dates: form.dates.start || form.dates.end
             ? {
                 ...(form.dates.start ? { start: parseDateInput(form.dates.start) || new Date() } : {}),
                 ...(form.dates.end ? { end: parseDateInput(form.dates.end) || new Date() } : {}),
               }
             : undefined,
+          value: form.value,
           location: form.location,
           organizations: form.organizations,
           notes: form.notes,
@@ -274,7 +275,18 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
                 <Input value={form.target} readOnly disabled />
               </FormFieldWrapper>
               <FormFieldWrapper label="Type" required>
-                <Input value={form.type} onChange={e => set('type', e.target.value)} required />
+                <Select value={form.type} onValueChange={(value) => set('type', value)} required>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select event type…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(EACEventType).map(eventType => (
+                      <SelectItem key={eventType} value={eventType}>
+                        {EAC_EVENT_TYPE_NAMES[eventType]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormFieldWrapper>
             </div>
 
@@ -308,15 +320,15 @@ export default function EventForm({ mode, eventId, backHref }: EventFormProps) {
             showAddButton={false}
           >
             <div className="space-y-4">
-              <FormFieldWrapper 
-                label="Description" 
-                visible={visibleOptionalFields.includes('description')}
+              <FormFieldWrapper
+                label="Value"
+                visible={visibleOptionalFields.includes('value')}
               >
-                <Textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4} />
+                <Input value={form.value} onChange={e => set('value', e.target.value)} />
               </FormFieldWrapper>
 
-              <FormFieldWrapper 
-                label="Location" 
+              <FormFieldWrapper
+                label="Location"
                 visible={visibleOptionalFields.includes('location')}
               >
                 <LocationField value={form.location as any} onChange={(v) => set('location', v)} />

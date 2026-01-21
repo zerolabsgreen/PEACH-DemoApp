@@ -518,7 +518,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
         target: EventTarget.PSOURCE,
         targetId: ps.id,
         type: 'ACTIVATION',
-        description: activationYear,
+        value: activationYear, // Using value field for activation year
         dates: {
           start: activationDate,
         },
@@ -589,7 +589,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
               target: EventTarget.EAC,
               targetId: cert.id,
               type: 'MRVLABELING',
-              description: labelValue, // Using description field for label value
+              value: labelValue, // Using value field for label value
               dates: {
                 start: new Date(),
               },

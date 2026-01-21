@@ -338,11 +338,12 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
             <div className="p-6 overflow-y-auto">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <Input 
-                    value={formData.name} 
-                    onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))} 
-                    placeholder="Solar Farm Alpha" 
+                  <label className="block text-sm font-medium text-gray-700">Name<span className="text-red-600"> *</span></label>
+                  <Input
+                    value={formData.name}
+                    onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Solar Farm Alpha"
+                    required
                   />
                 </div>
 
@@ -357,12 +358,11 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Technology<span className="text-red-600"> *</span></label>
+                  <label className="block text-sm font-medium text-gray-700">Technology</label>
                   <Input
                     value={formData.technology.join(', ')}
                     onChange={e => setFormData(prev => ({ ...prev, technology: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
                     placeholder="Solar, Wind, Hydro (comma-separated)"
-                    required
                   />
                   <p className="text-xs text-gray-500 mt-1">Enter multiple technologies separated by commas</p>
                 </div>
@@ -539,7 +539,7 @@ export default function ProductionSourceSplitForm({ mode, productionSourceId, ba
                   </Button>
                   <Button
                     type="submit"
-                    disabled={saving || formData.technology.length === 0}
+                    disabled={saving || !formData.name.trim()}
                   >
                     {saving ? 'Saving...' : mode === 'create' ? 'Create Production Source' : 'Update Production Source'}
                   </Button>

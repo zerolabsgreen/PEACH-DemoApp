@@ -42,7 +42,6 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
     type: EACType.REC,
     type2: '', // Additional certificate type information
     amounts: [], // Start with no amounts - user must add them
-    organizations: [], // Start with no organizations
     links: [],
     documents: [],
     productionSourceId: undefined,
@@ -70,7 +69,6 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
             externalIDs: certificate.external_ids || [],
             amounts: certificate.amounts || [],
             emissions: certificate.emissions || [],
-            organizations: certificate.organizations || [],
             links: certificate.links || [],
             documents: [], // We'll need to fetch documents separately
             productionSourceId: certificate.production_source_id || undefined,
@@ -95,19 +93,17 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
 
     try {
       // Basic validation
-      if (!formData.externalIDs || formData.externalIDs.length === 0) {
-        throw new Error('At least one external ID is required. Please add an external ID before submitting.')
-      }
-
       if (!formData.amounts || formData.amounts.length === 0) {
         throw new Error('At least one amount is required. Please add an amount before submitting.')
       }
 
-      // Validate external IDs
-      for (let i = 0; i < formData.externalIDs.length; i++) {
-        const externalId = formData.externalIDs[i]
-        if (!externalId || !externalId.id || externalId.id.trim() === '') {
-          throw new Error(`External ID ${i + 1} must have a valid ID field`)
+      // Validate external IDs only if array has items
+      if (formData.externalIDs && formData.externalIDs.length > 0) {
+        for (let i = 0; i < formData.externalIDs.length; i++) {
+          const externalId = formData.externalIDs[i]
+          if (!externalId || !externalId.id || externalId.id.trim() === '') {
+            throw new Error(`External ID ${i + 1} must have a valid ID field`)
+          }
         }
       }
 
@@ -341,16 +337,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               />
             </div>
 
-            {/* 7. Organizations */}
-            <OrganizationRoleField
-              value={formData.organizations || []}
-              onChange={(value) => setFormData({ ...formData, organizations: value })}
-              label="Organizations"
-              description="Assign roles to organizations for this certificate"
-              sharedDocuments={formData.documents}
-            />
-
-            {/* 8. Events Section - only show in create mode */}
+            {/* 7. Events Section - only show in create mode */}
             {mode === 'create' && (
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-gray-900">Events</h3>
@@ -368,14 +355,11 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
 
             {/* 9. External IDs */}
             <div className="space-y-2">
-              <div className="text-sm text-gray-600">
-                <span className="text-red-600">*</span> At least one external ID is required to create a certificate.
-              </div>
               <ExternalIdField
                 value={formData.externalIDs || []}
                 onChange={(value: any[]) => setFormData({ ...formData, externalIDs: value })}
-                label={<span>External IDs <span className="text-red-600">*</span></span>}
-                description="External identifiers for this certificate"
+                label="External IDs"
+                description="External identifiers for this certificate (optional)"
               />
             </div>
 
@@ -410,7 +394,7 @@ export default function EACertificateForm({ mode, certificateId, backHref }: EAC
               </Button>
               <Button
                 type="submit"
-                disabled={submitting || !formData.amounts || formData.amounts.length === 0 || !formData.externalIDs || formData.externalIDs.length === 0}
+                disabled={submitting || !formData.amounts || formData.amounts.length === 0}
               >
                 {submitting ? 'Saving...' : mode === 'create' ? 'Create Certificate' : 'Update Certificate'}
               </Button>

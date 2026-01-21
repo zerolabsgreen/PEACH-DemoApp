@@ -83,7 +83,7 @@ export default function OrganizationRoleField({
   const handleAddRole = () => {
     const newOrganizationRole: OrganizationRole = {
       orgId: '',
-      role: OrgRoleTypes.OTHER,
+      role: '' as OrgRoleTypes,
       orgName: ''
     }
 
@@ -216,8 +216,8 @@ export default function OrganizationRoleField({
                               value={formatOrganizationLabel(org)}
                               onSelect={() => {
                                 const updatedRoles = [...value]
-                                // If organization has a mainRole, use it; otherwise keep existing role or default to OTHER
-                                const newRole = (org.mainRole || orgRole.role || OrgRoleTypes.OTHER) as OrgRoleTypes
+                                // If organization has a mainRole, use it; otherwise keep existing role or default to empty string
+                                const newRole = (org.mainRole || orgRole.role || '') as OrgRoleTypes
                                 updatedRoles[index] = {
                                   ...orgRole,
                                   orgId: org.id,
@@ -260,9 +260,9 @@ export default function OrganizationRoleField({
               </div>
               
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Role</label>
+                <label className="block text-xs text-gray-500 mb-1">Role <span className="text-red-500">*</span></label>
                 <Select
-                  value={orgRole.role || ''}
+                  value={orgRole.role || undefined}
                   onValueChange={(newRole) => {
                     const updatedRoles = [...value]
                     updatedRoles[index] = {
