@@ -55,18 +55,11 @@ function formatEACertificateData(data: EACertificateDB[]): Record<string, string
     
     // Format emissions data
     if (cert.emissions && Array.isArray(cert.emissions)) {
-      flattened.emissions_summary = cert.emissions.map(emission => 
+      flattened.emissions_summary = cert.emissions.map(emission =>
         `CI: ${emission.carbonIntensity} ${emission.ciUnit || ''}, EF: ${emission.emissionsFactor} ${emission.efUnit || ''}`
       ).join('; ');
     }
-    
-    // Format organizations
-    if (cert.organizations && Array.isArray(cert.organizations)) {
-      flattened.organizations_summary = cert.organizations.map((org: any) => 
-        `${org.orgName || org.orgId} (${org.role})`
-      ).join('; ');
-    }
-    
+
     return flattened;
   });
 }

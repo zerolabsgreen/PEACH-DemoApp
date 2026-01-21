@@ -12,18 +12,19 @@ import MetadataField from '@/components/ui/metadata-field'
 import { BackButton } from '@/components/ui/back-button'
 import { createEvent } from '@/lib/services/events'
 import { getEACertificate } from '@/lib/services/eacertificates'
-import { EventTarget, type CreateEventData, type MetadataItem } from '@/lib/types/eacertificate'
+import { EventTarget, type CreateEventData, type MetadataItem, EACEventType, EAC_EVENT_TYPE_NAMES } from '@/lib/types/eacertificate'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { parseDateInput } from '@/lib/date-utils'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 
 interface EventFormData {
   type: string
-  description?: string
+  value?: string
   dates: { start?: string; end?: string }
   location?: any
   organizations?: any[]
-  notes?: string
+  notes?: string // Optional notes or description of the event
   links?: string[]
   metadata: MetadataItem[]
 }
@@ -38,7 +39,7 @@ export default function CreateEventsPage() {
   const [events, setEvents] = useState<EventFormData[]>([
     {
       type: '',
-      description: '',
+      value: '',
       dates: {},
       location: {} as any,
       organizations: [],
@@ -69,7 +70,7 @@ export default function CreateEventsPage() {
   const addEvent = () => {
     setEvents(prev => [...prev, {
       type: '',
-      description: '',
+      value: '',
       dates: {},
       location: {} as any,
       organizations: [],
@@ -103,7 +104,7 @@ export default function CreateEventsPage() {
           target: EventTarget.EAC,
           targetId: certificateId,
           type: event.type,
-          description: event.description,
+          value: event.value,
           dates: {
             start: parseDateInput(event.dates.start as string) || new Date(),
             ...(event.dates.end ? { end: parseDateInput(event.dates.end) || new Date() } : {}),
@@ -197,21 +198,30 @@ export default function CreateEventsPage() {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Type<span className="text-red-600"> *</span></label>
-                      <Input 
-                        value={event.type} 
-                        onChange={e => updateEvent(index, 'type', e.target.value)} 
-                        placeholder="e.g., Commissioning, Maintenance, Inspection"
-                        required 
-                      />
+                      <Select
+                        value={event.type}
+                        onValueChange={(value) => updateEvent(index, 'type', value)}
+                        required
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select event type..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(EACEventType).map(eventType => (
+                            <SelectItem key={eventType} value={eventType}>
+                              {EAC_EVENT_TYPE_NAMES[eventType]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Description</label>
-                      <Textarea 
-                        value={event.description || ''} 
-                        onChange={e => updateEvent(index, 'description', e.target.value)} 
-                        placeholder="Describe the event"
-                        rows={3} 
+                      <label className="block text-sm font-medium text-gray-700">Value</label>
+                      <Input
+                        value={event.value || ''}
+                        onChange={e => updateEvent(index, 'value', e.target.value)}
+                        placeholder="Optional value for this event"
                       />
                     </div>
 

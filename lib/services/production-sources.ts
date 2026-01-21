@@ -32,7 +32,7 @@ export async function createProductionSource(body: CreateProductionSourceData) {
     technology: Array.isArray(body.technology) ? body.technology : [body.technology].filter(Boolean),
     eac_types: body.eacTypes || null,
     labels: body.labels || null,
-    operation_start_date: body.operationStartDate || null,
+    operation_start_date: body.operationStartDate?.trim() || null,
     links: body.links || null,
     documents: body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null,
     external_ids: body.externalIDs || null,
@@ -90,7 +90,7 @@ export async function updateProductionSource(id: string, body: UpdateProductionS
   if (body.technology !== undefined) payload.technology = Array.isArray(body.technology) ? body.technology : [body.technology].filter(Boolean)
   if (body.eacTypes !== undefined) payload.eac_types = body.eacTypes
   if (body.labels !== undefined) payload.labels = body.labels
-  if (body.operationStartDate !== undefined) payload.operation_start_date = body.operationStartDate
+  if (body.operationStartDate !== undefined) payload.operation_start_date = body.operationStartDate?.trim() || null
   if (body.links !== undefined) payload.links = body.links
   if (body.documents !== undefined) payload.documents = body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null
   if (body.externalIDs !== undefined) payload.external_ids = body.externalIDs

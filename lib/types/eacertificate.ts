@@ -50,6 +50,27 @@ export enum OrgRoleTypes {
   OTHER = "Other" // if the user sets it to Other, then they need to fill the organization.roleCustom or OrganizationRole.roleCustom
 }
 
+// Event Type enum (matches database enum)
+export enum EACEventType {
+  CREATION = "CREATION",
+  ACTIVATION = "ACTIVATION",
+  PAUSE = "PAUSE",
+  SUSPENSION = "SUSPENSION",
+  TERMINATION = "TERMINATION",
+  PRODUCTION = "PRODUCTION",
+  ISSUANCE = "ISSUANCE",
+  REDEMPTION = "REDEMPTION",
+  TRANSFER = "TRANSFER",
+  TRANSPORT = "TRANSPORT",
+  INJECTION = "INJECTION",
+  AUDIT = "AUDIT",
+  LAB_TEST = "LAB_TEST",
+  VERIFICATION = "VERIFICATION",
+  VALIDATION = "VALIDATION",
+  RATING = "RATING",
+  LABELING = "LABELING"
+}
+
 // Document interface
 export interface Document {
   id: string;
@@ -163,7 +184,6 @@ export interface EACertificate {
   externalIDs?: ExternalID[];
   amounts: Amount[];
   emissions?: EmissionsData[];
-  organizations?: OrganizationRole[];
   links?: string[];
   documents?: string[]; // Array of document UUIDs
   relatedCertificates?: string[]; // Array of related certificate IDs
@@ -181,14 +201,13 @@ export interface Event {
   targetId: string; // References other entity UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
   type: string;
   value?: string; // Arbitrary string value associated with the event
-  description?: string;
   dates: {
     start: Date;
     end?: Date;
   };
   location?: Location;
   organizations?: OrganizationRole[];
-  notes?: string;
+  notes?: string; // Optional notes or description of the event
   documents?: string[]; // Array of document UUIDs (e.g., "550e8400-e29b-41d4-a716-446655440000")
   links?: string[];
   metadata?: MetadataItem[];
@@ -235,7 +254,6 @@ export interface EACertificateDB {
   external_ids: ExternalID[] | null;
   amounts: Amount[];
   emissions: EmissionsData[] | null;
-  organizations: OrganizationRole[] | null;
   links: string[] | null;
   documents: string[] | null; // Array of document UUIDs
   related_certificates: string[] | null; // Array of related certificate IDs
@@ -257,14 +275,13 @@ export interface EventDB {
   target_id: string; // UUID reference to other entities
   type: string;
   value: string | null;
-  description: string | null;
   dates: {
     start: string;
     end?: string;
   };
   location: Location | null;
   organizations: OrganizationRole[] | null;
-  notes: string | null;
+  notes: string | null; // Optional notes or description of the event
   documents: string[] | null; // Array of document UUIDs
   links: string[] | null;
   metadata: MetadataItem[] | null;
@@ -299,7 +316,6 @@ export interface CreateEACertificateData {
   externalIDs?: ExternalID[];
   amounts: Amount[];
   emissions?: EmissionsData[];
-  organizations?: OrganizationRole[];
   links?: string[];
   documents?: Document[];
   relatedCertificates?: string[];
@@ -313,14 +329,13 @@ export interface CreateEventData {
   targetId: string;
   type: string;
   value?: string;
-  description?: string;
   dates: {
     start: Date;
     end?: Date;
   };
   location?: Location;
   organizations?: OrganizationRole[];
-  notes?: string;
+  notes?: string; // Optional notes or description of the event
   documents?: Document[];
   links?: string[];
   metadata?: MetadataItem[];
@@ -349,7 +364,6 @@ export interface UpdateEACertificateData {
   externalIDs?: ExternalID[];
   amounts?: Amount[];
   emissions?: EmissionsData[];
-  organizations?: OrganizationRole[];
   links?: string[];
   documents?: Document[];
   relatedCertificates?: string[];
@@ -363,14 +377,13 @@ export interface UpdateEventData {
   targetId?: string;
   type?: string;
   value?: string;
-  description?: string;
   dates?: {
     start?: Date;
     end?: Date;
   };
   location?: Location;
   organizations?: OrganizationRole[];
-  notes?: string;
+  notes?: string; // Optional notes or description of the event
   documents?: Document[];
   links?: string[];
   metadata?: MetadataItem[];
@@ -606,6 +619,26 @@ export const ORG_ROLE_NAMES: Record<OrgRoleTypes, string> = {
   [OrgRoleTypes.MRV_VALIDATOR]: 'Validator',
   [OrgRoleTypes.MRV_LAB]: 'Lab',
   [OrgRoleTypes.OTHER]: 'Other'
+};
+
+export const EAC_EVENT_TYPE_NAMES: Record<EACEventType, string> = {
+  [EACEventType.CREATION]: 'Creation',
+  [EACEventType.ACTIVATION]: 'Activation',
+  [EACEventType.PAUSE]: 'Pause',
+  [EACEventType.SUSPENSION]: 'Suspension',
+  [EACEventType.TERMINATION]: 'Termination',
+  [EACEventType.PRODUCTION]: 'Production',
+  [EACEventType.ISSUANCE]: 'Issuance',
+  [EACEventType.REDEMPTION]: 'Redemption',
+  [EACEventType.TRANSFER]: 'Transfer',
+  [EACEventType.TRANSPORT]: 'Transport',
+  [EACEventType.INJECTION]: 'Injection',
+  [EACEventType.AUDIT]: 'Audit',
+  [EACEventType.LAB_TEST]: 'Lab Test',
+  [EACEventType.VERIFICATION]: 'Verification',
+  [EACEventType.VALIDATION]: 'Validation',
+  [EACEventType.RATING]: 'Rating',
+  [EACEventType.LABELING]: 'Labeling'
 };
 
 export const COMMON_AMOUNT_UNITS: AmountUnit[] = [

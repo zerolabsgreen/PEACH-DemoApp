@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { BackButton } from '@/components/ui/back-button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { EACType, EAC_TYPE_NAMES, type CreateEACertificateData, type UpdateEACertificateData, FileType, FILE_TYPE_NAMES, EventTarget, type CreateEventData, type MetadataItem, type OrganizationRole } from '@/lib/types/eacertificate'
+import { EACType, EAC_TYPE_NAMES, type CreateEACertificateData, type UpdateEACertificateData, FileType, FILE_TYPE_NAMES, EventTarget, type CreateEventData, type MetadataItem, type OrganizationRole, EACEventType, EAC_EVENT_TYPE_NAMES } from '@/lib/types/eacertificate'
 import { FileExtension } from '@/components/documents/FileViewer'
 import { createEACertificate, updateEACertificate, getEACertificate } from '@/lib/services/eacertificates'
 import { listProductionSources, getProductionSource } from '@/lib/services/production-sources'
@@ -41,14 +41,14 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 // Define optional fields configuration for events
 const EVENT_OPTIONAL_FIELDS: OptionalField[] = [
   {
-    key: 'description',
-    label: 'Description',
-    description: 'Brief description of the event',
-  },
-  {
     key: 'endDate',
     label: 'End Date',
     description: 'Optional end date for the event',
+  },
+  {
+    key: 'value',
+    label: 'Value',
+    description: 'Arbitrary value associated with the event',
   },
   {
     key: 'location',
@@ -126,7 +126,6 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
       type: EACType.REC,
       type2: '', // Additional certificate type information
       amounts: [],
-      organizations: [], // Start with no organizations
       links: [],
       documents: [],
       productionSourceId: undefined,
@@ -135,7 +134,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
   ])
   const [eventsByCert, setEventsByCert] = useState<Record<number, Array<{
     type: string
-    description?: string
+    value?: string
     dates: { start?: string; end?: string }
     location?: any
     organizations?: any[]
@@ -144,10 +143,12 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
     metadata: MetadataItem[]
   }>>>({
     0: [
-      { type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] }
+      { type: '', value: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] }
     ]
   })
   const [attachedDocumentIds, setAttachedDocumentIds] = useState<string[]>([])
+  // Organizations are shared across all events (not stored on certificate, applied to events)
+  const [eventOrganizations, setEventOrganizations] = useState<OrganizationRole[]>([])
   // Load attached documents in edit mode
   useEffect(() => {
     const load = async () => {
@@ -173,7 +174,6 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
     type: EACType.REC,
     type2: '', // Additional certificate type information
     amounts: [],
-    organizations: [], // Start with no organizations
     links: [],
     documents: [],
     productionSourceId: undefined,
@@ -209,7 +209,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
       ...prev,
       [activeCertificateIndex]: [
         ...(prev[activeCertificateIndex] ?? []),
-        { type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] }
+        { type: '', value: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] }
       ]
     }))
   }
@@ -241,7 +241,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
       setEventsByCert(ev => ({
         ...ev,
         [newIndex]: [
-          { type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] },
+          { type: '', value: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] },
         ],
       }))
       setSelectedDocumentIdByCert(map => ({ ...map, [newIndex]: null }))
@@ -253,7 +253,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
     setCertificates(prev => {
       if (prev.length <= 1) {
         // Reset to a single empty certificate
-        setEventsByCert({ 0: [{ type: '', description: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] }] })
+        setEventsByCert({ 0: [{ type: '', value: '', dates: {}, location: {} as any, organizations: [], notes: '', links: [], metadata: [] }] })
         setSelectedDocumentIdByCert({ 0: null })
         setActiveCertificateIndex(0)
         return [{ type: EACType.REC, amounts: [], links: [], documents: [], productionSourceId: undefined }]
@@ -291,9 +291,6 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
       for (let idx = 0; idx < certificates.length; idx++) {
         const data = certificates[idx]
         // Basic validation per certificate
-        if (!data.externalIDs || data.externalIDs.length === 0) {
-          throw new Error(`Certificate ${idx + 1}: at least one external ID is required`)
-        }
         if (!data.amounts || data.amounts.length === 0) {
           throw new Error(`Certificate ${idx + 1}: at least one amount is required`)
         }
@@ -335,13 +332,13 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
               target: EventTarget.EAC,
               targetId: certificate.id,
               type: event.type,
-              description: event.description,
+              value: event.value,
               dates: {
                 start: parseDateInput(event.dates.start as string) || new Date(),
                 ...(event.dates.end ? { end: parseDateInput(event.dates.end) || new Date() } : {}),
               },
               location: event.location,
-              organizations: event.organizations,
+              organizations: eventOrganizations.length > 0 ? eventOrganizations : undefined,
               notes: event.notes,
               links: event.links,
               metadata: event.metadata,
@@ -413,7 +410,6 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
             externalIDs: certificate.external_ids || [],
             amounts: certificate.amounts || [],
             emissions: certificate.emissions || [],
-            organizations: certificate.organizations || [],
             links: certificate.links || [],
             documents: [], // We'll need to fetch documents separately
             productionSourceId: certificate.production_source_id || undefined,
@@ -507,19 +503,17 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
 
     try {
       // Basic validation
-      if (!formData.externalIDs || formData.externalIDs.length === 0) {
-        throw new Error('At least one external ID is required. Please add an external ID before submitting.')
-      }
-
       if (!formData.amounts || formData.amounts.length === 0) {
         throw new Error('At least one amount is required. Please add an amount before submitting.')
       }
 
-      // Validate external IDs
-      for (let i = 0; i < formData.externalIDs.length; i++) {
-        const externalId = formData.externalIDs[i]
-        if (!externalId || !externalId.id || externalId.id.trim() === '') {
-          throw new Error(`External ID ${i + 1} must have a valid ID field`)
+      // Validate external IDs only if array has items
+      if (formData.externalIDs && formData.externalIDs.length > 0) {
+        for (let i = 0; i < formData.externalIDs.length; i++) {
+          const externalId = formData.externalIDs[i]
+          if (!externalId || !externalId.id || externalId.id.trim() === '') {
+            throw new Error(`External ID ${i + 1} must have a valid ID field`)
+          }
         }
       }
 
@@ -582,13 +576,13 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
               target: EventTarget.EAC,
               targetId: certificate.id,
               type: event.type,
-              description: event.description,
+              value: event.value,
               dates: {
                 start: parseDateInput(event.dates.start as string) || new Date(),
                 ...(event.dates.end ? { end: parseDateInput(event.dates.end) || new Date() } : {}),
               },
               location: event.location,
-              organizations: event.organizations,
+              organizations: eventOrganizations.length > 0 ? eventOrganizations : undefined,
               notes: event.notes,
               links: event.links,
               metadata: event.metadata,
@@ -766,7 +760,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                       <div className="text-sm font-medium">Do you want to create multiple certificates?</div>
                       <div className="text-xs text-muted-foreground">Toggle to switch between single and multiple creation modes.</div>
                       </div>
-                    <Switch checked={isMultiCreate} onCheckedChange={setIsMultiCreate} />
+                    <Switch checked={isMultiCreate} onCheckedChange={setIsMultiCreate} className="data-[state=unchecked]:bg-muted-foreground/30" />
                     </div>
                   )}
                   
@@ -940,15 +934,17 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                   />
                 </div>
 
-                {/* 7. Organizations */}
-                <OrganizationRoleField
-                  value={formData.organizations || []}
-                  onChange={(value) => setFormData({ ...formData, organizations: value })}
-                  label="Organizations (Optional)"
-                  description="Assign roles to organizations for this certificate"
-                  sharedDocuments={sharedDocuments}
-                  selectedDocumentId={selectedDocumentId}
-                />
+                {/* 7. Organizations - shared across all events */}
+                {mode === 'create' && (
+                  <OrganizationRoleField
+                    value={eventOrganizations}
+                    onChange={setEventOrganizations}
+                    label="Organizations (Optional)"
+                    description="Assign roles to organizations. These will be applied to all events created with this certificate."
+                    sharedDocuments={sharedDocuments}
+                    selectedDocumentId={selectedDocumentId}
+                  />
+                )}
 
                 {/* 8. Events Section - only show in create mode */}
                 {mode === 'create' && (
@@ -1002,26 +998,32 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormFieldWrapper label="Event Type" required>
-                              <input
-                                type="text"
+                              <Select
                                 value={event.type}
-                                onChange={(e) => updateEvent(index, 'type', e.target.value)}
-                                placeholder="e.g. Generation, Transfer, Retirement"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                onValueChange={(value) => updateEvent(index, 'type', value)}
                                 required
-                              />
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select event type..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.values(EACEventType).map(eventType => (
+                                    <SelectItem key={eventType} value={eventType}>
+                                      {EAC_EVENT_TYPE_NAMES[eventType]}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </FormFieldWrapper>
 
-                            <FormFieldWrapper 
-                              label="Description" 
-                              visible={visibleOptionalFields.includes('description')}
+                            <FormFieldWrapper
+                              label="Value"
+                              visible={visibleOptionalFields.includes('value')}
                             >
-                              <input
-                                type="text"
-                                value={event.description || ''}
-                                onChange={(e) => updateEvent(index, 'description', e.target.value)}
-                                placeholder="Brief description of the event"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              <Input
+                                value={event.value || ''}
+                                onChange={(e) => updateEvent(index, 'value', e.target.value)}
+                                placeholder="Optional value for this event"
                               />
                             </FormFieldWrapper>
 
@@ -1072,8 +1074,8 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                             </div>
 
                             <div className="md:col-span-2">
-                              <FormFieldWrapper 
-                                label="Metadata" 
+                              <FormFieldWrapper
+                                label="Metadata"
                                 visible={visibleOptionalFields.includes('metadata')}
                               >
                                 <MetadataField
@@ -1093,14 +1095,12 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
 
                 {/* 8. External IDs */}
                 <div className="space-y-2">
-                  <div className="text-sm text-gray-600">
-                    <span className="text-red-600">*</span> At least one external ID is required to create a certificate.
-                  </div>
                   <ExternalIdField
                     value={formData.externalIDs || []}
                     onChange={(value: any[]) => setFormData({ ...formData, externalIDs: value })}
-                    label={<span>External IDs <span className="text-red-600">*</span></span>}
-                    description="External identifiers for this certificate"
+                    label="External IDs"
+                    description="External identifiers for this certificate (optional)"
+                    requiredId={false}
                   />
                 </div>
 
@@ -1121,7 +1121,7 @@ export default function EACertificateSplitForm({ mode, certificateId, backHref }
                   {!isMultiCreate && (
                   <Button
                     type="submit"
-                    disabled={submitting || !formData.amounts || formData.amounts.length === 0 || !formData.externalIDs || formData.externalIDs.length === 0}
+                    disabled={submitting || !formData.amounts || formData.amounts.length === 0}
                   >
                     {submitting ? 'Saving...' : mode === 'create' ? 'Create Certificate' : 'Update Certificate'}
                   </Button>

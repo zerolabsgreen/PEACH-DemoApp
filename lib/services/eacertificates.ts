@@ -27,7 +27,6 @@ export async function createEACertificate(body: CreateEACertificateData) {
       external_ids: body.externalIDs || null,
       amounts: body.amounts || [],
       emissions: body.emissions || null,
-      organizations: body.organizations || null,
       links: body.links || null,
       documents: body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null,
       related_certificates: body.relatedCertificates || null,
@@ -137,7 +136,6 @@ export async function updateEACertificate(id: string, body: UpdateEACertificateD
   if (body.externalIDs !== undefined) payload.external_ids = body.externalIDs
   if (body.amounts !== undefined) payload.amounts = body.amounts
   if (body.emissions !== undefined) payload.emissions = body.emissions
-  if (body.organizations !== undefined) payload.organizations = body.organizations
   if (body.links !== undefined) payload.links = body.links
   if (body.documents !== undefined) payload.documents = body.documents && body.documents.length > 0 ? body.documents.map(doc => doc.id).filter(Boolean) : null
   if (body.relatedCertificates !== undefined) payload.related_certificates = body.relatedCertificates

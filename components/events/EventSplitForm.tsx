@@ -21,11 +21,12 @@ import type { OrganizationRole } from '@/lib/types/eacertificate'
 import { listEACertificates } from '@/lib/services/eacertificates'
 import { listProductionSources } from '@/lib/services/production-sources'
 import { formatProductionSourceLabel } from '@/lib/utils/production-source-utils'
-import { EventTarget, type CreateEventData, type UpdateEventData, type MetadataItem } from '@/lib/types/eacertificate'
+import { EventTarget, type CreateEventData, type UpdateEventData, type MetadataItem, EACEventType, EAC_EVENT_TYPE_NAMES } from '@/lib/types/eacertificate'
 import { toDateInputValue, parseDateInput } from '@/lib/date-utils'
 import { format } from 'date-fns'
 import { FileType, FILE_TYPE_NAMES } from '@/lib/types/eacertificate'
 import { FileExtension } from '@/components/documents/FileViewer'
+import { toast } from 'sonner'
 
 export interface EventSplitFormProps {
   mode: 'create' | 'edit'
@@ -54,11 +55,11 @@ interface EventFormData {
   target: EventTarget
   targetId: string
   type: string
-  description?: string
+  value?: string
   dates: { start?: string; end?: string }
   location?: any
   organizations: OrganizationRole[]
-  notes?: string
+  notes?: string // Optional notes or description of the event
   links?: string[]
   documents: UploadedDocument[]
   metadata: MetadataItem[]
@@ -77,7 +78,7 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
     target: EventTarget.PSOURCE,
     targetId: '',
     type: '',
-    description: '',
+    value: '',
     dates: {},
     location: {} as any,
     organizations: [],
@@ -151,7 +152,7 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
             target: ev.target,
             targetId: ev.target_id,
             type: ev.type,
-            description: ev.description ?? '',
+            value: ev.value ?? '',
             dates: { start: toDateInputValue(ev.dates?.start), end: toDateInputValue(ev.dates?.end) },
             location: (ev.location ?? {}) as any,
             organizations: ev.organizations ?? [],
@@ -242,12 +243,22 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
     e.preventDefault()
     setSaving(true)
     try {
+      // Validate organization roles - role is required if organization is added
+      if (formData.organizations && formData.organizations.length > 0) {
+        for (let i = 0; i < formData.organizations.length; i++) {
+          const org = formData.organizations[i]
+          if (!org.role || org.role.trim() === '') {
+            throw new Error(`Organization ${i + 1} must have a role selected`)
+          }
+        }
+      }
+
       if (mode === 'create') {
         const payload: CreateEventData = {
           target: formData.target,
           targetId: formData.targetId,
           type: formData.type,
-          description: formData.description,
+          value: formData.value,
           dates: {
             start: parseDateInput(formData.dates.start as string) || new Date(),
             ...(formData.dates.end ? { end: parseDateInput(formData.dates.end) || new Date() } : {}),
@@ -264,7 +275,7 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
           target: formData.target,
           targetId: formData.targetId,
           type: formData.type,
-          description: formData.description,
+          value: formData.value,
           dates: formData.dates.start || formData.dates.end
             ? {
                 ...(formData.dates.start ? { start: parseDateInput(formData.dates.start) || new Date() } : {}),
@@ -280,6 +291,9 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
         await updateEvent(eventId, patch)
       }
       router.push(backHref)
+    } catch (error) {
+      console.error('Failed to save event:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to save event')
     } finally {
       setSaving(false)
     }
@@ -372,20 +386,31 @@ export default function EventSplitForm({ mode, eventId, backHref }: EventSplitFo
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Type<span className="text-red-600"> *</span></label>
-                    <Input 
-                      value={formData.type} 
-                      onChange={e => setFormData(prev => ({ ...prev, type: e.target.value }))} 
-                      required 
-                    />
+                    <Select
+                      value={formData.type}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
+                      required
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select event type..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(EACEventType).map(eventType => (
+                          <SelectItem key={eventType} value={eventType}>
+                            {EAC_EVENT_TYPE_NAMES[eventType]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <Textarea 
-                    value={formData.description} 
-                    onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} 
-                    rows={4} 
+                  <label className="block text-sm font-medium text-gray-700">Value</label>
+                  <Input
+                    value={formData.value || ''}
+                    onChange={e => setFormData(prev => ({ ...prev, value: e.target.value }))}
+                    placeholder="Optional value for this event"
                   />
                 </div>
 
