@@ -423,10 +423,18 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!projectName.trim()) return toast.error('Project name is required')
-    if (!psExternalId.trim()) return toast.error('Project / unit ID is required')
-    // Registry is optional
+    // Registry and Project / unit ID are optional
     if (!vintageStart) return toast.error('Vintage start date is required')
     if (amounts.length === 0) return toast.error('Quantity is required')
+    // Rating: warn if only one of the two required fields is filled
+    const hasRatingAgency = !!rating.orgId
+    const hasRatingValue = !!rating.value?.trim()
+    if (hasRatingAgency && !hasRatingValue) {
+      return toast.error('Rating value is required when a rating agency is selected')
+    }
+    if (hasRatingValue && !hasRatingAgency) {
+      return toast.error('Rating agency is required when a rating value is provided')
+    }
 
     setSaving(true)
     try {
@@ -451,7 +459,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
           technology: technologyArray,
           links: links.length ? links : undefined,
           documents: [],
-          externalIDs: [{ id: psExternalId.trim() }],
+          externalIDs: psExternalId.trim() ? [{ id: psExternalId.trim() }] : undefined,
           organizations: registryOrgId
             ? [
                 {
@@ -839,12 +847,11 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                 </FormFieldWrapper>
 
                 {/* B. Project / unit ID */}
-                <FormFieldWrapper label="Project / unit ID" required>
+                <FormFieldWrapper label="Project / unit ID">
                   <Input
                     value={psExternalId}
                     onChange={e => setPsExternalId(e.target.value)}
                     placeholder="e.g., UNIT-12345"
-                    required
                     disabled={isFormDisabled}
                   />
                 </FormFieldWrapper>
@@ -1117,7 +1124,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                   <div className="p-4 border rounded space-y-3">
                     <div className="text-sm font-medium">Rating</div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <FormFieldWrapper label="Rating agency" required>
+                      <FormFieldWrapper label="Rating agency">
                         <OrganizationSelector
                           value={rating.orgId}
                           onChange={(orgId, orgName) => {
@@ -1133,7 +1140,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                           selectedDocumentId={selectedDocId}
                         />
                       </FormFieldWrapper>
-                      <FormFieldWrapper label="Rating value" required>
+                      <FormFieldWrapper label="Rating value">
                         <Input
                           value={rating.value}
                           onChange={e => setRating(prev => ({ ...prev, value: e.target.value }))}
