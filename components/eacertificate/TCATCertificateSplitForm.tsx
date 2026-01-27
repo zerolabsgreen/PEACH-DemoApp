@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import React, { useMemo, useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -31,8 +31,15 @@ import OrganizationSelector from '@/components/ui/organization-selector'
 import ProductionSourceSelector from '@/components/ui/production-source-selector'
 import { getProductionSource } from '@/lib/services/production-sources'
 import { toast } from 'sonner'
-import type { FileType, MetadataItem, EACType, Amount, EmissionsData, OrganizationRole, ProductionSourceDB } from '@/lib/types/eacertificate'
-import { EAC_TYPE_NAMES, EventTarget, EACType as EACTypeEnum, OrgRoleTypes } from '@/lib/types/eacertificate'
+import type {
+  MetadataItem,
+  EACType,
+  Amount,
+  EmissionsData,
+  OrganizationRole,
+  ProductionSourceDB,
+} from '@/lib/types/eacertificate'
+import { FileType, EAC_TYPE_NAMES, EventTarget, EACType as EACTypeEnum, OrgRoleTypes } from '@/lib/types/eacertificate'
 import { listProductionSources } from '@/lib/services/production-sources'
 
 type UploadedDocument = {
@@ -52,12 +59,15 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   // Left side documents (proof of retirement)
   const [docs, setDocs] = useState<UploadedDocument[]>([])
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null)
-  const selectedDoc = useMemo(() => (selectedDocId ? docs.find(d => d.id === selectedDocId) || null : docs[0] || null), [docs, selectedDocId])
+  const selectedDoc = useMemo(
+    () => (selectedDocId ? docs.find(d => d.id === selectedDocId) || null : docs[0] || null),
+    [docs, selectedDocId]
+  )
   const [showEditModal, setShowEditModal] = useState(false)
-  
+
   // Verification report document (point O)
   const [verificationReportDoc, setVerificationReportDoc] = useState<UploadedDocument | null>(null)
-  
+
   // Other relevant information (point P)
   const [labels, setLabels] = useState<string[]>([]) // Array of label values
   // Common label options - can be expanded or loaded from API
@@ -65,7 +75,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
     // Get unique labels from existing labels to show as options
     const existingLabels = labels.map(label => ({
       value: label,
-      label: label
+      label: label,
     }))
     // Add some common labels
     const commonLabels = [
@@ -78,9 +88,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
     ]
     // Combine and deduplicate
     const allLabels = [...commonLabels, ...existingLabels]
-    const uniqueLabels = Array.from(
-      new Map(allLabels.map(item => [item.value, item])).values()
-    )
+    const uniqueLabels = Array.from(new Map(allLabels.map(item => [item.value, item])).values())
     return uniqueLabels
   }, [labels])
   const [rating, setRating] = useState<{
@@ -99,7 +107,9 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const [saving, setSaving] = useState(false)
   const [projectName, setProjectName] = useState('') // A -> ProductionSource.name
   const [projectNameOpen, setProjectNameOpen] = useState(false) // Open state for project name dropdown
-  const [selectedProductionSourceForName, setSelectedProductionSourceForName] = useState<ProductionSourceDB | null>(null) // Selected production source from name search
+  const [selectedProductionSourceForName, setSelectedProductionSourceForName] = useState<ProductionSourceDB | null>(
+    null
+  ) // Selected production source from name search
   const [isFormDisabled, setIsFormDisabled] = useState(false) // Whether form fields should be disabled
   const projectNameInputRef = useRef<HTMLDivElement>(null)
   const [projectDescription, setProjectDescription] = useState('') // E -> ProductionSource.description
@@ -108,7 +118,9 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const [selectedProductionSourceId, setSelectedProductionSourceId] = useState<string>('') // Selected production source from Registry field
   const [registryOrgId, setRegistryOrgId] = useState<string>('') // C -> ProductionSource.organizations with role=Registry
   const [links, setLinks] = useState<string[]>([]) // D -> external link to retirement doc (optional)
-  const [productionSources, setProductionSources] = useState<Array<{ id: string; name: string | null; technology?: string; location?: any; external_ids?: any[] | null }>>([])
+  const [productionSources, setProductionSources] = useState<
+    Array<{ id: string; name: string | null; technology?: string; location?: any; external_ids?: any[] | null }>
+  >([])
   const [isLoadingProductionSources, setIsLoadingProductionSources] = useState(false)
   const [productionSourcesForSearch, setProductionSourcesForSearch] = useState<ProductionSourceDB[]>([]) // All production sources for name search
   const [certType, setCertType] = useState<EACType>('REC' as EACType)
@@ -122,7 +134,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const [commercialOperationDateDay, setCommercialOperationDateDay] = useState<string>('') // Day (DD)
   const [fuelTechnology, setFuelTechnology] = useState<string>('') // Fuel and technology types -> ProductionSource.technology + EACertificate.productionTech
   const [organizations, setOrganizations] = useState<OrganizationRole[]>([
-    { orgId: '', role: OrgRoleTypes.SELLER, orgName: '' } // Default: one organization with SELLER role
+    { orgId: '', role: OrgRoleTypes.SELLER, orgName: '' }, // Default: one organization with SELLER role
   ]) // Entity name -> EACertificate.events(type ISSUANCE or REDEMPTION).organizations
   const [verificationBodyOrgId, setVerificationBodyOrgId] = useState<string>('') // Verification body -> EACertificate.events(type MRVERIFICATION).organizations
   const [availableOrgs, setAvailableOrgs] = useState<Array<{ id: string; name: string }>>([])
@@ -159,10 +171,10 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
           name: source.name,
           technology: source.technology,
           location: source.location,
-          external_ids: source.external_ids || null
+          external_ids: source.external_ids || null,
         }))
         setProductionSources(transformedSources)
-        
+
         // Also load full production sources for name search
         const supabase = createClientComponentClient()
         const { data: fullSources, error } = await supabase
@@ -209,9 +221,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   const filteredProductionSourcesForName = useMemo(() => {
     if (!projectName.trim()) return []
     const searchLower = projectName.toLowerCase()
-    return productionSourcesForSearch.filter(ps => 
-      ps.name?.toLowerCase().includes(searchLower)
-    )
+    return productionSourcesForSearch.filter(ps => ps.name?.toLowerCase().includes(searchLower))
   }, [projectName, productionSourcesForSearch])
 
   // When a production source is selected from name search, prefill all fields
@@ -221,7 +231,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
     setProjectDescription(ps.description || '')
     setLocation(ps.location || { country: '', subdivision: '', region: '', address: '', zipCode: '' })
     setPsExternalId(ps.external_ids && ps.external_ids.length > 0 ? ps.external_ids[0].id : '')
-    setFuelTechnology(Array.isArray(ps.technology) ? ps.technology.join(', ') : (ps.technology || ''))
+    setFuelTechnology(Array.isArray(ps.technology) ? ps.technology.join(', ') : ps.technology || '')
     setLinks(ps.links || [])
     // Extract registry organization
     const registryOrg = ps.organizations?.find((org: any) => org.role === 'Registry')
@@ -277,7 +287,6 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
     }
   }, [projectNameOpen])
 
-
   // Note: Verification body is intentionally decoupled from organizations (Entity name)
   // to avoid unintended coupling between the two inputs.
 
@@ -318,11 +327,11 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
   // Auto-calculate emissionsFactor when carbonIntensity and amounts are provided
   const handleEmissionsChange = (newEmissions: EmissionsData[]) => {
     const defaultCIUnit = defaultCIUnitByType[certType] || 'tCO2e/MWh'
-    
+
     // Auto-calculate emissionsFactor and set default units for each emission entry
     const updated = newEmissions.map((emission, idx) => {
       let updatedEmission = { ...emission }
-      
+
       // Set default units if not already set
       if (!updatedEmission.ciUnit) {
         updatedEmission.ciUnit = defaultCIUnit
@@ -330,12 +339,12 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
       if (!updatedEmission.efUnit) {
         updatedEmission.efUnit = defaultCIUnit
       }
-      
+
       // Auto-calculate emissionsFactor if carbonIntensity and amounts are provided
       if (updatedEmission.carbonIntensity > 0 && amounts.length > 0 && amounts[0]?.amount > 0) {
         updatedEmission.emissionsFactor = updatedEmission.carbonIntensity / amounts[0].amount
       }
-      
+
       return updatedEmission
     })
     setEmissions(updated)
@@ -376,7 +385,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
     const newDocuments: UploadedDocument[] = files.map(file => ({
       id: crypto.randomUUID(),
       file,
-      fileType: 'Certificate' as FileType,
+      fileType: FileType.CERTIFICATE,
       fileExtension: file.name.toLowerCase().endsWith('.csv') ? 'CSV' : 'PDF',
       title: file.name.replace(/\.[^/.]+$/, ''),
       description: '',
@@ -386,20 +395,29 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
     setDocs(prev => [...prev, ...newDocuments])
   }
 
-  const handleDocumentUpdate = (documentId: string, updates: Partial<UploadedDocument & { metadata: MetadataItem[] }>) => {
-    setDocs(prev => prev.map(d => {
-      if (d.id !== documentId) return d
-      const next = { ...d }
-      if (updates.title !== undefined) next.title = updates.title
-      if (updates.description !== undefined) next.description = updates.description
-      if ((updates as any).fileType !== undefined) next.fileType = (updates as any).fileType
-      if ((updates as any).fileExtension !== undefined) next.fileExtension = (updates as any).fileExtension as any
-      if ((updates as any).organizations !== undefined) next.organizations = (updates as any).organizations as any
-      if ((updates as any).metadata) {
-        next.metadata = (updates as any).metadata.map((m: any) => ({ key: m.key, label: m.label, value: m.value || '' }))
-      }
-      return next
-    }))
+  const handleDocumentUpdate = (
+    documentId: string,
+    updates: Partial<UploadedDocument & { metadata: MetadataItem[] }>
+  ) => {
+    setDocs(prev =>
+      prev.map(d => {
+        if (d.id !== documentId) return d
+        const next = { ...d }
+        if (updates.title !== undefined) next.title = updates.title
+        if (updates.description !== undefined) next.description = updates.description
+        if ((updates as any).fileType !== undefined) next.fileType = (updates as any).fileType
+        if ((updates as any).fileExtension !== undefined) next.fileExtension = (updates as any).fileExtension as any
+        if ((updates as any).organizations !== undefined) next.organizations = (updates as any).organizations as any
+        if ((updates as any).metadata) {
+          next.metadata = (updates as any).metadata.map((m: any) => ({
+            key: m.key,
+            label: m.label,
+            value: m.value || '',
+          }))
+        }
+        return next
+      })
+    )
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -421,7 +439,10 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
         // Create new Production Source
         // Convert comma-separated technology to array
         const technologyArray = fuelTechnology.trim()
-          ? fuelTechnology.split(',').map(t => t.trim()).filter(Boolean)
+          ? fuelTechnology
+              .split(',')
+              .map(t => t.trim())
+              .filter(Boolean)
           : ['TCAT']
         ps = await createProductionSource({
           name: projectName,
@@ -431,7 +452,15 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
           links: links.length ? links : undefined,
           documents: [],
           externalIDs: [{ id: psExternalId.trim() }],
-          organizations: registryOrgId ? [{ orgId: registryOrgId, role: OrgRoleTypes.REGISTRY, orgName: availableOrgs.find(o => o.id === registryOrgId)?.name || '' }] : undefined,
+          organizations: registryOrgId
+            ? [
+                {
+                  orgId: registryOrgId,
+                  role: OrgRoleTypes.REGISTRY,
+                  orgName: availableOrgs.find(o => o.id === registryOrgId)?.name || '',
+                },
+              ]
+            : undefined,
         })
       }
 
@@ -452,10 +481,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
           uploadedDocIds.push(uploadedDoc.id)
         }
         if (uploadedDocIds.length > 0) {
-          await supabase
-            .from('production_sources')
-            .update({ documents: uploadedDocIds })
-            .eq('id', ps.id)
+          await supabase.from('production_sources').update({ documents: uploadedDocIds }).eq('id', ps.id)
         }
       }
 
@@ -473,10 +499,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
       // Attach uploaded docs to certificate
       if (uploadedDocIds.length > 0) {
         const supabase = createClientComponentClient()
-        await supabase
-          .from('eacertificates')
-          .update({ documents: uploadedDocIds })
-          .eq('id', cert.id)
+        await supabase.from('eacertificates').update({ documents: uploadedDocIds }).eq('id', cert.id)
       }
 
       // 4) Create Production Event for Vintage
@@ -496,14 +519,14 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
       const yearStr = commercialOperationDateYear.trim() || commercialOperationYear.trim()
       const monthStr = commercialOperationDateMonth.trim()
       const dayStr = commercialOperationDateDay.trim()
-      
+
       let activationYear = 'N/A'
       let activationDate = new Date(2000, 0, 1) // Placeholder date when N/A
-      
+
       if (yearStr) {
         const yearNum = parseInt(yearStr, 10)
         const isValidYear = yearNum >= 1900 && yearNum <= new Date().getFullYear() + 10
-        
+
         if (isValidYear) {
           activationYear = yearStr
           // If month is provided, use it (0-indexed in Date constructor), otherwise default to 0 (January)
@@ -513,7 +536,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
           activationDate = new Date(yearNum, month, day)
         }
       }
-      
+
       await createEvent({
         target: EventTarget.PSOURCE,
         targetId: ps.id,
@@ -550,29 +573,38 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
             const uploadedDoc = await uploadAndCreateDocument({
               file: verificationReportDoc.file,
               fileName: verificationReportDoc.file.name,
-              fileType: 'AUDIT' as FileType, // Using AUDIT as closest match, or we could add VERIFICATION type
+              fileType: FileType.AUDIT, // Using AUDIT as closest match, or we could add VERIFICATION type
               title: verificationReportDoc.title,
               description: verificationReportDoc.description,
               metadata: verificationReportDoc.metadata,
-              organizations: [{ orgId: verificationBodyOrgId, role: OrgRoleTypes.MRV_VERIFIER, orgName: verificationOrg.name }],
+              organizations: [
+                { orgId: verificationBodyOrgId, role: OrgRoleTypes.MRV_VERIFIER, orgName: verificationOrg.name },
+              ],
             })
             verificationDocIds.push(uploadedDoc.id)
           }
-          
+
           const verificationEvent = await createEvent({
             target: EventTarget.EAC,
             targetId: cert.id,
             type: 'MRVERIFICATION',
-            organizations: [{ orgId: verificationBodyOrgId, role: OrgRoleTypes.MRV_VERIFIER, orgName: verificationOrg.name }],
-            documents: verificationDocIds.length > 0 ? verificationDocIds.map(id => ({
-              id,
-              url: '',
-              fileType: 'AUDIT' as FileType,
-              title: verificationReportDoc!.title,
-              description: verificationReportDoc!.description,
-              metadata: verificationReportDoc!.metadata,
-              organizations: [{ orgId: verificationBodyOrgId, role: OrgRoleTypes.MRV_VERIFIER, orgName: verificationOrg.name }],
-            })) : undefined,
+            organizations: [
+              { orgId: verificationBodyOrgId, role: OrgRoleTypes.MRV_VERIFIER, orgName: verificationOrg.name },
+            ],
+            documents:
+              verificationDocIds.length > 0
+                ? verificationDocIds.map(id => ({
+                    id,
+                    url: '',
+                    fileType: FileType.AUDIT,
+                    title: verificationReportDoc!.title,
+                    description: verificationReportDoc!.description,
+                    metadata: verificationReportDoc!.metadata,
+                    organizations: [
+                      { orgId: verificationBodyOrgId, role: OrgRoleTypes.MRV_VERIFIER, orgName: verificationOrg.name },
+                    ],
+                  }))
+                : undefined,
             dates: {
               start: new Date(), // Use current date for verification
             },
@@ -606,7 +638,9 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
           type: 'MRVRATING',
           organizations: [
             { orgId: rating.orgId, role: OrgRoleTypes.MRV_RATING_AGENCY, orgName: rating.orgName || '' },
-            ...(rating.externalID ? [{ orgId: rating.externalID, role: OrgRoleTypes.OTHER, orgName: '', roleCustom: 'External ID' }] : []),
+            ...(rating.externalID
+              ? [{ orgId: rating.externalID, role: OrgRoleTypes.OTHER, orgName: '', roleCustom: 'External ID' }]
+              : []),
           ],
           notes: rating.value, // Using notes field for rating value
           dates: {
@@ -619,15 +653,11 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
       if (otherMetadata.length > 0) {
         const supabase = createClientComponentClient()
         // Get certificate's documents
-        const { data: certData } = await supabase
-          .from('eacertificates')
-          .select('documents')
-          .eq('id', cert.id)
-          .single()
-        
+        const { data: certData } = await supabase.from('eacertificates').select('documents').eq('id', cert.id).single()
+
         // Use uploaded docs from this form or certificate's existing docs
-        const docIdsToUpdate = uploadedDocIds.length > 0 ? uploadedDocIds : (certData?.documents || [])
-        
+        const docIdsToUpdate = uploadedDocIds.length > 0 ? uploadedDocIds : certData?.documents || []
+
         if (docIdsToUpdate.length > 0) {
           // Get first document and update its metadata
           const { data: docData } = await supabase
@@ -635,18 +665,18 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
             .select('metadata')
             .eq('doc_id', docIdsToUpdate[0])
             .single()
-          
+
           const existingMetadata = (docData?.metadata as MetadataItem[]) || []
-          const updatedMetadata = [...existingMetadata, ...otherMetadata.map(item => ({
-            key: item.key,
-            label: item.label,
-            value: item.value,
-          }))]
-          
-          await supabase
-            .from('documents')
-            .update({ metadata: updatedMetadata })
-            .eq('doc_id', docIdsToUpdate[0])
+          const updatedMetadata = [
+            ...existingMetadata,
+            ...otherMetadata.map(item => ({
+              key: item.key,
+              label: item.label,
+              value: item.value,
+            })),
+          ]
+
+          await supabase.from('documents').update({ metadata: updatedMetadata }).eq('doc_id', docIdsToUpdate[0])
         } else {
           // If no documents exist, add metadata to certificate metadata field (if available)
           // For now, we'll store it in the first uploaded document when available
@@ -694,7 +724,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                           input.type = 'file'
                           input.accept = '.pdf,.csv'
                           input.multiple = true
-                          input.onchange = (e) => {
+                          input.onchange = e => {
                             const files = Array.from((e.target as HTMLInputElement).files || [])
                             if (files.length > 0) handleFilesUploaded(files)
                           }
@@ -706,7 +736,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                       </Button>
                     </div>
                     <div className="space-y-3 max-h-48 overflow-y-auto">
-                      {docs.map((doc) => (
+                      {docs.map(doc => (
                         <DocumentCard
                           key={doc.id}
                           file={doc.file}
@@ -747,7 +777,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                   <label className="block text-sm font-medium text-gray-700 mb-2">Certificate Type</label>
                   <Select
                     value={certType as any}
-                    onValueChange={(v) => {
+                    onValueChange={v => {
                       setCertType(v as EACType)
                       ensureDefaultAmountUnit(v as EACType)
                     }}
@@ -757,7 +787,9 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(EAC_TYPE_NAMES).map(([key, name]) => (
-                        <SelectItem key={key} value={key}>{name}</SelectItem>
+                        <SelectItem key={key} value={key}>
+                          {name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -766,16 +798,16 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                 {/* A. Project name - Searchable autocomplete */}
                 <FormFieldWrapper label="Project name" required>
                   <div className="relative" ref={projectNameInputRef}>
-                    <Input 
-                      value={projectName} 
-                      onChange={e => handleProjectNameChange(e.target.value)} 
+                    <Input
+                      value={projectName}
+                      onChange={e => handleProjectNameChange(e.target.value)}
                       onFocus={() => {
                         if (projectName.trim() && filteredProductionSourcesForName.length > 0) {
                           setProjectNameOpen(true)
                         }
                       }}
-                      placeholder="Project name" 
-                      required 
+                      placeholder="Project name"
+                      required
                     />
                     {projectNameOpen && filteredProductionSourcesForName.length > 0 && (
                       <div className="absolute z-50 w-full mt-1 bg-popover text-popover-foreground rounded-md border shadow-md">
@@ -783,7 +815,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                           <CommandList className="max-h-[300px] overflow-y-auto">
                             <CommandEmpty>No production source found. Type to create a new one.</CommandEmpty>
                             <CommandGroup>
-                              {filteredProductionSourcesForName.map((ps) => {
+                              {filteredProductionSourcesForName.map(ps => {
                                 const isSelected = selectedProductionSourceForName?.id === ps.id
                                 return (
                                   <CommandItem
@@ -793,10 +825,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                                   >
                                     {ps.name || `Source ${ps.id.slice(0, 8)}...`}
                                     <Check
-                                      className={cn(
-                                        "ml-auto h-4 w-4",
-                                        isSelected ? "opacity-100" : "opacity-0"
-                                      )}
+                                      className={cn('ml-auto h-4 w-4', isSelected ? 'opacity-100' : 'opacity-0')}
                                     />
                                   </CommandItem>
                                 )
@@ -824,7 +853,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                 <FormFieldWrapper label="Project or facility fuel and technology types">
                   <Input
                     value={fuelTechnology}
-                    onChange={(e) => setFuelTechnology(e.target.value)}
+                    onChange={e => setFuelTechnology(e.target.value)}
                     placeholder="e.g. Solar, Wind, Hydro, Biomass, Natural Gas, etc."
                     disabled={isFormDisabled}
                   />
@@ -833,18 +862,26 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                   </p>
                 </FormFieldWrapper>
 
-                {/* C. Registry (Production Source selector) */}
+                {/* C. Registry (Organization selector) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Registry</label>
-                  <ProductionSourceSelector
-                    value={selectedProductionSourceId}
-                    onChange={(psId) => setSelectedProductionSourceId(psId)}
+                  <OrganizationSelector
+                    value={registryOrgId}
+                    onChange={orgId => setRegistryOrgId(orgId)}
                     placeholder="Select registry organization"
-                    productionSources={productionSources}
-                    onProductionSourcesChange={(sources) => {
-                      setProductionSources(sources)
+                    organizations={availableOrgs.map(org => ({
+                      id: org.id,
+                      name: org.name,
+                    }))}
+                    onOrganizationsChange={orgs => {
+                      setAvailableOrgs(
+                        orgs.map(org => ({
+                          id: org.id,
+                          name: org.name || '',
+                        }))
+                      )
                     }}
-                    isLoading={isLoadingProductionSources}
+                    isLoading={isLoadingOrgs}
                     sharedDocuments={docs}
                     selectedDocumentId={selectedDocId}
                     createButtonText="Can't find it? Create a new organization"
@@ -862,7 +899,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                         max={new Date().getFullYear() + 10}
                         placeholder="YYYY"
                         value={commercialOperationDateYear}
-                        onChange={(e) => {
+                        onChange={e => {
                           const year = e.target.value
                           // Only allow valid year format (4 digits)
                           if (year === '' || /^\d{0,4}$/.test(year)) {
@@ -879,7 +916,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                         max="12"
                         placeholder="MM"
                         value={commercialOperationDateMonth}
-                        onChange={(e) => {
+                        onChange={e => {
                           const month = e.target.value
                           // Only allow valid month format (1-12)
                           if (month === '' || /^([1-9]|1[0-2])?$/.test(month)) {
@@ -896,7 +933,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                         max="31"
                         placeholder="DD"
                         value={commercialOperationDateDay}
-                        onChange={(e) => {
+                        onChange={e => {
                           const day = e.target.value
                           // Only allow valid day format (1-31)
                           if (day === '' || /^([1-9]|[12][0-9]|3[01])?$/.test(day)) {
@@ -914,10 +951,10 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
 
                 {/* E. Project / facility description */}
                 <FormFieldWrapper label="Project / facility description">
-                  <Textarea 
-                    value={projectDescription} 
-                    onChange={e => setProjectDescription(e.target.value)} 
-                    rows={3} 
+                  <Textarea
+                    value={projectDescription}
+                    onChange={e => setProjectDescription(e.target.value)}
+                    rows={3}
                     placeholder="Short description"
                     disabled={isFormDisabled}
                   />
@@ -950,14 +987,22 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                 {/* G. Vintage */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <FormFieldWrapper label="Vintage start" required>
-                    <DatePicker value={vintageStart} onChange={setVintageStart} placeholder="Select start date" disabled={isFormDisabled} />
+                    <DatePicker
+                      value={vintageStart}
+                      onChange={setVintageStart}
+                      placeholder="Select start date"
+                      disabled={isFormDisabled}
+                    />
                   </FormFieldWrapper>
                   <FormFieldWrapper label="Vintage end (optional)">
-                    <DatePicker value={vintageEnd} onChange={setVintageEnd} placeholder="Select end date" disabled={isFormDisabled} />
+                    <DatePicker
+                      value={vintageEnd}
+                      onChange={setVintageEnd}
+                      placeholder="Select end date"
+                      disabled={isFormDisabled}
+                    />
                   </FormFieldWrapper>
                 </div>
-
-                
 
                 {/* I. Emissions Mitigation Data - Hide for Carbon Credits */}
                 {certType !== EACTypeEnum.CC && (
@@ -970,7 +1015,6 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                   />
                 )}
 
-
                 {/* Entity name - Organizations */}
                 <div>
                   <OrganizationRoleField
@@ -980,7 +1024,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                     description="Information about the EAC seller and other organizations associated with this certificate. Organizations will be stored in an ISSUANCE event."
                     sharedDocuments={docs}
                     selectedDocumentId={selectedDocId}
-                    addLabel='Add organization'
+                    addLabel="Add organization"
                   />
                 </div>
 
@@ -989,10 +1033,10 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                   <label className="block text-sm font-medium text-gray-700 mb-2">Verification body</label>
                   <OrganizationSelector
                     value={verificationBodyOrgId}
-                    onChange={(orgId) => setVerificationBodyOrgId(orgId)}
+                    onChange={orgId => setVerificationBodyOrgId(orgId)}
                     placeholder="Select verification body"
                     organizations={availableOrgs.map(org => ({ id: org.id, name: org.name }))}
-                    onOrganizationsChange={(orgs) => {
+                    onOrganizationsChange={orgs => {
                       setAvailableOrgs(orgs.map(org => ({ id: org.id, name: org.name || '' })))
                     }}
                     isLoading={isLoadingOrgs}
@@ -1000,7 +1044,8 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                     selectedDocumentId={selectedDocId}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    The selected organization will be automatically added to the Entity name list with "Verifier" role. An MRVERIFICATION event will be created behind the scenes.
+                    The selected organization will be automatically added to the Entity name list with "Verifier" role.
+                    An MRVERIFICATION event will be created behind the scenes.
                   </p>
                 </div>
 
@@ -1026,13 +1071,13 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                         </div>
                       ) : (
                         <Dropzone
-                          onFilesAccepted={(files) => {
+                          onFilesAccepted={files => {
                             if (files.length > 0) {
                               const file = files[0]
                               setVerificationReportDoc({
                                 id: crypto.randomUUID(),
                                 file,
-                                fileType: 'AUDIT' as FileType,
+                                fileType: FileType.AUDIT,
                                 fileExtension: file.name.toLowerCase().endsWith('.csv') ? 'CSV' : 'PDF',
                                 title: file.name.replace(/\.[^/.]+$/, ''),
                                 description: '',
@@ -1063,7 +1108,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                       description="Select or create labels for this certificate"
                       placeholder="Type to search or create a label..."
                       allowCreate={true}
-                      onCreateNew={(value) => value}
+                      onCreateNew={value => value}
                       emptyMessage="No labels found. Type to create a new one."
                     />
                   </div>
@@ -1080,7 +1125,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                           }}
                           placeholder="Select organization"
                           organizations={availableOrgs.map(org => ({ id: org.id, name: org.name }))}
-                          onOrganizationsChange={(orgs) => {
+                          onOrganizationsChange={orgs => {
                             setAvailableOrgs(orgs.map(org => ({ id: org.id, name: org.name || '' })))
                           }}
                           isLoading={isLoadingOrgs}
@@ -1091,21 +1136,21 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                       <FormFieldWrapper label="Rating value" required>
                         <Input
                           value={rating.value}
-                          onChange={(e) => setRating(prev => ({ ...prev, value: e.target.value }))}
+                          onChange={e => setRating(prev => ({ ...prev, value: e.target.value }))}
                           placeholder="e.g., A+, AAA"
                         />
                       </FormFieldWrapper>
                       <FormFieldWrapper label="Rating date">
                         <DatePicker
                           value={rating.date}
-                          onChange={(date) => setRating(prev => ({ ...prev, date }))}
+                          onChange={date => setRating(prev => ({ ...prev, date }))}
                           placeholder="Select date"
                         />
                       </FormFieldWrapper>
                       <FormFieldWrapper label="External ID (optional)">
                         <Input
                           value={rating.externalID || ''}
-                          onChange={(e) => setRating(prev => ({ ...prev, externalID: e.target.value }))}
+                          onChange={e => setRating(prev => ({ ...prev, externalID: e.target.value }))}
                           placeholder="Organization external ID"
                         />
                       </FormFieldWrapper>
@@ -1133,7 +1178,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                             <div className="grid grid-cols-2 gap-2">
                               <Input
                                 value={item.label}
-                                onChange={(e) => {
+                                onChange={e => {
                                   const updated = [...otherMetadata]
                                   updated[idx] = { ...updated[idx], label: e.target.value, key: e.target.value }
                                   setOtherMetadata(updated)
@@ -1142,7 +1187,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                               />
                               <Input
                                 value={item.value}
-                                onChange={(e) => {
+                                onChange={e => {
                                   const updated = [...otherMetadata]
                                   updated[idx] = { ...updated[idx], value: e.target.value }
                                   setOtherMetadata(updated)
@@ -1156,10 +1201,10 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                     )}
                     <div className="space-y-2">
                       <div className="grid grid-cols-2 gap-2">
-                        <Input 
-                          placeholder="Field name" 
+                        <Input
+                          placeholder="Field name"
                           id="other-label"
-                          onKeyDown={(e) => {
+                          onKeyDown={e => {
                             if (e.key === 'Enter') {
                               e.preventDefault()
                               const labelInput = document.getElementById('other-label') as HTMLInputElement
@@ -1171,7 +1216,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                                     key: labelInput.value.trim(),
                                     label: labelInput.value.trim(),
                                     value: valueInput.value.trim(),
-                                  }
+                                  },
                                 ])
                                 labelInput.value = ''
                                 valueInput.value = ''
@@ -1180,10 +1225,10 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                             }
                           }}
                         />
-                        <Input 
-                          placeholder="Value" 
+                        <Input
+                          placeholder="Value"
                           id="other-value"
-                          onKeyDown={(e) => {
+                          onKeyDown={e => {
                             if (e.key === 'Enter') {
                               e.preventDefault()
                               const labelInput = document.getElementById('other-label') as HTMLInputElement
@@ -1195,7 +1240,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                                     key: labelInput.value.trim(),
                                     label: labelInput.value.trim(),
                                     value: valueInput.value.trim(),
-                                  }
+                                  },
                                 ])
                                 labelInput.value = ''
                                 valueInput.value = ''
@@ -1210,8 +1255,12 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                 </div>
 
                 <div className="flex justify-end gap-3 pt-6 border-t">
-                  <Button type="button" variant="outline" onClick={() => router.push(backHref)} disabled={saving}>Cancel</Button>
-                  <Button type="submit" disabled={saving}>{saving ? 'Creating…' : 'Create TCAT Certificate'}</Button>
+                  <Button type="button" variant="outline" onClick={() => router.push(backHref)} disabled={saving}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={saving}>
+                    {saving ? 'Creating…' : 'Create TCAT Certificate'}
+                  </Button>
                 </div>
               </form>
             </div>
@@ -1227,10 +1276,6 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
           onUpdate={handleDocumentUpdate as any}
         />
       )}
-
     </div>
   )
 }
-
-
-
