@@ -53,6 +53,9 @@ type UploadedDocument = {
   organizations: Array<{ orgId: string; role: string }>
 }
 
+// Metadata target options for where to attach metadata
+type MetadataTarget = 'productionSource' | 'document' | 'event' | 'certificate'
+
 export default function TCATCertificateSplitForm({ backHref }: { backHref: string }) {
   const router = useRouter()
 
@@ -101,7 +104,10 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
     orgId: '',
     value: '',
   })
-  const [otherMetadata, setOtherMetadata] = useState<Array<{ key: string; label: string; value: string }>>([]) // Array of metadata items
+  const [otherMetadata, setOtherMetadata] = useState<
+    Array<{ key: string; label: string; value: string; target: MetadataTarget }>
+  >([]) // Array of metadata items with target entity
+  const [newMetadataTarget, setNewMetadataTarget] = useState<MetadataTarget>('productionSource') // Target for new metadata entry
 
   // Right side form state
   const [saving, setSaving] = useState(false)
@@ -558,8 +564,9 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
       // 6) Create ISSUANCE Event for Certificate with Organizations (Entity name)
       // Filter out organizations without orgId (incomplete entries)
       const validOrganizations = organizations.filter(org => org.orgId && org.orgId.trim() !== '')
+      let issuanceEventId: string | null = null
       if (validOrganizations.length > 0) {
-        await createEvent({
+        const issuanceEvent = await createEvent({
           target: EventTarget.EAC,
           targetId: cert.id,
           type: 'ISSUANCE', // Use ISSUANCE by default (not a specific redemption)
@@ -568,6 +575,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
             start: new Date(), // Use current date for issuance
           },
         })
+        issuanceEventId = issuanceEvent.id
       }
 
       // 7) Create MRVERIFICATION Event for Certificate with Verification Body (behind the scenes)
@@ -657,38 +665,95 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
         })
       }
 
-      // 10) Add other metadata to certificate's first document
+      // 10) Add other metadata to appropriate entities based on target
       if (otherMetadata.length > 0) {
         const supabase = createClientComponentClient()
-        // Get certificate's documents
-        const { data: certData } = await supabase.from('eacertificates').select('documents').eq('id', cert.id).single()
 
-        // Use uploaded docs from this form or certificate's existing docs
-        const docIdsToUpdate = uploadedDocIds.length > 0 ? uploadedDocIds : certData?.documents || []
-
-        if (docIdsToUpdate.length > 0) {
-          // Get first document and update its metadata
-          const { data: docData } = await supabase
-            .from('documents')
-            .select('metadata')
-            .eq('doc_id', docIdsToUpdate[0])
-            .single()
-
-          const existingMetadata = (docData?.metadata as MetadataItem[]) || []
-          const updatedMetadata = [
-            ...existingMetadata,
-            ...otherMetadata.map(item => ({
+        // Group metadata by target entity
+        const metadataByTarget = otherMetadata.reduce(
+          (acc, item) => {
+            if (!acc[item.target]) {
+              acc[item.target] = []
+            }
+            acc[item.target].push({
               key: item.key,
               label: item.label,
               value: item.value,
-            })),
-          ]
+            })
+            return acc
+          },
+          {} as Record<MetadataTarget, Array<{ key: string; label: string; value: string }>>
+        )
 
-          await supabase.from('documents').update({ metadata: updatedMetadata }).eq('doc_id', docIdsToUpdate[0])
-        } else {
-          // If no documents exist, add metadata to certificate metadata field (if available)
-          // For now, we'll store it in the first uploaded document when available
-          console.warn('No documents available to attach other metadata to')
+        // Helper to merge metadata arrays
+        const mergeMetadata = (
+          existing: MetadataItem[] | null,
+          newItems: Array<{ key: string; label: string; value: string }>
+        ): MetadataItem[] => {
+          return [...(existing || []), ...newItems]
+        }
+
+        // Save metadata to ProductionSource
+        if (metadataByTarget.productionSource?.length > 0) {
+          const { data: psData } = await supabase.from('production_sources').select('metadata').eq('id', ps.id).single()
+          const updatedMetadata = mergeMetadata(psData?.metadata, metadataByTarget.productionSource)
+          await supabase.from('production_sources').update({ metadata: updatedMetadata }).eq('id', ps.id)
+        }
+
+        // Save metadata to Document (first uploaded document)
+        if (metadataByTarget.document?.length > 0) {
+          const { data: certData } = await supabase
+            .from('eacertificates')
+            .select('documents')
+            .eq('id', cert.id)
+            .single()
+          const docIdsToUpdate = uploadedDocIds.length > 0 ? uploadedDocIds : certData?.documents || []
+
+          if (docIdsToUpdate.length > 0) {
+            const { data: docData } = await supabase
+              .from('documents')
+              .select('metadata')
+              .eq('doc_id', docIdsToUpdate[0])
+              .single()
+            const updatedMetadata = mergeMetadata(docData?.metadata, metadataByTarget.document)
+            await supabase.from('documents').update({ metadata: updatedMetadata }).eq('doc_id', docIdsToUpdate[0])
+          } else {
+            console.warn('No documents available to attach document metadata to')
+          }
+        }
+
+        // Save metadata to Event (ISSUANCE event)
+        if (metadataByTarget.event?.length > 0) {
+          if (issuanceEventId) {
+            const { data: eventData } = await supabase
+              .from('events')
+              .select('metadata')
+              .eq('id', issuanceEventId)
+              .single()
+            const updatedMetadata = mergeMetadata(eventData?.metadata, metadataByTarget.event)
+            await supabase.from('events').update({ metadata: updatedMetadata }).eq('id', issuanceEventId)
+          } else {
+            // Create an ISSUANCE event if one doesn't exist, to hold the metadata
+            const newEvent = await createEvent({
+              target: EventTarget.EAC,
+              targetId: cert.id,
+              type: 'ISSUANCE',
+              dates: { start: new Date() },
+              metadata: metadataByTarget.event,
+            })
+            console.log('Created new ISSUANCE event for metadata:', newEvent.id)
+          }
+        }
+
+        // Save metadata to Certificate (use sparingly per PEACH guidelines)
+        if (metadataByTarget.certificate?.length > 0) {
+          const { data: certMetaData } = await supabase
+            .from('eacertificates')
+            .select('metadata')
+            .eq('id', cert.id)
+            .single()
+          const updatedMetadata = mergeMetadata(certMetaData?.metadata, metadataByTarget.certificate)
+          await supabase.from('eacertificates').update({ metadata: updatedMetadata }).eq('id', cert.id)
         }
       }
 
@@ -1167,6 +1232,10 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                   {/* Other Metadata - Always visible */}
                   <div className="p-4 border rounded space-y-2">
                     <div className="text-sm font-medium mb-2">Other Metadata</div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Add custom metadata and select which entity it applies to. Per PEACH guidelines, prefer Production
+                      Source, Document, or Event over Certificate.
+                    </p>
                     {otherMetadata.length > 0 && (
                       <div className="space-y-2">
                         {otherMetadata.map((item, idx) => (
@@ -1182,7 +1251,25 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                                 Remove
                               </Button>
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-3 gap-2">
+                              <Select
+                                value={item.target}
+                                onValueChange={(value: MetadataTarget) => {
+                                  const updated = [...otherMetadata]
+                                  updated[idx] = { ...updated[idx], target: value }
+                                  setOtherMetadata(updated)
+                                }}
+                              >
+                                <SelectTrigger className="text-xs">
+                                  <SelectValue placeholder="Target" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="productionSource">Production Source</SelectItem>
+                                  <SelectItem value="document">Document</SelectItem>
+                                  <SelectItem value="event">Event (Issuance)</SelectItem>
+                                  <SelectItem value="certificate">Certificate</SelectItem>
+                                </SelectContent>
+                              </Select>
                               <Input
                                 value={item.label}
                                 onChange={e => {
@@ -1207,7 +1294,21 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                       </div>
                     )}
                     <div className="space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-2">
+                        <Select
+                          value={newMetadataTarget}
+                          onValueChange={(value: MetadataTarget) => setNewMetadataTarget(value)}
+                        >
+                          <SelectTrigger className="text-xs">
+                            <SelectValue placeholder="Target" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="productionSource">Production Source</SelectItem>
+                            <SelectItem value="document">Document</SelectItem>
+                            <SelectItem value="event">Event (Issuance)</SelectItem>
+                            <SelectItem value="certificate">Certificate</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <Input
                           placeholder="Field name"
                           id="other-label"
@@ -1223,6 +1324,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                                     key: labelInput.value.trim(),
                                     label: labelInput.value.trim(),
                                     value: valueInput.value.trim(),
+                                    target: newMetadataTarget,
                                   },
                                 ])
                                 labelInput.value = ''
@@ -1247,6 +1349,7 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
                                     key: labelInput.value.trim(),
                                     label: labelInput.value.trim(),
                                     value: valueInput.value.trim(),
+                                    target: newMetadataTarget,
                                   },
                                 ])
                                 labelInput.value = ''
