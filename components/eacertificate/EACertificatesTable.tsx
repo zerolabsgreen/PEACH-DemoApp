@@ -27,10 +27,14 @@ import { countries } from "countries-list"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Button as UIButton } from "@/components/ui/button"
-import { ChevronsUpDown, Check } from "lucide-react"
+import { ChevronsUpDown, Check, Download, ChevronDown, FileArchive } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { exportToCSV, generateCSVFilename } from "@/lib/utils/csv-export"
-import { Download } from "lucide-react"
+import { exportToCSV, generateCSVFilename, exportRelatedEntitiesAsZip, extractOrganizationIds, ExportProgress } from "@/lib/utils/csv-export"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { getProductionSourcesByIds } from "@/lib/services/production-sources"
+import { listEventsByTargetIds } from "@/lib/services/events"
+import { getOrganizationsByIds } from "@/lib/services/organizations"
+import { EventTarget } from "@/lib/types/eacertificate"
 
 interface Props {
   data: EACertificateRow[]
@@ -49,6 +53,8 @@ export function EACertificatesTable({ data, onDelete }: Props) {
   const [countryOpen, setCountryOpen] = useState(false)
   const [country, setCountry] = useState<string>("")
   const [isExporting, setIsExporting] = useState(false)
+  const [isExportingAll, setIsExportingAll] = useState(false)
+  const [exportProgress, setExportProgress] = useState<ExportProgress | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -100,13 +106,51 @@ export function EACertificatesTable({ data, onDelete }: Props) {
         country,
         search: query
       });
-      
+
       await exportToCSV(filteredData, filename, 'eacertificates');
     } catch (error) {
       console.error('Export failed:', error);
       alert('Failed to export CSV. Please try again.');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleExportAllRelated = async () => {
+    if (filteredData.length === 0) {
+      alert('No data to export');
+      return;
+    }
+
+    setIsExportingAll(true);
+    setExportProgress({ step: 'collecting', message: 'Starting export...' });
+
+    try {
+      await exportRelatedEntitiesAsZip(
+        filteredData as any,
+        async (certIds, psIds) => {
+          // Fetch all related entities in parallel
+          const [productionSources, events] = await Promise.all([
+            getProductionSourcesByIds(psIds),
+            listEventsByTargetIds(EventTarget.EAC, certIds),
+          ]);
+
+          // Extract organization IDs from fetched data
+          const orgIds = extractOrganizationIds(productionSources, events);
+
+          // Fetch organizations
+          const organizations = await getOrganizationsByIds(orgIds);
+
+          return { productionSources, events, organizations };
+        },
+        setExportProgress
+      );
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export. Please try again.');
+    } finally {
+      setIsExportingAll(false);
+      setExportProgress(null);
     }
   };
 
@@ -206,15 +250,31 @@ export function EACertificatesTable({ data, onDelete }: Props) {
 
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-600">Export</label>
-          <Button
-            onClick={handleExportCSV}
-            disabled={isExporting || filteredData.length === 0}
-            className="h-9 px-3"
-            variant="outline"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {isExporting ? 'Exporting...' : 'Export CSV'}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                disabled={isExporting || isExportingAll || filteredData.length === 0}
+                className="h-9 px-3"
+                variant="outline"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExporting ? 'Exporting...' :
+                 isExportingAll ? exportProgress?.message || 'Exporting...' :
+                 'Export'}
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExportCSV}>
+                <Download className="h-4 w-4 mr-2" />
+                Export Certificates (CSV)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportAllRelated}>
+                <FileArchive className="h-4 w-4 mr-2" />
+                Export All Related (ZIP)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <div className="overflow-hidden rounded-md border bg-white">

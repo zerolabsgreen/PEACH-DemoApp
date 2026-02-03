@@ -1,6 +1,7 @@
 import { EACertificateDB, EventDB, OrganizationDB, ProductionSourceDB } from '@/lib/types/eacertificate';
 import { EAC_TYPE_NAMES, EVENT_TARGET_NAMES } from '@/lib/types/eacertificate';
 import { format } from 'date-fns';
+import JSZip from 'jszip';
 
 // Generic CSV export function that flattens complex objects
 function flattenObject(obj: any, prefix = ''): Record<string, string> {
@@ -256,4 +257,181 @@ export function generateCSVFilename(entityType: string, filters?: Record<string,
   const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
   const filterSuffix = filters ? '_filtered' : '';
   return `${entityType}${filterSuffix}_${timestamp}.csv`;
+}
+
+// Generate CSV content as string without triggering download
+export function generateCSVContent<T extends EACertificateDB | EventDB | OrganizationDB | ProductionSourceDB | any>(
+  data: T[],
+  entityType: 'eacertificates' | 'events' | 'organizations' | 'production-sources'
+): string {
+  if (data.length === 0) {
+    return '';
+  }
+
+  let formattedData: Record<string, string>[];
+
+  switch (entityType) {
+    case 'eacertificates':
+      formattedData = formatEACertificateData(data as EACertificateDB[]);
+      break;
+    case 'events':
+      formattedData = formatEventData(data as EventDB[]);
+      break;
+    case 'organizations':
+      formattedData = formatOrganizationData(data as OrganizationDB[]);
+      break;
+    case 'production-sources':
+      formattedData = formatProductionSourceData(data as any[]);
+      break;
+    default:
+      throw new Error(`Unsupported entity type: ${entityType}`);
+  }
+
+  const allKeys = new Set<string>();
+  formattedData.forEach(obj => {
+    Object.keys(obj).forEach(key => allKeys.add(key));
+  });
+
+  const headers = Array.from(allKeys);
+  return createCSVContent(formattedData, headers);
+}
+
+// Extract unique production source IDs from certificates
+export function extractProductionSourceIds(certificates: EACertificateDB[]): string[] {
+  const ids = new Set<string>();
+  certificates.forEach(cert => {
+    const psId = (cert as any).production_source_id ?? (cert as any).productionSourceId;
+    if (psId) {
+      ids.add(psId);
+    }
+  });
+  return Array.from(ids);
+}
+
+// Extract unique organization IDs from OrganizationRole arrays
+export function extractOrganizationIds(
+  productionSources: ProductionSourceDB[],
+  events: EventDB[]
+): string[] {
+  const orgIds = new Set<string>();
+
+  productionSources.forEach(ps => {
+    if (ps.organizations && Array.isArray(ps.organizations)) {
+      ps.organizations.forEach((org: any) => {
+        if (org.orgId) {
+          orgIds.add(org.orgId);
+        }
+      });
+    }
+  });
+
+  events.forEach(event => {
+    if (event.organizations && Array.isArray(event.organizations)) {
+      event.organizations.forEach((org: any) => {
+        if (org.orgId) {
+          orgIds.add(org.orgId);
+        }
+      });
+    }
+  });
+
+  return Array.from(orgIds);
+}
+
+export interface ExportProgress {
+  step: 'collecting' | 'generating' | 'zipping' | 'downloading';
+  message: string;
+}
+
+// Export certificates and all related entities as a ZIP file
+export async function exportRelatedEntitiesAsZip(
+  certificates: EACertificateDB[],
+  fetchRelatedData: (
+    certIds: string[],
+    psIds: string[]
+  ) => Promise<{
+    productionSources: ProductionSourceDB[];
+    events: EventDB[];
+    organizations: OrganizationDB[];
+  }>,
+  onProgress?: (progress: ExportProgress) => void
+): Promise<void> {
+  if (certificates.length === 0) {
+    alert('No certificates to export');
+    return;
+  }
+
+  try {
+    // Step 1: Collect related data
+    onProgress?.({ step: 'collecting', message: 'Collecting related data...' });
+
+    const certIds = certificates.map(c => c.id);
+    const psIds = extractProductionSourceIds(certificates);
+
+    const { productionSources, events, organizations } = await fetchRelatedData(certIds, psIds);
+
+    // Step 2: Generate CSV content
+    onProgress?.({ step: 'generating', message: 'Generating CSV files...' });
+
+    const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
+
+    const csvFiles: { name: string; content: string }[] = [];
+
+    // Always include certificates
+    const certCSV = generateCSVContent(certificates, 'eacertificates');
+    if (certCSV) {
+      csvFiles.push({ name: `eacertificates_${timestamp}.csv`, content: certCSV });
+    }
+
+    // Include production sources if any
+    if (productionSources.length > 0) {
+      const psCSV = generateCSVContent(productionSources, 'production-sources');
+      if (psCSV) {
+        csvFiles.push({ name: `production_sources_${timestamp}.csv`, content: psCSV });
+      }
+    }
+
+    // Include events if any
+    if (events.length > 0) {
+      const eventsCSV = generateCSVContent(events, 'events');
+      if (eventsCSV) {
+        csvFiles.push({ name: `events_${timestamp}.csv`, content: eventsCSV });
+      }
+    }
+
+    // Include organizations if any
+    if (organizations.length > 0) {
+      const orgsCSV = generateCSVContent(organizations, 'organizations');
+      if (orgsCSV) {
+        csvFiles.push({ name: `organizations_${timestamp}.csv`, content: orgsCSV });
+      }
+    }
+
+    // Step 3: Create ZIP
+    onProgress?.({ step: 'zipping', message: 'Creating ZIP file...' });
+
+    const zip = new JSZip();
+    csvFiles.forEach(file => {
+      zip.file(file.name, file.content);
+    });
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+
+    // Step 4: Download
+    onProgress?.({ step: 'downloading', message: 'Downloading...' });
+
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(zipBlob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `eac_export_${timestamp}.zip`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+  } catch (error) {
+    console.error('Error exporting related entities:', error);
+    throw error;
+  }
 }

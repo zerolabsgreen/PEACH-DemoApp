@@ -65,6 +65,19 @@ export async function listEventsByTarget(target: EventTarget, targetId: string) 
   return (data ?? []) as EventDB[]
 }
 
+export async function listEventsByTargetIds(target: EventTarget, targetIds: string[]) {
+  if (targetIds.length === 0) return []
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('target', target)
+    .in('target_id', targetIds)
+    .order('updated_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as EventDB[]
+}
+
 export async function getEvent(id: string) {
   const supabase = getSupabase()
   const { data, error } = await supabase

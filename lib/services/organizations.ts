@@ -198,6 +198,17 @@ export async function getOrganization(id: string) {
   return data as any
 }
 
+export async function getOrganizationsByIds(ids: string[]) {
+  if (ids.length === 0) return []
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('organizations')
+    .select('*')
+    .in('id', ids)
+  if (error) throw error
+  return data as any[]
+}
+
 export async function inviteToOrganization(orgId: string, email: string) {
   throw new Error('Invitations feature is disabled')
 }
