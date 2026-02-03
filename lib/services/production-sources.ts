@@ -75,6 +75,17 @@ export async function getProductionSource(id: string) {
   return data as ProductionSourceDB
 }
 
+export async function getProductionSourcesByIds(ids: string[]) {
+  if (ids.length === 0) return []
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('production_sources')
+    .select('*')
+    .in('id', ids)
+  if (error) throw error
+  return data as ProductionSourceDB[]
+}
+
 export async function updateProductionSource(id: string, body: UpdateProductionSourceData) {
   const supabase = getSupabase()
   const {
