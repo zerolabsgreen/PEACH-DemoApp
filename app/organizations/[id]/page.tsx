@@ -42,7 +42,7 @@ export default function ViewOrganizationPage() {
       const supabase = getSupabase()
       const { data, error } = await supabase
         .from('organizations')
-        .select('id, name, url, description, contact, location, documents, external_ids')
+        .select('id, name, url, description, contacts, location, documents, external_ids')
         .eq('id', orgId)
         .single()
       if (!error) {
@@ -91,13 +91,12 @@ export default function ViewOrganizationPage() {
             <h1 className="text-2xl font-semibold">Organization</h1>
           </div>
           <div className="flex gap-2">
-            <Button asChild><Link href={`/organizations/${orgId}/edit`}>Edit</Link></Button>
+            <Button asChild>
+              <Link href={`/organizations/${orgId}/edit`}>Edit</Link>
+            </Button>
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <AlertDialogTrigger asChild>
-                <Button 
-                  variant="destructive" 
-                  disabled={deleting}
-                >
+                <Button variant="destructive" disabled={deleting}>
                   {deleting ? 'Deleting...' : 'Delete'}
                 </Button>
               </AlertDialogTrigger>
@@ -158,7 +157,7 @@ export default function ViewOrganizationPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Contact</label>
-                <Input value={org.contact ?? ''} readOnly disabled />
+                <Input value={org.contacts ?? ''} readOnly disabled />
               </div>
             </div>
             <div>
@@ -168,64 +167,54 @@ export default function ViewOrganizationPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700">Location</label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-1">
-                <Input 
-                  value={location?.country ?? ''} 
-                  placeholder={location?.country ? undefined : "Country"}
-                  readOnly 
-                  disabled 
+                <Input
+                  value={location?.country ?? ''}
+                  placeholder={location?.country ? undefined : 'Country'}
+                  readOnly
+                  disabled
                 />
-                <Input 
-                  value={location?.state ?? ''} 
-                  placeholder={location?.state ? undefined : "State"}
-                  readOnly 
-                  disabled 
+                <Input
+                  value={location?.state ?? ''}
+                  placeholder={location?.state ? undefined : 'State'}
+                  readOnly
+                  disabled
                 />
-                <Input 
-                  value={location?.region ?? ''} 
-                  placeholder={location?.region ? undefined : "Region"}
-                  readOnly 
-                  disabled 
+                <Input
+                  value={location?.region ?? ''}
+                  placeholder={location?.region ? undefined : 'Region'}
+                  readOnly
+                  disabled
                 />
-                <Input 
-                  value={location?.zipCode ?? ''} 
-                  placeholder={location?.zipCode ? undefined : "ZIP Code"}
-                  readOnly 
-                  disabled 
+                <Input
+                  value={location?.zipCode ?? ''}
+                  placeholder={location?.zipCode ? undefined : 'ZIP Code'}
+                  readOnly
+                  disabled
                 />
-                <Input 
-                  value={location?.address ?? ''} 
-                  placeholder={location?.address ? undefined : "Address"}
-                  readOnly 
-                  disabled 
+                <Input
+                  value={location?.address ?? ''}
+                  placeholder={location?.address ? undefined : 'Address'}
+                  readOnly
+                  disabled
                 />
                 {location?.latitude !== undefined && (
-                  <Input 
-                    value={location.latitude.toString()} 
-                    placeholder="Latitude"
-                    readOnly 
-                    disabled 
-                  />
+                  <Input value={location.latitude.toString()} placeholder="Latitude" readOnly disabled />
                 )}
                 {location?.longitude !== undefined && (
-                  <Input 
-                    value={location.longitude.toString()} 
-                    placeholder="Longitude"
-                    readOnly 
-                    disabled 
-                  />
+                  <Input value={location.longitude.toString()} placeholder="Longitude" readOnly disabled />
                 )}
                 {location?.geoBounds && (
-                  <Input 
-                    value={location.geoBounds} 
+                  <Input
+                    value={location.geoBounds}
                     placeholder="Geospatial Bounds"
-                    readOnly 
-                    disabled 
+                    readOnly
+                    disabled
                     className="md:col-span-3"
                   />
                 )}
               </div>
             </div>
-            
+
             {org.external_ids && org.external_ids.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">External Identifiers</label>
@@ -235,39 +224,19 @@ export default function ViewOrganizationPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">ID</label>
-                          <Input 
-                            value={externalId.id || ''} 
-                            readOnly 
-                            disabled 
-                            className="bg-white"
-                          />
+                          <Input value={externalId.id || ''} readOnly disabled className="bg-white" />
                         </div>
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">Field Name</label>
-                          <Input 
-                            value={externalId.externalFieldName || ''} 
-                            readOnly 
-                            disabled 
-                            className="bg-white"
-                          />
+                          <Input value={externalId.externalFieldName || ''} readOnly disabled className="bg-white" />
                         </div>
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">Owner Organization</label>
-                          <Input 
-                            value={externalId.ownerOrgName || ''} 
-                            readOnly 
-                            disabled 
-                            className="bg-white"
-                          />
+                          <Input value={externalId.ownerOrgName || ''} readOnly disabled className="bg-white" />
                         </div>
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">Description</label>
-                          <Input 
-                            value={externalId.description || ''} 
-                            readOnly 
-                            disabled 
-                            className="bg-white"
-                          />
+                          <Input value={externalId.description || ''} readOnly disabled className="bg-white" />
                         </div>
                       </div>
                     </div>
@@ -285,7 +254,7 @@ export default function ViewOrganizationPage() {
               entityType="organizations"
               entityId={orgId}
               currentDocumentIds={documentIds}
-              onDocumentsChange={(newIds) => {
+              onDocumentsChange={newIds => {
                 setDocumentIds(newIds)
                 // Reload documents to reflect changes
                 const loadDocs = async () => {
@@ -327,7 +296,9 @@ export default function ViewOrganizationPage() {
                     <TableCell>{formatDateTime(d.updated_at || d.created_at)}</TableCell>
                     <TableCell>
                       <Button asChild variant="outline" size="sm">
-                        <a href={d.url} target="_blank" rel="noreferrer">View</a>
+                        <a href={d.url} target="_blank" rel="noreferrer">
+                          View
+                        </a>
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -340,5 +311,3 @@ export default function ViewOrganizationPage() {
     </div>
   )
 }
-
-

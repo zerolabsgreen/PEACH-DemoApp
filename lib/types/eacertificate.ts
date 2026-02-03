@@ -558,12 +558,12 @@ export type EACTypeCode = keyof typeof EACType;
 export type FileTypeCode = keyof typeof FileType;
 export type EventTargetCode = keyof typeof EventTarget;
 
-export type AmountUnit = 
+export type AmountUnit =
   | 'MWh' | 'kWh' | 'Wh'
   | 'MMBtu' | 'MBtu' | 'Btu'
   | 'MJ' | 'kJ' | 'J'
   | 'gallons' | 'liters'
-  | 'tCO2e' | 'kgCO2e' | 'gCO2e'
+  | 'tCO2' | 'tCO2e' | 'kgCO2e' | 'gCO2e'
   | 'tons' | 'kg' | 'g';
 
 export type EmissionsUnit = 
