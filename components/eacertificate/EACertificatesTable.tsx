@@ -30,7 +30,8 @@ import { Button as UIButton } from "@/components/ui/button"
 import { ChevronsUpDown, Check, Download, ChevronDown, FileArchive } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { exportToCSV, generateCSVFilename, exportRelatedEntitiesAsZip, extractOrganizationIds, ExportProgress } from "@/lib/utils/csv-export"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { exportForTCAT, TCATExportProgress } from "@/lib/utils/tcat-export"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { getProductionSourcesByIds } from "@/lib/services/production-sources"
 import { listEventsByTargetIds } from "@/lib/services/events"
 import { getOrganizationsByIds } from "@/lib/services/organizations"
@@ -54,7 +55,9 @@ export function EACertificatesTable({ data, onDelete }: Props) {
   const [country, setCountry] = useState<string>("")
   const [isExporting, setIsExporting] = useState(false)
   const [isExportingAll, setIsExportingAll] = useState(false)
+  const [isExportingTCAT, setIsExportingTCAT] = useState(false)
   const [exportProgress, setExportProgress] = useState<ExportProgress | null>(null)
+  const [tcatExportProgress, setTcatExportProgress] = useState<TCATExportProgress | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -151,6 +154,44 @@ export function EACertificatesTable({ data, onDelete }: Props) {
     } finally {
       setIsExportingAll(false);
       setExportProgress(null);
+    }
+  };
+
+  const handleExportTCAT = async () => {
+    if (filteredData.length === 0) {
+      alert('No data to export');
+      return;
+    }
+
+    setIsExportingTCAT(true);
+    setTcatExportProgress({ step: 'collecting', message: 'Starting TCAT export...' });
+
+    try {
+      await exportForTCAT(
+        filteredData as any,
+        async (certIds, psIds) => {
+          // Fetch all related entities in parallel
+          const [productionSources, events] = await Promise.all([
+            getProductionSourcesByIds(psIds),
+            listEventsByTargetIds(EventTarget.EAC, certIds),
+          ]);
+
+          // Extract organization IDs from fetched data
+          const orgIds = extractOrganizationIds(productionSources, events);
+
+          // Fetch organizations
+          const organizations = await getOrganizationsByIds(orgIds);
+
+          return { productionSources, events, organizations };
+        },
+        setTcatExportProgress
+      );
+    } catch (error) {
+      console.error('TCAT export failed:', error);
+      alert('Failed to export for TCAT. Please try again.');
+    } finally {
+      setIsExportingTCAT(false);
+      setTcatExportProgress(null);
     }
   };
 
@@ -253,25 +294,40 @@ export function EACertificatesTable({ data, onDelete }: Props) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                disabled={isExporting || isExportingAll || filteredData.length === 0}
+                disabled={isExporting || isExportingAll || isExportingTCAT || filteredData.length === 0}
                 className="h-9 px-3"
                 variant="outline"
               >
                 <Download className="h-4 w-4 mr-2" />
                 {isExporting ? 'Exporting...' :
                  isExportingAll ? exportProgress?.message || 'Exporting...' :
+                 isExportingTCAT ? tcatExportProgress?.message || 'Exporting for TCAT...' :
                  'Export'}
                 <ChevronDown className="h-4 w-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleExportCSV}>
-                <Download className="h-4 w-4 mr-2" />
-                Export Certificates (CSV)
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuItem onClick={handleExportCSV} className="flex flex-col items-start py-2">
+                <div className="flex items-center w-full">
+                  <Download className="h-4 w-4 mr-2 shrink-0" />
+                  <span className="font-medium">Full CSV</span>
+                </div>
+                <span className="text-xs text-muted-foreground ml-6">All available entities and data</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportAllRelated}>
-                <FileArchive className="h-4 w-4 mr-2" />
-                Export All Related (ZIP)
+              <DropdownMenuItem onClick={handleExportAllRelated} className="flex flex-col items-start py-2">
+                <div className="flex items-center w-full">
+                  <FileArchive className="h-4 w-4 mr-2 shrink-0" />
+                  <span className="font-medium">Full CSV + Related (ZIP)</span>
+                </div>
+                <span className="text-xs text-muted-foreground ml-6">With production sources, events, organizations</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleExportTCAT} className="flex flex-col items-start py-2">
+                <div className="flex items-center w-full">
+                  <FileArchive className="h-4 w-4 mr-2 shrink-0" />
+                  <span className="font-medium">For TCAT</span>
+                </div>
+                <span className="text-xs text-muted-foreground ml-6">For reporting to tcataction.org</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

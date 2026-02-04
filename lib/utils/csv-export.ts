@@ -252,11 +252,78 @@ function createCSVContent(data: Record<string, string>[], headers: string[]): st
   return [headerRow, ...dataRows].join('\n');
 }
 
-// Helper function to generate filename with timestamp
+// EACType short names for filenames
+const EAC_TYPE_SHORT_NAMES: Record<string, string> = {
+  'REC': 'RE',
+  'RTC': 'RT',
+  'RNG': 'RNG',
+  'SAF': 'SAF',
+  'CC': 'CC',
+};
+
+// Helper function to extract vintage date range from certificates
+export function getVintageDateRangeFromCertificates(
+  certificates: EACertificateDB[]
+): { oldest: Date; newest: Date } | null {
+  const dates: Date[] = [];
+
+  certificates.forEach((cert) => {
+    // Try to use created_at as a proxy for vintage if no events are available
+    if (cert.created_at) {
+      dates.push(new Date(cert.created_at));
+    }
+  });
+
+  if (dates.length === 0) return null;
+
+  return {
+    oldest: new Date(Math.min(...dates.map((d) => d.getTime()))),
+    newest: new Date(Math.max(...dates.map((d) => d.getTime()))),
+  };
+}
+
+// Format vintage dates for filename (YYYYMMDD-YYYYMMDD)
+function formatVintageDatesForFilename(
+  range: { oldest: Date; newest: Date } | null
+): string {
+  if (!range) {
+    const now = new Date();
+    return format(now, 'yyyyMMdd') + '-' + format(now, 'yyyyMMdd');
+  }
+  return format(range.oldest, 'yyyyMMdd') + '-' + format(range.newest, 'yyyyMMdd');
+}
+
+// Helper function to generate filename with timestamp (legacy format)
 export function generateCSVFilename(entityType: string, filters?: Record<string, any>): string {
   const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
   const filterSuffix = filters ? '_filtered' : '';
   return `${entityType}${filterSuffix}_${timestamp}.csv`;
+}
+
+// Generate filename with PEACH naming convention
+// Format: PEACH_[EACType]_vintage-[YYYYMMDD]-[YYYYMMDD]_[EntityName].csv
+export function generatePEACHFilename(
+  entityType: 'eacertificates' | 'events' | 'organizations' | 'production-sources',
+  eacType?: string,
+  vintageRange?: { oldest: Date; newest: Date } | null
+): string {
+  const entityNames: Record<string, string> = {
+    'eacertificates': 'Certificates',
+    'events': 'Events',
+    'organizations': 'Organizations',
+    'production-sources': 'ProductionSources',
+  };
+
+  const shortType = eacType && EAC_TYPE_SHORT_NAMES[eacType] ? EAC_TYPE_SHORT_NAMES[eacType] : '';
+  const vintageDates = formatVintageDatesForFilename(vintageRange || null);
+  const entityName = entityNames[entityType] || entityType;
+
+  if (shortType) {
+    return `PEACH_${shortType}_vintage-${vintageDates}_${entityName}.csv`;
+  }
+
+  // Fallback for mixed types or no type specified
+  return `PEACH_vintage-${vintageDates}_${entityName}.csv`;
 }
 
 // Generate CSV content as string without triggering download
