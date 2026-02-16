@@ -22,8 +22,8 @@ This guide will help you set up and deploy your Supabase backend for the Peach a
 3. **Environment Variables**: Ensure you have the following in your `.env.local` file:
    ```
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   SUPABASE_SERVICE_KEY=your_supabase_service_key
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+   SUPABASE_SECRET_KEY=your_supabase_secret_key
    ```
 
 ## Local Development Setup

@@ -437,8 +437,8 @@ supabase functions deploy
 ```bash
 # Production environment
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+SUPABASE_SECRET_KEY=your-secret-key
 ```
 
 ## 📈 Performance Considerations
@@ -462,7 +462,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 ### 2. **Access Control**
 - Implement proper RLS policies
-- Use service role keys only for admin operations
+- Use secret keys only for admin operations
 - Regular security audits
 
 ### 3. **Data Protection**

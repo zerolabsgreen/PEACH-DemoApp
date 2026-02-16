@@ -2,16 +2,16 @@ import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient } from '@supabase/ssr'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 
 // Client-side Supabase client
 export const createClientComponentClient = () => {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  return createBrowserClient(supabaseUrl, supabasePublishableKey)
 }
 
 // Server-side Supabase client (for API routes)
 export const createServerComponentClient = () => {
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  return createClient(supabaseUrl, supabasePublishableKey, {
     auth: {
       persistSession: false,
     },
@@ -20,8 +20,8 @@ export const createServerComponentClient = () => {
 
 // Admin client for server-side operations (use with caution)
 export const createAdminClient = () => {
-  const serviceKey = process.env.SUPABASE_SERVICE_KEY!
-  return createClient(supabaseUrl, serviceKey, {
+  const secretKey = process.env.SUPABASE_SECRET_KEY!
+  return createClient(supabaseUrl, secretKey, {
     auth: {
       persistSession: false,
     },

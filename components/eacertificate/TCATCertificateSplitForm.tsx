@@ -1231,136 +1231,96 @@ export default function TCATCertificateSplitForm({ backHref }: { backHref: strin
 
                   {/* Other Metadata - Always visible */}
                   <div className="p-4 border rounded space-y-2">
-                    <div className="text-sm font-medium mb-2">Other Metadata</div>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Add custom metadata and select which entity it applies to. Per PEACH guidelines, prefer Production
-                      Source, Document, or Event over Certificate.
-                    </p>
-                    {otherMetadata.length > 0 && (
+                    <div className="mb-2 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-medium">Other Metadata</div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setOtherMetadata([
+                              ...otherMetadata,
+                              { key: '', label: '', value: '', target: newMetadataTarget },
+                            ])
+                          }
+                        >
+                          + Add metadata
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Add custom metadata and select which entity it applies to. Per PEACH guidelines, prefer Production
+                        Source, Document, or Event over Certificate.
+                      </p>
+                    </div>
+                    {otherMetadata.length > 0 ? (
                       <div className="space-y-2">
                         {otherMetadata.map((item, idx) => (
-                          <div key={idx} className="p-2 border rounded space-y-2">
+                          <div key={idx} className="p-3 border rounded space-y-3">
                             <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">{item.label}</span>
+                              <div className="w-48">
+                                <label className="block text-xs text-gray-500 mb-1">Target</label>
+                                <Select
+                                  value={item.target}
+                                  onValueChange={(value: MetadataTarget) => {
+                                    const updated = [...otherMetadata]
+                                    updated[idx] = { ...updated[idx], target: value }
+                                    setOtherMetadata(updated)
+                                  }}
+                                >
+                                  <SelectTrigger className="text-xs">
+                                    <SelectValue placeholder="Target" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="productionSource">Production Source</SelectItem>
+                                    <SelectItem value="document">Document</SelectItem>
+                                    <SelectItem value="event">Event (Issuance)</SelectItem>
+                                    <SelectItem value="certificate">Certificate</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setOtherMetadata(otherMetadata.filter((_, i) => i !== idx))}
+                                className="text-gray-400 hover:text-red-600"
                               >
                                 Remove
                               </Button>
                             </div>
-                            <div className="grid grid-cols-3 gap-2">
-                              <Select
-                                value={item.target}
-                                onValueChange={(value: MetadataTarget) => {
-                                  const updated = [...otherMetadata]
-                                  updated[idx] = { ...updated[idx], target: value }
-                                  setOtherMetadata(updated)
-                                }}
-                              >
-                                <SelectTrigger className="text-xs">
-                                  <SelectValue placeholder="Target" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="productionSource">Production Source</SelectItem>
-                                  <SelectItem value="document">Document</SelectItem>
-                                  <SelectItem value="event">Event (Issuance)</SelectItem>
-                                  <SelectItem value="certificate">Certificate</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <Input
-                                value={item.label}
-                                onChange={e => {
-                                  const updated = [...otherMetadata]
-                                  updated[idx] = { ...updated[idx], label: e.target.value, key: e.target.value }
-                                  setOtherMetadata(updated)
-                                }}
-                                placeholder="Field name"
-                              />
-                              <Input
-                                value={item.value}
-                                onChange={e => {
-                                  const updated = [...otherMetadata]
-                                  updated[idx] = { ...updated[idx], value: e.target.value }
-                                  setOtherMetadata(updated)
-                                }}
-                                placeholder="Value"
-                              />
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-xs text-gray-500 mb-1">Field name</label>
+                                <Input
+                                  value={item.label}
+                                  onChange={e => {
+                                    const updated = [...otherMetadata]
+                                    updated[idx] = { ...updated[idx], label: e.target.value, key: e.target.value }
+                                    setOtherMetadata(updated)
+                                  }}
+                                  placeholder="Field name"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-500 mb-1">Value</label>
+                                <Input
+                                  value={item.value}
+                                  onChange={e => {
+                                    const updated = [...otherMetadata]
+                                    updated[idx] = { ...updated[idx], value: e.target.value }
+                                    setOtherMetadata(updated)
+                                  }}
+                                  placeholder="Value"
+                                />
+                              </div>
                             </div>
                           </div>
                         ))}
                       </div>
+                    ) : (
+                      <div className="text-sm text-gray-500">No metadata added yet.</div>
                     )}
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-3 gap-2">
-                        <Select
-                          value={newMetadataTarget}
-                          onValueChange={(value: MetadataTarget) => setNewMetadataTarget(value)}
-                        >
-                          <SelectTrigger className="text-xs">
-                            <SelectValue placeholder="Target" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="productionSource">Production Source</SelectItem>
-                            <SelectItem value="document">Document</SelectItem>
-                            <SelectItem value="event">Event (Issuance)</SelectItem>
-                            <SelectItem value="certificate">Certificate</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Input
-                          placeholder="Field name"
-                          id="other-label"
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              const labelInput = document.getElementById('other-label') as HTMLInputElement
-                              const valueInput = document.getElementById('other-value') as HTMLInputElement
-                              if (labelInput?.value.trim() && valueInput?.value.trim()) {
-                                setOtherMetadata([
-                                  ...otherMetadata,
-                                  {
-                                    key: labelInput.value.trim(),
-                                    label: labelInput.value.trim(),
-                                    value: valueInput.value.trim(),
-                                    target: newMetadataTarget,
-                                  },
-                                ])
-                                labelInput.value = ''
-                                valueInput.value = ''
-                                labelInput.focus()
-                              }
-                            }
-                          }}
-                        />
-                        <Input
-                          placeholder="Value"
-                          id="other-value"
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              const labelInput = document.getElementById('other-label') as HTMLInputElement
-                              const valueInput = document.getElementById('other-value') as HTMLInputElement
-                              if (labelInput?.value.trim() && valueInput?.value.trim()) {
-                                setOtherMetadata([
-                                  ...otherMetadata,
-                                  {
-                                    key: labelInput.value.trim(),
-                                    label: labelInput.value.trim(),
-                                    value: valueInput.value.trim(),
-                                    target: newMetadataTarget,
-                                  },
-                                ])
-                                labelInput.value = ''
-                                valueInput.value = ''
-                                labelInput.focus()
-                              }
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
                   </div>
                 </div>
 
